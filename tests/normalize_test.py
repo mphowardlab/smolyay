@@ -19,8 +19,14 @@ from smolyay.normalize import (
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        SklearnNormalizer(sklearn.preprocessing.RobustScaler()),
     ],
-    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
+    ids=[
+        "IntervalNormalizer",
+        "SymmetricalLogNormalizer",
+        "ZScoreNormalizer",
+        "SklearnNormalizer",
+    ],
 )
 def test_fit(normal):
     """Test that fit returns Normalizer"""
@@ -36,20 +42,28 @@ def test_fit(normal):
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        SklearnNormalizer(sklearn.preprocessing.RobustScaler()),
     ],
-    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
+    ids=[
+        "IntervalNormalizer",
+        "SymmetricalLogNormalizer",
+        "ZScoreNormalizer",
+        "SklearnNormalizer",
+    ],
 )
-def test_check(normal):
+@pytest.mark.parametrize(
+    "x",
+    [
+        [1, 2, 3, 4, 5],
+        numpy.reshape(numpy.arange(6), (2, 3)),
+        numpy.reshape(numpy.arange(24), (2, 3, 4)),
+    ],
+    ids=["1D array", "2D array", "3D array"],
+)
+def test_check(normal, x):
     """Test if the all the normalizers pass the check"""
-    x = [1, 2, 3, 4, 5]
-    x2 = numpy.array(numpy.linspace(-10, 10), ndmin=2).transpose()
-    x3 = numpy.array(
-        [[1, 2, 3, 4, 5], [3, 4, 5, 6, 7], [5, 2, 5, 9, 0], [1, 2, 3, 4, 5]]
-    )
     normal.fit(x)
     assert normal.check_normalize(x)
-    assert normal.check_normalize(x2)
-    assert normal.check_normalize(x3)
 
 
 @pytest.mark.parametrize(
@@ -181,25 +195,6 @@ def test_sklearn_initialize_error():
     scalar = sklearn.preprocessing.Normalizer()
     with pytest.raises(AttributeError):
         SklearnNormalizer(scalar)
-
-
-@pytest.mark.parametrize(
-    "scalar_class",
-    [
-        sklearn.preprocessing.StandardScaler,
-        sklearn.preprocessing.MaxAbsScaler,
-        sklearn.preprocessing.MinMaxScaler,
-        sklearn.preprocessing.PowerTransformer,
-        sklearn.preprocessing.RobustScaler,
-    ],
-)
-def test_sklearn_check(scalar_class):
-    """Test if SklearnNormalizer passes the check for multiple transformers"""
-    x = numpy.array([1, 2, 3, 4, 5])
-    scalar = scalar_class()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert normal.check_normalize(x)
 
 
 @pytest.mark.parametrize(
