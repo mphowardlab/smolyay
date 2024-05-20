@@ -20,6 +20,7 @@ from smolyay.normalize import (
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
     ],
+    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
 )
 def test_fit(normal):
     """Test that fit returns Normalizer"""
@@ -36,6 +37,7 @@ def test_fit(normal):
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
     ],
+    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
 )
 def test_check(normal):
     """Test if the all the normalizers pass the check"""
@@ -50,6 +52,55 @@ def test_check(normal):
     assert normal.check_normalize(x3)
 
 
+@pytest.mark.parametrize(
+    "normal,answers",
+    [
+        (IntervalNormalizer(), [0, 0.25, 0.5, 0.75, 1]),
+        (SymmetricalLogNormalizer(), numpy.log10([2, 3, 4, 5, 6])),
+        (
+            ZScoreNormalizer(),
+            [
+                -2 / numpy.sqrt(2),
+                -1 / numpy.sqrt(2),
+                0,
+                1 / numpy.sqrt(2),
+                2 / numpy.sqrt(2),
+            ],
+        ),
+    ],
+    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
+)
+def test_transform(normal, answers):
+    """Test that the IntervalNormalizer transform is correct"""
+    x = [1, 2, 3, 4, 5]
+    normal.fit(x)
+    assert numpy.allclose(normal.transform(x), answers)
+
+
+@pytest.mark.parametrize(
+    "normal,answers",
+    [
+        (IntervalNormalizer(), [5, 9, 13, 17, 21]),
+        (SymmetricalLogNormalizer(), [9, 99, 999, 9999, 99999]),
+        (
+            ZScoreNormalizer(),
+            [
+                numpy.sqrt(2) + 3,
+                2 * numpy.sqrt(2) + 3,
+                3 * numpy.sqrt(2) + 3,
+                4 * numpy.sqrt(2) + 3,
+                5 * numpy.sqrt(2) + 3,
+            ],
+        ),
+    ],
+)
+def test_inverse(normal, answers):
+    """Test that the IntervalNormalizer inverse transform is correct"""
+    x = [1, 2, 3, 4, 5]
+    normal.fit(x)
+    assert numpy.allclose(normal.inverse_transform(x), answers)
+
+
 def test_interval_attributes():
     """Test if the attributes of IntervalNormalizer are added"""
     x = [1, 2, 3, 4, 5]
@@ -57,22 +108,6 @@ def test_interval_attributes():
     normal.fit(x)
     assert normal.max_val == 5
     assert normal.min_val == 1
-
-
-def test_interval_transform():
-    """Test that the IntervalNormalizer transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = IntervalNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(normal.transform(x), [0, 0.25, 0.5, 0.75, 1])
-
-
-def test_interval_inverse():
-    """Test that the IntervalNormalizer inverse transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = IntervalNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(normal.inverse_transform(x), [5, 9, 13, 17, 21])
 
 
 def test_interval_transform_error():
@@ -102,31 +137,10 @@ def test_interval_refit():
 def test_symlog_attributes():
     """Test if the attributes of SymmetricalLogNormalizer are added"""
     x = [1, 2, 3, 4, 5]
-    normal = SymmetricalLogNormalizer()
-    assert normal.linthresh == 1
-
-
-def test_symlog_attributes():
-    """Test if the attributes of SymmetricalLogNormalizer are added"""
-    x = [1, 2, 3, 4, 5]
     normal = SymmetricalLogNormalizer(linthresh=10)
     assert normal.linthresh == 10
-
-
-def test_symlog_transform():
-    """Test that the SymmetricalLogNormalizer transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = SymmetricalLogNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(normal.transform(x), numpy.log10([2, 3, 4, 5, 6]))
-
-
-def test_symlog_inverse():
-    """Test that the SymmetricalLogNormalizer inverse transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = SymmetricalLogNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(normal.inverse_transform(x), [9, 99, 999, 9999, 99999])
+    normal.linthresh = 20
+    assert normal.linthresh == 20
 
 
 def test_zscore_attributes():
@@ -136,40 +150,6 @@ def test_zscore_attributes():
     normal.fit(x)
     assert normal.mean_val == 3
     assert normal.std_val == numpy.sqrt(2)
-
-
-def test_zscore_transform():
-    """Test that the ZScoreNormalizer transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = ZScoreNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(
-        normal.transform(x),
-        [
-            -2 / numpy.sqrt(2),
-            -1 / numpy.sqrt(2),
-            0,
-            1 / numpy.sqrt(2),
-            2 / numpy.sqrt(2),
-        ],
-    )
-
-
-def test_zscore_inverse():
-    """Test that the ZScoreNormalizer inverse transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    normal = ZScoreNormalizer()
-    normal.fit(x)
-    assert numpy.allclose(
-        normal.inverse_transform(x),
-        [
-            numpy.sqrt(2) + 3,
-            2 * numpy.sqrt(2) + 3,
-            3 * numpy.sqrt(2) + 3,
-            4 * numpy.sqrt(2) + 3,
-            5 * numpy.sqrt(2) + 3,
-        ],
-    )
 
 
 def test_zscore_transform_error():
