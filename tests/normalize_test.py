@@ -341,7 +341,7 @@ def test_sklearn_refit():
 
 
 def test_sklearn_scalar_set():
-    """Test that scalar change be set"""
+    """Test that if scalar is set, it will be fit if possible"""
     x = [1, 2, 3, 4, 5]
     y = [0.2, 0.4, 0.6, 0.8, 1]
     y2 = [0, 0.25, 0.5, 0.75, 1]
