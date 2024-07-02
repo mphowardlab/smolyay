@@ -74,7 +74,7 @@ def test_random_latin_initialize():
     assert f.num_points == 64
     assert f.seed == 5678
     assert isinstance(f.scramble, bool)
-    assert f.scramble == True
+    assert f.scramble is True
     assert f.optimization == "random-cd"
     assert f.strength == 1
     assert isinstance(f.strength, int)
