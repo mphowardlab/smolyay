@@ -24,6 +24,7 @@ def test_random_initalize(random_point_set):
     assert isinstance(f.num_points, int)
     assert f.seed == 1234
     assert isinstance(f.seed, int)
+
     f.domain = [-10, 10]
     assert numpy.array_equal(f.domain, [[-10, 10]])
     f.num_points = 128.0
