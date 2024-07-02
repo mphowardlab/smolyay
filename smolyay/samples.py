@@ -661,7 +661,7 @@ class _QMCRandomPointSet(RandomPointSet):
 
     def __init__(self, domain, num_points, seed, scramble=True, optimization=None):
         super().__init__(domain, num_points, seed)
-        self._scramble = True
+        self._scramble = None
         self._optimization = None
 
         self.scramble = scramble
