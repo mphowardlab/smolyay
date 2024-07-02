@@ -931,20 +931,20 @@ class PointSetProduct(MultidimensionalPointSet):
 
     @property
     def point_sets(self):
-        """:class:UnidimensionalPointSet: set of unique points"""
+        """list of :class:UnidimensionalPointSet set of unique points"""
         return self._point_sets
 
 
 class TensorProductPointSet(PointSetProduct):
     """Points generated using all combinations of unidimensional points.
 
-    Depending on the dimensionality, points and provided by
+    Depending on the dimensionality, and points provided by
     :class:`UnidimensionalPointSet`, make full tensor grids.
     :meth:`generates_points` generates a full tensor grid
 
     Parameters
     ----------
-    unique_points : list of :class:UnidimensionalPointSet
+    point_sets : list of :class:UnidimensionalPointSet
         unique set of 1D points
     """
 
@@ -963,12 +963,12 @@ class TensorProductPointSet(PointSetProduct):
 class SmolyakSparseProductPointSet(PointSetProduct):
     """Points generated from sparse combinations of unidimensional points.
 
-    Depending on the dimensionality, and levels in each point set in
+    Depending on the dimensionality, and levels of each point set in
     param:`point_sets`, makes sparse smolyak grids.
 
     Parameters
     ----------
-    unique_points : list of :class:UnidimensionalPointSet
+    point_sets : list of :class:UnidimensionalPointSet
         unique set of 1D points
     """
 
