@@ -1008,7 +1008,7 @@ class SmolyakSparseProductPointSet(PointSetProduct):
                 self._point_sets[d].level(level) for d, level in enumerate(level_comb)
             ]
             num_points = numpy.prod([len(p) for p in level_point_combinations])
-            points_ = numpy.zeros((num_points, len(level_point_combinations)), dtype=float)
+            points_ = numpy.zeros((num_points, self.num_dimensions), dtype=float)
             for i, point in enumerate(itertools.product(*level_point_combinations)):
                 points_[i] = point
 
