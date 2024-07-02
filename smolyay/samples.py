@@ -678,7 +678,7 @@ class _QMCRandomPointSet(RandomPointSet):
         scramble = bool(value)
         if self._scramble != scramble:
             self._scramble = scramble
-            self._scramble = False
+            self._valid_cache = False
 
     @property
     def optimization(self):
