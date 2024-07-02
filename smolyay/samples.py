@@ -907,7 +907,6 @@ class PointSetProduct(MultidimensionalPointSet):
     def __init__(self, point_sets):
         super().__init__()
         self._point_sets = point_sets
-        self._indexes = []
 
     @property
     def domain(self):
