@@ -57,7 +57,7 @@ def test_random_qmc_initalize(qmc_point_set):
 
     f.scramble = 0
     assert isinstance(f.scramble, bool)
-    assert f.scramble == False
+    assert f.scramble is False
     f.optimization = "lloyd"
     assert f.optimization == "lloyd"
     f.optimization = None
