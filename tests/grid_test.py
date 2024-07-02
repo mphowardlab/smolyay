@@ -24,6 +24,7 @@ def test_random_initalize(random_point_set):
     assert isinstance(f.num_points, int)
     assert f.seed == 1234
     assert isinstance(f.seed, int)
+
     f.domain = [-10, 10]
     assert numpy.array_equal(f.domain, [[-10, 10]])
     f.num_points = 128.0
@@ -53,9 +54,10 @@ def test_random_qmc_initalize(qmc_point_set):
     assert isinstance(f.scramble, bool)
     assert f.scramble == True
     assert f.optimization == "random-cd"
+
     f.scramble = 0
     assert isinstance(f.scramble, bool)
-    assert f.scramble == False
+    assert f.scramble is False
     f.optimization = "lloyd"
     assert f.optimization == "lloyd"
     f.optimization = None
@@ -72,7 +74,7 @@ def test_random_latin_initialize():
     assert f.num_points == 64
     assert f.seed == 5678
     assert isinstance(f.scramble, bool)
-    assert f.scramble == True
+    assert f.scramble is True
     assert f.optimization == "random-cd"
     assert f.strength == 1
     assert isinstance(f.strength, int)

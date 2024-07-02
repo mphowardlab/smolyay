@@ -661,7 +661,7 @@ class _QMCRandomPointSet(RandomPointSet):
 
     def __init__(self, domain, num_points, seed, scramble=True, optimization=None):
         super().__init__(domain, num_points, seed)
-        self._scramble = True
+        self._scramble = None
         self._optimization = None
 
         self.scramble = scramble
@@ -678,7 +678,7 @@ class _QMCRandomPointSet(RandomPointSet):
         scramble = bool(value)
         if self._scramble != scramble:
             self._scramble = scramble
-            self._scramble = False
+            self._valid_cache = False
 
     @property
     def optimization(self):
@@ -907,7 +907,6 @@ class PointSetProduct(MultidimensionalPointSet):
     def __init__(self, point_sets):
         super().__init__()
         self._point_sets = point_sets
-        self._indexes = []
 
     @property
     def domain(self):
@@ -1009,7 +1008,7 @@ class SmolyakSparseProductPointSet(PointSetProduct):
                 self._point_sets[d].level(level) for d, level in enumerate(level_comb)
             ]
             num_points = numpy.prod([len(p) for p in level_point_combinations])
-            points_ = numpy.zeros((num_points, len(level_point_combinations)), dtype=float)
+            points_ = numpy.zeros((num_points, self.num_dimensions), dtype=float)
             for i, point in enumerate(itertools.product(*level_point_combinations)):
                 points_[i] = point
 
