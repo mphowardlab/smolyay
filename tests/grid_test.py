@@ -21,6 +21,7 @@ def test_random_initalize(random_point_set):
     assert numpy.array_equal(f.domain, [[-10, 10], [0, 2]])
     assert f.num_dimensions == 2
     assert f.num_points == 64
+    assert len(f) == 64
     assert isinstance(f.num_points, int)
     assert f.seed == 1234
     assert isinstance(f.seed, int)
@@ -284,6 +285,7 @@ def test_generate_tensor_points_from_arrays():
     point_sets = [numpy.array([9, 8, 7]), numpy.array([1, 2])]
     answer = [[9, 1], [9, 2], [8, 1], [8, 2], [7, 1], [7, 2]]
     f = smolyay.samples.TensorProductPointSet(point_sets)
+    assert len(f) == 6
     assert numpy.array_equal(f.points, answer)
 
 
@@ -309,6 +311,7 @@ def test_generate_smolyak_points():
         [0.0, 1.41421356],
     ]
     f = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+    assert len(f) == 13
     assert numpy.allclose(f.points, answer)
 
 
@@ -332,6 +335,7 @@ def test_generate_smolyak_points_different_levels():
         [1.0, 2.0],
     ]
     f = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+    assert len(f) == 11
     assert numpy.allclose(f.points, answer)
 
 def test_generate_compositions_include_zero_true():
