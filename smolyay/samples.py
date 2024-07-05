@@ -513,7 +513,7 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
         self._points = self._scale_to_domain(points, [0, 2 * numpy.pi])
 
 
-class MultidimensionalPointSet(abc.ABC, numpy.lib.mixins.NDArrayOperatorsMixin):
+class MultidimensionalPointSet(abc.ABC):
     """Multidimensional set of points."""
 
     def __init__(self):
@@ -538,19 +538,6 @@ class MultidimensionalPointSet(abc.ABC, numpy.lib.mixins.NDArrayOperatorsMixin):
             self._create()
             self._valid_cache = True
         return self._points
-
-    @property
-    def __array_interface__(self):
-        return self.points.__array_interface__
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        new_inputs = []
-        for i in inputs:
-            if i is self:
-                new_inputs.append(self.points)
-            else:
-                new_inputs.append(i)
-        return ufunc(*new_inputs, **kwargs)
 
     def __len__(self):
         return self.points.shape[0]
@@ -1012,9 +999,7 @@ class SmolyakSparseProductPointSet(PointSetProduct):
         # remove combinations where a dimension exceeds its number of levels
         # only check if point sets have different numbers of levels
         if min(num_levels_per_dim) != max_num_levels:
-            valid_comb = numpy.all(
-                numpy.less(level_combinations, num_levels_per_dim), axis=1
-            )
+            valid_comb = numpy.all(numpy.less(level_combinations, num_levels_per_dim), axis=1)
             level_combinations = level_combinations[valid_comb]
 
         # generate sets of points based on combinations of levels

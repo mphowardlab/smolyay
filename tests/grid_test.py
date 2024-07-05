@@ -21,7 +21,6 @@ def test_random_initalize(random_point_set):
     assert numpy.array_equal(f.domain, [[-10, 10], [0, 2]])
     assert f.num_dimensions == 2
     assert f.num_points == 64
-    assert len(f) == 64
     assert isinstance(f.num_points, int)
     assert f.seed == 1234
     assert isinstance(f.seed, int)
@@ -334,56 +333,6 @@ def test_generate_smolyak_points_different_levels():
     ]
     f = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
     assert numpy.allclose(f.points, answer)
-
-
-@pytest.mark.parametrize(
-    "point_set",
-    [
-        smolyay.samples.TensorProductPointSet(
-            [
-                smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], 3),
-                smolyay.samples.NestedClenshawCurtisPointSet([-2, 2], 2),
-            ]
-        ),
-        smolyay.samples.SmolyakSparseProductPointSet(
-            [
-                smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], 3),
-                smolyay.samples.NestedClenshawCurtisPointSet([-2, 2], 2),
-            ]
-        ),
-        smolyay.samples.HaltonRandomPointSet(
-            [[-3, 5], [6, 9]],
-            5,
-            4,
-        ),
-        smolyay.samples.LatinHypercubeRandomPointSet(
-            [[-10, 10], [0, 2], [0, 9]],
-            70,
-            1234,
-        ),
-        smolyay.samples.SobolRandomPointSet(
-            [[-10, 10], [0, 9]],
-            32,
-            1234,
-        ),
-        smolyay.samples.UniformRandomPointSet(
-            [[-10, 10], [0, 9], [0, 1], [0, 1]], 100, 1234
-        ),
-    ],
-    ids=["Tensor", "Smolyak", "Halton", "LatinHypercube", "Sobol", "Uniform"],
-)
-def test_array_like_qualities(point_set):
-    assert numpy.array_equal(point_set + 1, point_set.points + 1)
-    assert numpy.array_equal(point_set - 1, point_set.points - 1)
-    assert numpy.array_equal(point_set * 2, point_set.points * 2)
-    assert numpy.array_equal(point_set / 2, point_set.points / 2)
-    assert numpy.array_equal(point_set == 1, point_set.points == 1)
-    assert numpy.array_equal(point_set != 1, point_set.points != 1)
-    assert numpy.array_equal(point_set >= 1, point_set.points >= 1)
-    assert numpy.array_equal(point_set <= 1, point_set.points <= 1)
-    assert numpy.array_equal(point_set > 1, point_set.points > 1)
-    assert numpy.array_equal(point_set < 1, point_set.points < 1)
-
 
 def test_generate_compositions_include_zero_true():
     """Test the generate compositions function if include_zero is true."""
