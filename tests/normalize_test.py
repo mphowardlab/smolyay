@@ -9,7 +9,6 @@ from smolyay.normalize import (
     SymmetricalLogNormalizer,
     IntervalNormalizer,
     ZScoreNormalizer,
-    SklearnNormalizer,
 )
 
 
@@ -19,13 +18,11 @@ from smolyay.normalize import (
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
-        SklearnNormalizer(sklearn.preprocessing.RobustScaler()),
     ],
     ids=[
         "IntervalNormalizer",
         "SymmetricalLogNormalizer",
         "ZScoreNormalizer",
-        "SklearnNormalizer",
     ],
 )
 def test_fit(normal):
@@ -42,13 +39,11 @@ def test_fit(normal):
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
-        SklearnNormalizer(sklearn.preprocessing.RobustScaler()),
     ],
     ids=[
         "IntervalNormalizer",
         "SymmetricalLogNormalizer",
         "ZScoreNormalizer",
-        "SklearnNormalizer",
     ],
 )
 @pytest.mark.parametrize(
@@ -188,187 +183,3 @@ def test_zscore_refit():
     normal.fit(x2)
     assert normal.mean_val == mean2
     assert normal.std_val == std2
-
-
-def test_sklearn_initialize_error():
-    """Test if SklearnNormalizer error if an invalid transformer is used"""
-    scalar = sklearn.preprocessing.Normalizer()
-    with pytest.raises(AttributeError):
-        SklearnNormalizer(scalar)
-
-
-@pytest.mark.parametrize(
-    "scalar_class",
-    [
-        sklearn.preprocessing.StandardScaler,
-        sklearn.preprocessing.MaxAbsScaler,
-        sklearn.preprocessing.MinMaxScaler,
-        sklearn.preprocessing.PowerTransformer,
-        sklearn.preprocessing.RobustScaler,
-    ],
-)
-def test_sklearn_check_multidim(scalar_class):
-    """Test if SklearnNormalizer functions correctly"""
-    x = numpy.array(
-        [[1, 2, 3, 4, 5], [3, 4, 5, 6, 7], [5, 2, 5, 9, 0], [1, 2, 3, 4, 5]]
-    )
-    scalar = scalar_class()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    y = normal.transform(x)
-    new_x = normal.inverse_transform(y)
-    assert normal.check_normalize(x)
-    assert y.shape == x.shape
-    assert y.shape == new_x.shape
-    assert numpy.allclose(x, new_x)
-
-
-def test_sklearn_attributes():
-    """Test if the attributes of SklearnNormalizer are added"""
-    x = [1, 2, 3, 4, 5]
-    scalar = sklearn.preprocessing.StandardScaler()
-    normal = SklearnNormalizer(scalar)
-    assert isinstance(normal.scalar, sklearn.preprocessing.StandardScaler)
-
-
-def test_sklearn_transform():
-    """Test that the SklearnNormalizer transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert numpy.allclose(normal.transform(x), [0.2, 0.4, 0.6, 0.8, 1])
-
-
-def test_sklearn_transform_multidim():
-    """Test if transform returns correct answer for multidimensional data"""
-    x = numpy.array(
-        [[1, 2, 3, 4, 5], [3, 4, 5, 6, 7], [5, 2, 5, 9, 10], [1, 2, 3, 4, 5]]
-    )
-    true_y = x / 10
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    normal_y = normal.transform(x)
-    assert normal_y.shape == true_y.shape
-    assert numpy.array_equal(normal_y, true_y)
-
-
-def test_sklearn_inverse():
-    """Test that the SklearnNormalizer inverse transform is correct"""
-    x = [1, 2, 3, 4, 5]
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert numpy.allclose(normal.inverse_transform(x), [5, 10, 15, 20, 25])
-
-
-def test_sklearn_inverse_multidim():
-    """Test inverse_transform for multidimensional data"""
-    x = numpy.array(
-        [[1, 2, 3, 4, 5], [3, 4, 5, 6, 7], [5, 2, 5, 9, 10], [1, 2, 3, 4, 5]]
-    )
-    true_y = x * 10
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    normal_y = normal.inverse_transform(x)
-    assert normal_y.shape == true_y.shape
-    assert numpy.array_equal(normal_y, true_y)
-
-
-@pytest.mark.parametrize(
-    "scalar_class",
-    [
-        sklearn.preprocessing.StandardScaler,
-        sklearn.preprocessing.MaxAbsScaler,
-        sklearn.preprocessing.MinMaxScaler,
-        sklearn.preprocessing.PowerTransformer,
-        sklearn.preprocessing.RobustScaler,
-    ],
-)
-def test_sklearn_needs_fit(scalar_class):
-    """Test that error is returned if the scalar is not fit"""
-    x = [1, 2, 3, 4, 5]
-    scalar = scalar_class()
-    normal = SklearnNormalizer(scalar)
-    with pytest.raises(ValueError):
-        normal.transform(x)
-
-
-@pytest.mark.parametrize(
-    "scalar_class",
-    [
-        sklearn.preprocessing.StandardScaler,
-        sklearn.preprocessing.MaxAbsScaler,
-        sklearn.preprocessing.MinMaxScaler,
-        sklearn.preprocessing.PowerTransformer,
-        sklearn.preprocessing.RobustScaler,
-    ],
-)
-def test_sklearn_fit(scalar_class):
-    """Test that that fit will fit the scalar and sets original_data"""
-    x = numpy.array(numpy.linspace(-10, 10), ndmin=2).transpose()
-    scalar = scalar_class()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert numpy.array_equal(normal.original_data, x)
-    try:
-        normal.scalar.transform(x)
-    except ValueError as exc:
-        assert False, f"transform raised an exception {exc}"
-
-
-def test_sklearn_refit():
-    """Test that scalar can be refitted"""
-    x = [1, 2, 3, 4, 5]
-    y = [0.2, 0.4, 0.6, 0.8, 1]
-    x2 = [1, 2, 3, 4, 5, 6]
-    y2 = numpy.divide(x, 6)
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert numpy.array_equal(normal.transform(x), y)
-    normal.fit(x2)
-    assert numpy.array_equal(numpy.squeeze(normal.original_data), x2)
-    normal.transform(x)
-    assert numpy.array_equal(normal.transform(x), y2)
-
-
-def test_sklearn_scalar_set():
-    """Test that if scalar is set, it will be fit if possible"""
-    x = [1, 2, 3, 4, 5]
-    y = [0.2, 0.4, 0.6, 0.8, 1]
-    y2 = [0, 0.25, 0.5, 0.75, 1]
-    scalar = sklearn.preprocessing.MaxAbsScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit(x)
-    assert numpy.array_equal(normal.transform(x), y)
-    normal.scalar = sklearn.preprocessing.MinMaxScaler()
-    assert isinstance(normal.scalar, sklearn.preprocessing.MinMaxScaler)
-    assert numpy.array_equal(normal.transform(x), y2)
-
-
-def test_sklearn_fit_transform():
-    """Test that original_data is set using fit_transform and not transform"""
-    x = [1, 2, 3, 4, 5]
-    x_reverse = [5, 4, 3, 2, 1]
-    scalar = sklearn.preprocessing.StandardScaler()
-    normal = SklearnNormalizer(scalar)
-    y = normal.fit_transform(x)
-    y_reverse = normal.transform(x_reverse)
-    assert numpy.array_equal(numpy.squeeze(normal.original_data), [1, 2, 3, 4, 5])
-    assert numpy.array_equal(y, numpy.flip(y_reverse))
-
-
-def test_sklearn_fit_transform_inverse():
-    """Test original_data is not set using inverse_transform"""
-    x = [1, 2, 3, 4, 5]
-    x_reverse = [5, 4, 3, 2, 1]
-    scalar = sklearn.preprocessing.StandardScaler()
-    normal = SklearnNormalizer(scalar)
-    normal.fit_transform(x)
-    after_fit = numpy.squeeze(normal.original_data)
-    normal.inverse_transform(x_reverse)
-    assert numpy.array_equal(after_fit, [1, 2, 3, 4, 5])
-    assert numpy.array_equal(numpy.squeeze(normal.original_data), [1, 2, 3, 4, 5])
