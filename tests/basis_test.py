@@ -453,4 +453,37 @@ def test_set_initialize():
     f = smolyay.basis.BasisFunctionSet([])
     f2 = smolyay.basis.BasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)])
     assert f.basis_functions == []
+    assert len(f) == 0
     assert f2.basis_functions[0].degree == 0
+    assert f2[0].degree == 0
+    assert len(f2) == 1
+
+def test_nested_set_initialize():
+    """Check NestedBasisFunctionSet correctly initializes"""
+    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
+    f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,1,2])
+    assert f.basis_functions == bf
+    assert len(f) == 5
+    assert f.num_levels == 4
+    assert numpy.array_equal(f.end_level,[1,2,3,5])
+    assert numpy.array_equal(f.start_level,[0,1,2,3])
+    assert numpy.array_equal(f.level(3),bf[3:])
+
+def test_nested_set_initialize_error():
+    """Check NestedBasisFunctionSet error for invalid constructor inputs"""
+    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
+    with pytest.raises(IndexError):
+        f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,1,1])
+    with pytest.raises(IndexError):
+        f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,2,3])
+
+def test_is_complex():
+    assert smolyay.basis.ChebyshevFirstKind(0).is_complex == False
+    assert smolyay.basis.ChebyshevSecondKind(0).is_complex == False
+    assert smolyay.basis.Trigonometric(0).is_complex == True
+    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
+    f = smolyay.basis.BasisFunctionSet(bf)
+    assert f.is_complex == False
+    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)] + [smolyay.basis.Trigonometric(1)]
+    f = smolyay.basis.BasisFunctionSet(bf)
+    assert f.is_complex == True

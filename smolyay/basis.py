@@ -1,4 +1,5 @@
 import abc
+import collections.abc
 
 import numpy
 import scipy.special
@@ -136,6 +137,11 @@ class ChebyshevFirstKind(BasisFunction):
         return numpy.array([-1, 1])
 
     @property
+    def is_complex(self):
+        """bool: if basis function returns complex values."""
+        return False
+
+    @property
     def degree(self):
         """int: Degree of polynomial."""
         return self._degree
@@ -230,7 +236,12 @@ class ChebyshevSecondKind(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([-1, 1])
-
+    
+    @property
+    def is_complex(self):
+        """bool: if basis function returns complex values."""
+        return False
+    
     @property
     def degree(self):
         """int: Degree of polynomial."""
@@ -355,7 +366,12 @@ class Trigonometric(BasisFunction):
     def frequency(self):
         """int: frequency of polynomial."""
         return self._frequency
-
+    
+    @property
+    def is_complex(self):
+        """bool: if basis function returns complex values."""
+        return True
+    
     @frequency.setter
     def frequency(self, value):
         self._frequency = int(value)
@@ -412,7 +428,7 @@ class Trigonometric(BasisFunction):
         return self.frequency * 1j * numpy.exp(x * self.frequency * 1j)
 
 
-class BasisFunctionSet:
+class BasisFunctionSet(collections.abc.Sequence):
     """Set of basis functions and sample points.
 
     Parameters
@@ -429,3 +445,76 @@ class BasisFunctionSet:
     def basis_functions(self):
         """list: Basis functions."""
         return self._basis_functions
+    
+    @property
+    def is_complex(self):
+        """bool: if any basis function return complex values"""
+        return any(bf.is_complex for bf in self._basis_functions)
+    
+    def __len__(self):
+        return len(self.basis_functions)
+
+    def __getitem__(self, key):
+        return self.basis_functions[key]
+
+
+class NestedBasisFunctionSet(BasisFunctionSet):
+    """Set of nested basis functions and sample points.
+
+    Parameters
+    ----------
+    basis_functions : list
+        Basis functions in set.
+
+    num_per_level : list
+        number of unique functions per level
+
+    Raises
+    ------
+    IndexError
+        number of basis function does not match functions in each level
+    """
+
+    def __init__(self, basis_functions, num_per_level):
+        super().__init__(basis_functions)
+        if sum(num_per_level) != len(basis_functions):
+            raise IndexError(
+                str(sum(num_per_level))
+                + " total functions in levels, "
+                + str(len(basis_functions))
+                + " functions given."
+            )
+
+        self._num_per_level = numpy.array(num_per_level, dtype=int)
+        self._end_level = numpy.cumsum(self._num_per_level)
+        self._start_level = self._end_level - self._num_per_level
+
+    @property
+    def num_per_level(self):
+        """numpy.ndarray: number of points per level."""
+        return self._num_per_level
+
+    @property
+    def num_levels(self):
+        """int: number of levels."""
+        return len(self.num_per_level)
+
+    @property
+    def start_level(self):
+        """numpy.ndarray: the starting index of each level."""
+        return self._start_level
+
+    @property
+    def end_level(self):
+        """numpy.ndarray: the ending index of each level."""
+        return self._end_level
+
+    def __len__(self):
+        return len(self.basis_functions)
+
+    def __getitem__(self, key):
+        return self.basis_functions[key]
+
+    def level(self, index):
+        """list of :class:BasisFunction: Functions in a level"""
+        return self.basis_functions[self.start_level[index] : self.end_level[index]]
