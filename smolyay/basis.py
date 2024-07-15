@@ -509,12 +509,6 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         """numpy.ndarray: the ending index of each level."""
         return self._end_level
 
-    def __len__(self):
-        return len(self.basis_functions)
-
-    def __getitem__(self, key):
-        return self.basis_functions[key]
-
     def level(self, index):
         """list of :class:BasisFunction: Functions in a level"""
         return self.basis_functions[self.start_level[index] : self.end_level[index]]
