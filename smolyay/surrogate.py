@@ -294,9 +294,9 @@ class ProductSetSurrogate(BaseSurrogate):
         # use lookup table to combine terms
         answer = numpy.zeros(len(X))
         for ic, coeff in zip(self.index_combinations, self.coefficients):
-            answer = answer + coeff * numpy.prod(
+            answer = answer + numpy.real(coeff * numpy.prod(
                 [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
-            )
+            ))
 
         # return results
         if len(X) == 1:

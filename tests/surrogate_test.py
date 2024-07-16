@@ -45,22 +45,16 @@ def create_surrogate(
     return surrogate_class(domain, bs, **kwargs), point_sets
 
 
-def function_0(x):
-    """Test function 0."""
-    x1, x2, x3 = x
-    return 2 * x1 + x2 - x3
-
-
-def function_0_shifted(x):
-    """Test fucntion 0 which is shifted."""
-    x1, x2, x3 = x
-    return 2 * (x1 - 1) + (x2 + 1) - x3
-
-
 def function_1(x):
     """Test function 1."""
     x1, x2 = x
-    return x1 + (2 * x2**2 - 1)
+    return numpy.cos(x1) + (2 * x2**2 - 1)
+
+
+def function_1_gradient(x):
+    """Test function 1."""
+    x1, x2 = x
+    return -numpy.sin(x1), 4 * x2
 
 
 def function_2(x):
@@ -119,6 +113,16 @@ def function_5_gradient(x):
     """Test function 5 (gradient)."""
     x1, x2 = x
     return -numpy.sin(x1), numpy.cos(x2)
+
+
+def function_6(x):
+    """Test function 6 (gradient)."""
+    return numpy.cos(x)
+
+
+def function_6_gradient(x):
+    """Test function 6 (gradient)."""
+    return -numpy.sin(x)
 
 
 def branin(x):
@@ -376,6 +380,95 @@ def test_fit_2D_Trignometric(product_set_surrogate, grid_obj):
     )
     assert numpy.allclose(
         [function_5_gradient(x) for x in test_points],
+        surrogate.predict_gradient(test_points),
+        rtol=0.1,
+    )
+
+
+@pytest.mark.parametrize(
+    "product_set_surrogate,grid_obj",
+    [
+        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+def test_fit_1D_Trignometric(product_set_surrogate, grid_obj):
+    """Test if class is fit."""
+    domain = [0, 2 * numpy.pi]
+    num_level = 2
+
+    surrogate, point_sets = create_surrogate(
+        product_set_surrogate,
+        smolyay.basis.Trigonometric,
+        smolyay.samples.NestedTrigonometricPointSet,
+        num_level,
+        domain,
+    )
+    grid = grid_obj(point_sets=point_sets)
+    # fit with same number of points as terms
+    sample_output = [function_6(x) for x in grid.points]
+    surrogate = surrogate.fit(grid, sample_output)
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    assert numpy.allclose(surrogate.points, grid.points)
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(
+        numpy.squeeze(function_6(test_points)), surrogate.predict(test_points), rtol=0.1
+    )
+    assert numpy.allclose(
+        [function_6_gradient(x) for x in test_points],
+        surrogate.predict_gradient(test_points),
+        rtol=0.1,
+    )
+
+
+@pytest.mark.parametrize(
+    "product_set_surrogate,grid_obj",
+    [
+        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
+    """Test if class is fit."""
+    domain = [[-1, 1], [0, 2 * numpy.pi]]
+    num_level = 3
+    point_sets = [
+        smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
+        smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
+    ]
+    num_trig = numpy.arange(len(point_sets[1]) - 2, dtype=int)
+    frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
+    basis_sets = [
+        smolyay.basis.NestedBasisFunctionSet(
+            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[0]))],
+            point_sets[0].num_per_level,
+        ),
+        smolyay.basis.NestedBasisFunctionSet(
+            [smolyay.basis.Trigonometric(n) for n in frequencies]
+            + [
+                smolyay.basis.ChebyshevFirstKind(1),
+                smolyay.basis.ChebyshevFirstKind(2),
+            ],
+            point_sets[1].num_per_level,
+        ),
+    ]
+    surrogate = product_set_surrogate(domain, basis_sets)
+    grid = grid_obj(point_sets=point_sets)
+    # fit with same number of points as terms
+    sample_output = [function_1(x) for x in grid.points]
+    surrogate = surrogate.fit(grid, sample_output)
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    y = numpy.array([function_1(x) for x in test_points])
+    y1 = surrogate.predict(test_points)
+    assert numpy.allclose(surrogate.points, grid.points)
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(
+        [function_1(x) for x in test_points], surrogate.predict(test_points), rtol=0.1
+    )
+    assert numpy.allclose(
+        [function_1_gradient(x) for x in test_points],
         surrogate.predict_gradient(test_points),
         rtol=0.1,
     )
