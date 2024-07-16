@@ -294,9 +294,12 @@ class ProductSetSurrogate(BaseSurrogate):
         # use lookup table to combine terms
         answer = numpy.zeros(len(X))
         for ic, coeff in zip(self.index_combinations, self.coefficients):
-            answer = answer + numpy.real(coeff * numpy.prod(
-                [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
-            ))
+            answer = answer + numpy.real(
+                coeff
+                * numpy.prod(
+                    [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
+                )
+            )
 
         # return results
         if len(X) == 1:
@@ -370,16 +373,19 @@ class ProductSetSurrogate(BaseSurrogate):
         answer = numpy.zeros((len(X), self.num_dimensions))
         for d in range(self.num_dimensions):
             for ic, coeff in zip(self.index_combinations, self.coefficients):
-                answer[:, d] = answer[:, d] + coeff * numpy.prod(
-                    [
-                        (
-                            lookup_table_derivative[dim, ic[dim], :]
-                            if dim == d
-                            else lookup_table[dim, ic[dim], :]
-                        )
-                        for dim in range(len(ic))
-                    ],
-                    axis=0,
+                answer[:, d] = answer[:, d] + numpy.real(
+                    coeff
+                    * numpy.prod(
+                        [
+                            (
+                                lookup_table_derivative[dim, ic[dim], :]
+                                if dim == d
+                                else lookup_table[dim, ic[dim], :]
+                            )
+                            for dim in range(len(ic))
+                        ],
+                        axis=0,
+                    )
                 )
 
         # return results
