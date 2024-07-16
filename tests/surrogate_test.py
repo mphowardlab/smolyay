@@ -171,6 +171,20 @@ def branin_gradient(x):
             ),
         ),
         (
+            TensorProductSurrogate,
+            [
+                smolyay.basis.BasisFunctionSet(
+                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)]
+                ),
+                smolyay.basis.BasisFunctionSet(
+                    [smolyay.basis.Trigonometric(n) for n in [0, 1, -1, 2, -2]]
+                ),
+            ],
+            numpy.array(numpy.meshgrid(list(range(3)), list(range(5)))).T.reshape(
+                -1, 2
+            ),
+        ),
+        (
             SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
@@ -194,8 +208,40 @@ def branin_gradient(x):
                 [0, 4],
             ],
         ),
+        (
+            SmolyakSparseProductSurrogate,
+            [
+                smolyay.basis.NestedBasisFunctionSet(
+                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)], [1, 2]
+                ),
+                smolyay.basis.NestedBasisFunctionSet(
+                    [
+                        smolyay.basis.Trigonometric(n)
+                        for n in [0, 1, -1, 2, -2, 3, -3, 4, -4]
+                    ],
+                    [1, 2, 6],
+                ),
+            ],
+            [
+                [0, 0],
+                [1, 0],
+                [2, 0],
+                [0, 1],
+                [0, 2],
+                [1, 1],
+                [1, 2],
+                [2, 1],
+                [2, 2],
+                [0, 3],
+                [0, 4],
+                [0, 5],
+                [0, 6],
+                [0, 7],
+                [0, 8],
+            ],
+        ),
     ],
-    ids=["Tensor", "Smolyak"],
+    ids=["Tensor", "Tensor mixed basis", "Smolyak", "Smolyak mixed basis"],
 )
 def test_initialization_product_set(product_set_surrogate, basis_sets, index_answer):
     """Test if class is properly intiallized."""
@@ -207,6 +253,7 @@ def test_initialization_product_set(product_set_surrogate, basis_sets, index_ans
     assert surrogate.regression
     assert surrogate.alpha == 1e-5
     assert surrogate.regression == "ridge"
+    print(surrogate.index_combinations)
     assert numpy.array_equal(surrogate.index_combinations, index_answer)
 
     surrogate.domain = [[-7, 15], [6, 14]]
