@@ -192,6 +192,7 @@ class ProductSetSurrogate(BaseSurrogate):
         self._regression = None
         self._index_combinations = None
         self._coefficients = None
+        self._fit_gradient_flag = False
 
         self._basis_sets = basis_sets
         self.alpha = alpha
@@ -367,12 +368,11 @@ class ProductSetSurrogate(BaseSurrogate):
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
                 lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = (
-                    basis_fun.derivative(new_X)
+                lookup_table_derivative[dim, i, :] = basis_fun.derivative(new_X)
+                lookup_table_derivative[dim, i, :] = (lookup_table_derivative[dim, i, :]
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
-
         # use lookup table to combine terms
         answer = numpy.zeros((len(X), self.num_dimensions))
         for d in range(self.num_dimensions):
@@ -631,6 +631,7 @@ class ProductSetSurrogate(BaseSurrogate):
                 )
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         self._valid_cache = True
+        self._fit_gradient_flag = True
         return self
 
     @abc.abstractmethod
