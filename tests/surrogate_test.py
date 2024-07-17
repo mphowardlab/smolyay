@@ -1014,7 +1014,7 @@ def test_predict_error(product_set_surrogate, basis_sets):
         surrogate.predict([[-4, -1], [3, 3]])
     with pytest.raises(NotImplementedError):
         surrogate.fit_gradient(grid, branin_gradient(grid.points))
-        surrogate.predict([[11, 5]])
+        surrogate.predict([[9, 5]])
 
     # ensure using fit after fit_gradient resets flag
     surrogate.fit_gradient(grid, branin_gradient(grid.points))
