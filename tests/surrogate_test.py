@@ -664,7 +664,7 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     # fit with same number of points as terms
     fun3_gradient_samples = [function_3_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, fun3_gradient_samples)
-    test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     fun3_output = [function_3(x) for x in test_points]
     fun3_gradient_output = [function_3_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
@@ -750,8 +750,6 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
     sample_output = [function_1_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
-    y = numpy.array([function_1(x) for x in test_points])
-    y1 = surrogate.predict(test_points)
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
     #assert numpy.allclose(
@@ -818,7 +816,7 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
 )
 def test_fit_gradient_latin_2D(product_set_surrogate, regression):
     """Test if class is fit using gradient when number of terms != number of points."""
-    domain = [[-5, 10], [-1, 1]]
+    domain = [[-5, 5], [-1, 1]]
     num_level = 5
     surrogate, _ = create_surrogate(
         product_set_surrogate,
@@ -1018,7 +1016,14 @@ def test_predict_error(product_set_surrogate, basis_sets):
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict([[-4, -1], [3, 3]])
-
+    with pytest.raises(NotImplementedError):
+        surrogate.fit_gradient(grid, branin_gradient(grid.points))
+        surrogate.predict([[11, 5]])
+    
+    # ensure using fit after fit_gradient resets flag
+    surrogate.fit_gradient(grid, branin_gradient(grid.points))
+    surrogate.fit(grid, branin(grid.points))
+    surrogate.predict([[8, 5]])
 
 @pytest.mark.parametrize(
     "product_set_surrogate,grid_obj",

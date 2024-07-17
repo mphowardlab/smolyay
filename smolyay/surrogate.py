@@ -261,11 +261,15 @@ class ProductSetSurrogate(BaseSurrogate):
             For surrogate to be evaluated, function needs to be trained.
         ValueError
             Input must lie in domain of surrogate.
+        NotImplementedError
+            Predict after fitting to gradient not supported.
         """
         # validate inputs
         X = self._validate_data(X, ensure_2d=True, dtype="numeric", reset=False)
         if not self._valid_cache:
             raise RuntimeError("Model must be trained!")
+        if self._fit_gradient_flag:
+            raise NotImplementedError("predict after fitting to gradient not supported.")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -368,8 +372,7 @@ class ProductSetSurrogate(BaseSurrogate):
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
                 lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = basis_fun.derivative(new_X)
-                lookup_table_derivative[dim, i, :] = (lookup_table_derivative[dim, i, :]
+                lookup_table_derivative[dim, i, :] = (basis_fun.derivative(new_X)
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
@@ -496,6 +499,7 @@ class ProductSetSurrogate(BaseSurrogate):
                 )
                 self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         self._valid_cache = True
+        self._fit_gradient_flag = False
         return self
 
     def fit_gradient(self, X, y):
