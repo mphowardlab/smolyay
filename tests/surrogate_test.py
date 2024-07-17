@@ -669,6 +669,8 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     fun3_output = [function_3(x) for x in test_points]
     fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+    if numpy.allclose(domain,[[-9,9],[-5,5]]):
+        assert numpy.allclose(function_3_gradient((8, 0.75)), surrogate.predict_gradient([(8, 0.75)]))
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, fun3_gradient_samples)
     # assert numpy.allclose(fun3_output, surrogate.predict(test_points), rtol=0.1)
