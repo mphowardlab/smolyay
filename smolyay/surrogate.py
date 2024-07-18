@@ -1,5 +1,6 @@
 import abc
 import itertools
+import warnings
 
 import numpy
 import sklearn
@@ -193,6 +194,7 @@ class ProductSetSurrogate(BaseSurrogate):
         self._index_combinations = None
         self._coefficients = None
         self._fit_gradient_flag = False
+        self._integration_constant_flag = False
 
         self._basis_sets = basis_sets
         self.alpha = alpha
@@ -242,7 +244,7 @@ class ProductSetSurrogate(BaseSurrogate):
         """numpy.ndarray: the coefficients of the terms"""
         return self._coefficients
 
-    def predict(self, X):
+    def predict(self, X, ignore_integration_warning=False):
         """Evaluate surrogate at a given input.
 
         Parameters
@@ -268,8 +270,8 @@ class ProductSetSurrogate(BaseSurrogate):
         X = self._validate_data(X, ensure_2d=True, dtype="numeric", reset=False)
         if not self._valid_cache:
             raise RuntimeError("Model must be trained!")
-        if self._fit_gradient_flag:
-            raise NotImplementedError("predict after fitting to gradient not supported.")
+        if self._fit_gradient_flag and not self._integration_constant_flag and not ignore_integration_warning:
+           warnings.warn("Integration constant unavailable.")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -372,7 +374,8 @@ class ProductSetSurrogate(BaseSurrogate):
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
                 lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = (basis_fun.derivative(new_X)
+                lookup_table_derivative[dim, i, :] = (
+                    basis_fun.derivative(new_X)
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
@@ -502,7 +505,7 @@ class ProductSetSurrogate(BaseSurrogate):
         self._fit_gradient_flag = False
         return self
 
-    def fit_gradient(self, X, y):
+    def fit_gradient(self, X, y, constant_x=None, constant_y=None):
         """Fit surrogate's components (basis functions) to gradient.
 
         Parameters
@@ -512,6 +515,13 @@ class ProductSetSurrogate(BaseSurrogate):
 
         y : array-like of shape (n_samples, n_features)
             gradient function at grid points.
+
+        constant_x : array-like of shape (n_features)
+            a point where the function has a specified value to solve
+            the integration constant
+
+        constant_y : numeric
+            the value at constant_x
 
         Returns
         -------
@@ -542,6 +552,7 @@ class ProductSetSurrogate(BaseSurrogate):
             ensure_2d=True,
             dtype="numeric",
         )
+
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, n_features).")
         oob = any(
@@ -636,6 +647,19 @@ class ProductSetSurrogate(BaseSurrogate):
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         self._valid_cache = True
         self._fit_gradient_flag = True
+        if not constant_x is None and not constant_y is None:
+            constant_x, constant_y = self._validate_data(
+                constant_x,
+                constant_y,
+                multi_output=False,
+                y_numeric=True,
+            )
+            predicted_y = self.predict(constant_x, ignore_integration_warning=True)
+            integration_constant = constant_y - predicted_y
+            self._coefficients[0] = integration_constant
+            self._integration_constant_flag = True
+        else:
+            self._integration_constant_flag = False
         return self
 
     @abc.abstractmethod

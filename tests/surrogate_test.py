@@ -632,11 +632,11 @@ def test_fit_error(product_set_surrogate):
 @pytest.mark.parametrize(
     "domain",
     [
-        [[-1, 1], [-1, 1]],
-        [[-5, 5], [-5, 5]],
-        [[-9, 9], [-5, 5]],
-        [[-5, 10], [-5, 10]],
-        [[-5, 10], [0, 15]],
+        numpy.array([[-1, 1], [-1, 1]]),
+        numpy.array([[-5, 5], [-5, 5]]),
+        numpy.array([[-9, 9], [-5, 5]]),
+        numpy.array([[-5, 10], [-5, 10]]),
+        numpy.array([[-5, 10], [0, 15]]),
     ],
     ids=[
         "basis",
@@ -646,6 +646,7 @@ def test_fit_error(product_set_surrogate):
         "all different",
     ],
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     """Test if class is fit using the gradient."""
     num_level = 3
@@ -658,17 +659,26 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     )
     grid = grid_obj(point_sets=point_sets)
     # fit with same number of points as terms
-    fun3_gradient_samples = [function_3_gradient(x) for x in grid.points]
-    surrogate = surrogate.fit_gradient(grid, fun3_gradient_samples)
+    sample_output = [function_3_gradient(x) for x in grid.points]
+    surrogate = surrogate.fit_gradient(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
-    fun3_output = [function_3(x) for x in test_points]
-    fun3_gradient_output = [function_3_gradient(x) for x in test_points]
-    if numpy.allclose(domain,[[-9,9],[-5,5]]):
-        assert numpy.allclose(function_3_gradient((8, 0.75)), surrogate.predict_gradient([(8, 0.75)]))
+    predict_answer = [function_3(x) for x in test_points]
+    gradient_answer = [function_3_gradient(x) for x in test_points]
+    if numpy.allclose(domain, [[-9, 9], [-5, 5]]):
+        assert numpy.allclose(
+            function_3_gradient((8, 0.75)), surrogate.predict_gradient([(8, 0.75)])
+        )
     assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, fun3_gradient_samples)
-    # assert numpy.allclose(fun3_output, surrogate.predict(test_points), rtol=0.1)
-    assert numpy.allclose(fun3_gradient_output, surrogate.predict_gradient(test_points))
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, [domain[:, 0]], [function_3(domain[:, 0])]
+    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
@@ -679,9 +689,10 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
     """Test if class is fit."""
-    domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
+    domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
     num_level = 2
 
     surrogate, point_sets = create_surrogate(
@@ -696,15 +707,19 @@ def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
     sample_output = [function_5_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = [function_5(x) for x in test_points]
+    gradient_answer = [function_5_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
-    # assert numpy.allclose(
-    #    [function_5(x) for x in test_points], surrogate.predict(test_points), rtol=0.1
-    # )
-    assert numpy.allclose(
-        [function_5_gradient(x) for x in test_points],
-        surrogate.predict_gradient(test_points),
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, [domain[:, 0]], [function_5(domain[:, 0])]
     )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
@@ -715,9 +730,10 @@ def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
     """Test if class is fit."""
-    domain = [[-1, 1], [0, 2 * numpy.pi]]
+    domain = numpy.array([[-1, 1], [0, 2 * numpy.pi]])
     num_level = 3
     point_sets = [
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
@@ -745,16 +761,21 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
     sample_output = [function_1_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = [function_1(x) for x in test_points]
+    gradient_answer = [function_1_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
-    # assert numpy.allclose(
-    #    [function_1(x) for x in test_points], surrogate.predict(test_points), rtol=0.1
-    # )
     assert numpy.allclose(
-        [function_1_gradient(x) for x in test_points],
-        surrogate.predict_gradient(test_points),
-        rtol=0.01,
+        gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
     )
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0], rtol=0.01)
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, [domain[:, 0]], [function_1(domain[:, 0])]
+    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
 
 
 @pytest.mark.parametrize(
@@ -765,9 +786,9 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
 @pytest.mark.parametrize(
     "domain",
     [
-        [-1, 1],
-        [-5, 5],
-        [-5, 10],
+        numpy.array([-1, 1]),
+        numpy.array([-5, 5]),
+        numpy.array([-5, 10]),
     ],
     ids=[
         "basis",
@@ -775,6 +796,7 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
         "all different",
     ],
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_1D(product_set_surrogate, domain):
     num_level = 3
     surrogate, point_sets = create_surrogate(
@@ -786,18 +808,25 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
     )
     # fit with a 1D function
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
-    fun4_gradient_samples = function_4_gradient(grid_points)
-    surrogate.fit_gradient(grid_points, fun4_gradient_samples)
+    sample_output = function_4_gradient(grid_points)
+    surrogate.fit_gradient(grid_points, sample_output)
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
+    predict_answer = numpy.squeeze(function_4(test_points))
+    gradient_answer = function_4_gradient(test_points)
     assert numpy.allclose(surrogate.points, grid_points)
-    assert numpy.allclose(surrogate.data, fun4_gradient_samples)
-    # assert numpy.allclose(
-    #    numpy.squeeze(function_4(test_points)), surrogate.predict(test_points), rtol=0.1
-    # )
+    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
-        function_4_gradient(test_points),
+        gradient_answer,
         surrogate.predict_gradient(test_points),
     )
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    surrogate = surrogate.fit_gradient(
+        grid_points, sample_output, [[domain[0]]], [function_4(domain[0])]
+    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
@@ -808,9 +837,10 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
 @pytest.mark.parametrize(
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_latin_2D(product_set_surrogate, regression):
     """Test if class is fit using gradient when number of terms != number of points."""
-    domain = [[-5, 5], [-1, 1]]
+    domain = numpy.array([[-5, 5], [-1, 1]])
     num_level = 3
     surrogate, _ = create_surrogate(
         product_set_surrogate,
@@ -822,20 +852,29 @@ def test_fit_gradient_latin_2D(product_set_surrogate, regression):
     )
     # fit to a 2D function with a different number of points as terms
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
-    fun3_gradient_samples = [function_3_gradient(x) for x in grid.points]
-    surrogate.fit_gradient(grid, fun3_gradient_samples)
+    sample_output = [function_3_gradient(x) for x in grid.points]
+    surrogate.fit_gradient(grid, sample_output)
     test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-    fun3_output = [function_3(x) for x in test_points]
-    fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+    predict_answer = [function_3(x) for x in test_points]
+    gradient_answer = [function_3_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, fun3_gradient_samples)
-    # assert numpy.allclose(
-    #    fun3_output, surrogate.predict(test_points), rtol=0.1, atol=1e-3
-    # )
+    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
-        fun3_gradient_output,
+        gradient_answer,
         surrogate.predict_gradient(test_points),
         atol=1e-4,
+    )
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(
+        difference_predict, difference_predict[0], rtol=0.01, atol=1e-4
+    )
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, [domain[:, 0]], [function_3(domain[:, 0])]
+    )
+    assert numpy.allclose(
+        predict_answer, surrogate.predict(test_points), rtol=0.01, atol=1e-3
     )
 
 
@@ -847,6 +886,7 @@ def test_fit_gradient_latin_2D(product_set_surrogate, regression):
 @pytest.mark.parametrize(
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
+@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_latin_1D(product_set_surrogate, regression):
     num_level = 3
     domain = [-5, 6]
@@ -860,20 +900,22 @@ def test_fit_gradient_latin_1D(product_set_surrogate, regression):
         domain,
         regression=regression,
     )
-    fun4_gradient_samples = function_4_gradient(grid.points)
-    surrogate.fit_gradient(grid, fun4_gradient_samples)
+    sample_output = function_4_gradient(grid.points)
+    surrogate.fit_gradient(grid, sample_output)
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
+    predict_answer = numpy.squeeze(function_4(test_points))
+    gradient_answer = function_4_gradient(test_points)
     assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, fun4_gradient_samples)
-    # assert numpy.allclose(
-    #    numpy.squeeze(function_4(test_points)),
-    #    surrogate.predict(test_points),
-    #    rtol=0.1,
-    #    atol=1e-3,
-    # )
-    assert numpy.allclose(
-        function_4_gradient(test_points), surrogate.predict_gradient(test_points)
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+
+    # test predict
+    difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, [[domain[0]]], [function_4(domain[0])]
     )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
 
 
 @pytest.mark.parametrize(
@@ -988,6 +1030,7 @@ def test_predict_size_1D(product_set_surrogate):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.filterwarnings("error")
 def test_predict_error(product_set_surrogate, basis_sets):
     """Test that predict raises correct errors"""
     surrogate = product_set_surrogate([[-5, 10], [0, 15]], basis_sets)
@@ -1006,7 +1049,7 @@ def test_predict_error(product_set_surrogate, basis_sets):
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict([[-4, -1], [3, 3]])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(Warning):
         surrogate.fit_gradient(grid, branin_gradient(grid.points))
         surrogate.predict([[9, 5]])
 
@@ -1014,6 +1057,23 @@ def test_predict_error(product_set_surrogate, basis_sets):
     surrogate.fit_gradient(grid, branin_gradient(grid.points))
     surrogate.fit(grid, branin(grid.points))
     surrogate.predict([[8, 5]])
+
+    # ensure that fitting with integration constant does not raise warning
+    surrogate.fit_gradient(
+        grid, branin_gradient(grid.points), [grid.points[0]], [branin(grid.points[0])]
+    )
+    surrogate.predict([[8, 5]])
+
+    # ensure that fitting without integration constant does raise warning
+    with pytest.raises(Warning):
+        surrogate.fit_gradient(
+            grid,
+            branin_gradient(grid.points),
+            [grid.points[0]],
+            [branin(grid.points[0])],
+        )
+        surrogate.fit_gradient(grid, branin_gradient(grid.points))
+        surrogate.predict([[9, 5]])
 
 
 @pytest.mark.parametrize(
