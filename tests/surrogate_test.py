@@ -252,6 +252,7 @@ def test_initialization_product_set(product_set_surrogate, basis_sets, index_ans
     assert surrogate.alpha == 1e-5
     assert surrogate.regression == "ridge"
     assert numpy.array_equal(surrogate.index_combinations, index_answer)
+    assert surrogate.number_terms == numpy.shape(index_answer)[0]
 
     surrogate.domain = [[-7, 15], [6, 14]]
     assert numpy.allclose(surrogate.domain, [[-7, 15], [6, 14]])

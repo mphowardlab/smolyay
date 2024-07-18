@@ -238,7 +238,12 @@ class ProductSetSurrogate(BaseSurrogate):
         if self._index_combinations is None:
             self._create_terms()
         return self._index_combinations
-
+    
+    @property
+    def number_terms(self):
+        """int: the number of terms in the surrogate model equation."""
+        return self.index_combinations.shape[0]
+    
     @property
     def coefficients(self):
         """numpy.ndarray: the coefficients of the terms"""
@@ -458,11 +463,11 @@ class ProductSetSurrogate(BaseSurrogate):
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
             basis_matrix = numpy.zeros(
-                (len(X), len(self.index_combinations)), dtype="complex_"
+                (len(X), self.number_terms), dtype="complex_"
             )
         else:
             lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
-            basis_matrix = numpy.zeros((len(X), len(self.index_combinations)))
+            basis_matrix = numpy.zeros((len(X), self.number_terms))
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
@@ -576,7 +581,7 @@ class ProductSetSurrogate(BaseSurrogate):
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
             basis_matrix = numpy.zeros(
-                (len(X) * self.num_dimensions, len(self.index_combinations)),
+                (len(X) * self.num_dimensions, self.number_terms),
                 dtype="complex_",
             )
         else:
@@ -585,7 +590,7 @@ class ProductSetSurrogate(BaseSurrogate):
                 (self.num_dimensions, num_basis_max, len(X))
             )
             basis_matrix = numpy.zeros(
-                (len(X) * self.num_dimensions, len(self.index_combinations)),
+                (len(X) * self.num_dimensions, self.number_terms),
             )
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
