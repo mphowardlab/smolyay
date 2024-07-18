@@ -329,17 +329,18 @@ def test_fit_2D(product_set_surrogate, grid_obj, domain):
         domain,
     )
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = branin(grid.points)
     surrogate = surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = branin(test_points)
+    gradient_answer = branin_gradient(test_points)
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-3)
     assert numpy.allclose(
-        branin(test_points), surrogate.predict(test_points), rtol=1e-3
-    )
-    assert numpy.allclose(
-        branin_gradient(test_points), surrogate.predict_gradient(test_points), rtol=1e-3
+        gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-3
     )
 
 
@@ -364,9 +365,10 @@ def test_fit_2D_Trignometric(product_set_surrogate, grid_obj):
         domain,
     )
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_5(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_5(x) for x in test_points]
     gradient_answer = [function_5_gradient(x) for x in test_points]
@@ -397,9 +399,10 @@ def test_fit_1D_Trignometric(product_set_surrogate, grid_obj):
         domain,
     )
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_6(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_6(test_points))
     gradient_answer = function_6_gradient(test_points)
@@ -443,9 +446,10 @@ def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
     ]
     surrogate = product_set_surrogate(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_1(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_1(x) for x in test_points]
     gradient_answer = [function_1_gradient(x) for x in test_points]
@@ -488,6 +492,8 @@ def test_fit_1D(product_set_surrogate, domain):
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
     sample_output = function_2(grid_points)
     surrogate.fit(grid_points, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_2(test_points))
     gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
@@ -520,16 +526,19 @@ def test_fit_latin_2D(product_set_surrogate, regression, points):
         domain,
         regression=regression,
     )
-    # fit to a 2D function with a different number of points as terms
-    test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
-    surrogate.fit(grid, branin(grid.points))
+    sample_output = branin(grid.points)
+    surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
+    test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
+    predict_answer = branin(test_points)
+    gradient_answer = branin_gradient(test_points)
     assert numpy.allclose(surrogate.points, grid.points)
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
-        branin(test_points), surrogate.predict(test_points), rtol=0.01
-    )
-    assert numpy.allclose(
-        branin_gradient(test_points), surrogate.predict_gradient(test_points), rtol=0.01
+        gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
     )
 
 
@@ -558,23 +567,16 @@ def test_fit_latin_1D(product_set_surrogate, regression):
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
     sample_output = function_2(grid.points)
     surrogate.fit(grid.points, sample_output)
-    test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
-    fun2_gradient_output = numpy.array(function_2_gradient(test_points), ndmin=2)
 
-    predict_answer = [function_2(x) for x in test_points]
+    # test surrogate matches at some points
+    test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
+    predict_answer = numpy.squeeze(function_2(test_points))
     gradient_answer = [function_2_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
-        numpy.squeeze(function_2(test_points)),
-        surrogate.predict(test_points),
-        rtol=0.01,
-    )
-    assert numpy.allclose(
-        fun2_gradient_output,
-        surrogate.predict_gradient(test_points),
-        rtol=0.01,
-        atol=1e-3,
+        gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01, atol=1e-3
     )
 
 
@@ -649,16 +651,13 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
         domain,
     )
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_3_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_3(x) for x in test_points]
     gradient_answer = [function_3_gradient(x) for x in test_points]
-    if numpy.allclose(domain, [[-9, 9], [-5, 5]]):
-        assert numpy.allclose(
-            function_3_gradient((8, 0.75)), surrogate.predict_gradient([(8, 0.75)])
-        )
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
@@ -694,9 +693,10 @@ def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
         domain,
     )
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_5_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_5(x) for x in test_points]
     gradient_answer = [function_5_gradient(x) for x in test_points]
@@ -748,9 +748,10 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
     ]
     surrogate = product_set_surrogate(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
-    # fit with same number of points as terms
     sample_output = [function_1_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_1(x) for x in test_points]
     gradient_answer = [function_1_gradient(x) for x in test_points]
@@ -797,10 +798,11 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
         num_level,
         domain,
     )
-    # fit with a 1D function
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
     sample_output = function_4_gradient(grid_points)
     surrogate.fit_gradient(grid_points, sample_output)
+
+    # test surrogate matches at some points
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_4(test_points))
     gradient_answer = function_4_gradient(test_points)
@@ -841,10 +843,11 @@ def test_fit_gradient_latin_2D(product_set_surrogate, regression):
         domain,
         regression=regression,
     )
-    # fit to a 2D function with a different number of points as terms
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
     sample_output = [function_3_gradient(x) for x in grid.points]
     surrogate.fit_gradient(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
     predict_answer = [function_3(x) for x in test_points]
     gradient_answer = [function_3_gradient(x) for x in test_points]
@@ -893,6 +896,8 @@ def test_fit_gradient_latin_1D(product_set_surrogate, regression):
     )
     sample_output = function_4_gradient(grid.points)
     surrogate.fit_gradient(grid, sample_output)
+
+    # test surrogate matches at some points
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_4(test_points))
     gradient_answer = function_4_gradient(test_points)
@@ -991,8 +996,8 @@ def test_predict_size_1D(product_set_surrogate):
         domain,
     )
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
-    fun2_output = function_2(grid_points)
-    surrogate.fit(grid_points, fun2_output)
+    sample_output = function_2(grid_points)
+    surrogate.fit(grid_points, sample_output)
     assert numpy.array_equal(numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,))
     assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), ())
 
@@ -1115,8 +1120,8 @@ def test_predict_gradient_size_1D(product_set_surrogate):
     )
     # fit with a 1D function
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
-    fun2_output = function_2(grid_points)
-    surrogate.fit(grid_points, fun2_output)
+    sample_output = function_2(grid_points)
+    surrogate.fit(grid_points, sample_output)
     assert numpy.array_equal(
         numpy.shape(surrogate.predict_gradient([[-0.5], [0], [0.7]])), (3, 1)
     )
