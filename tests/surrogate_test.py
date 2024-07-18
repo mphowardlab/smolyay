@@ -251,7 +251,6 @@ def test_initialization_product_set(product_set_surrogate, basis_sets, index_ans
     assert surrogate.regression
     assert surrogate.alpha == 1e-5
     assert surrogate.regression == "ridge"
-    print(surrogate.index_combinations)
     assert numpy.array_equal(surrogate.index_combinations, index_answer)
 
     surrogate.domain = [[-7, 15], [6, 14]]
@@ -331,11 +330,11 @@ def test_fit_2D(product_set_surrogate, grid_obj, domain):
     )
     grid = grid_obj(point_sets=point_sets)
     # fit with same number of points as terms
-    branin_output = branin(grid.points)
-    surrogate = surrogate.fit(grid, branin_output)
+    sample_output = branin(grid.points)
+    surrogate = surrogate.fit(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, branin_output)
+    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
         branin(test_points), surrogate.predict(test_points), rtol=1e-3
     )
@@ -369,15 +368,12 @@ def test_fit_2D_Trignometric(product_set_surrogate, grid_obj):
     sample_output = [function_5(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = [function_5(x) for x in test_points]
+    gradient_answer = [function_5_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
-    assert numpy.allclose(
-        [function_5(x) for x in test_points], surrogate.predict(test_points)
-    )
-    assert numpy.allclose(
-        [function_5_gradient(x) for x in test_points],
-        surrogate.predict_gradient(test_points),
-    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
 
 @pytest.mark.parametrize(
@@ -405,15 +401,12 @@ def test_fit_1D_Trignometric(product_set_surrogate, grid_obj):
     sample_output = [function_6(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = numpy.squeeze(function_6(test_points))
+    gradient_answer = function_6_gradient(test_points)
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
-    assert numpy.allclose(
-        numpy.squeeze(function_6(test_points)), surrogate.predict(test_points)
-    )
-    assert numpy.allclose(
-        [function_6_gradient(x) for x in test_points],
-        surrogate.predict_gradient(test_points),
-    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
 
 @pytest.mark.parametrize(
@@ -454,17 +447,13 @@ def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
     sample_output = [function_1(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
-    y = numpy.array([function_1(x) for x in test_points])
-    y1 = surrogate.predict(test_points)
+    predict_answer = [function_1(x) for x in test_points]
+    gradient_answer = [function_1_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
     assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
-        [function_1(x) for x in test_points], surrogate.predict(test_points), rtol=0.01
-    )
-    assert numpy.allclose(
-        [function_1_gradient(x) for x in test_points],
-        surrogate.predict_gradient(test_points),
-        rtol=0.01,
+        gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
     )
 
 
@@ -497,16 +486,15 @@ def test_fit_1D(product_set_surrogate, domain):
         domain,
     )
     grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
-    fun2_output = function_2(grid_points)
+    sample_output = function_2(grid_points)
+    surrogate.fit(grid_points, sample_output)
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
-    fun2_gradient_output = numpy.array(function_2_gradient(test_points), ndmin=2)
-    surrogate.fit(grid_points, fun2_output)
+    predict_answer = numpy.squeeze(function_2(test_points))
+    gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
     assert numpy.allclose(surrogate.points, grid_points)
-    assert numpy.allclose(surrogate.data, fun2_output)
-    assert numpy.allclose(
-        numpy.squeeze(function_2(test_points)), surrogate.predict(test_points)
-    )
-    assert numpy.allclose(fun2_gradient_output, surrogate.predict_gradient(test_points))
+    assert numpy.allclose(surrogate.data, sample_output)
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+    assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
 
 @pytest.mark.parametrize(
@@ -568,12 +556,15 @@ def test_fit_latin_1D(product_set_surrogate, regression):
         regression=regression,
     )
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
-    fun2_output = function_2(grid.points)
+    sample_output = function_2(grid.points)
+    surrogate.fit(grid.points, sample_output)
     test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
     fun2_gradient_output = numpy.array(function_2_gradient(test_points), ndmin=2)
-    surrogate.fit(grid.points, fun2_output)
+
+    predict_answer = [function_2(x) for x in test_points]
+    gradient_answer = [function_2_gradient(x) for x in test_points]
     assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, fun2_output)
+    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
         numpy.squeeze(function_2(test_points)),
         surrogate.predict(test_points),
