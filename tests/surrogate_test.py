@@ -79,12 +79,6 @@ def function_3(x):
 
 
 def function_3_gradient(x):
-    """Test function 3"""
-    x1, x2 = x
-    return x1 * x2 - 2 * x2
-
-
-def function_3_gradient(x):
     """Test function 3 (gradient)."""
     # function f = x1*x2 - 2*x2
     x1, x2 = x
