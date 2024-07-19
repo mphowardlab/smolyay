@@ -655,7 +655,11 @@ def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     difference_predict = numpy.subtract(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(difference_predict, difference_predict[0])
     surrogate = surrogate.fit_gradient(
-        grid, sample_output, [domain[:, 0]], [function_3(domain[:, 0])]
+        grid, sample_output, y0=[function_3(domain[:, 0])]
+    )
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+    surrogate = surrogate.fit_gradient(
+        grid, sample_output, X0=[domain[:, 1]], y0=[function_3(domain[:, 1])]
     )
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
@@ -950,21 +954,21 @@ def test_successive_fits(surrogate_class, grid_obj):
     sample_output_1 = branin(grid.points)
     sample_output_gradient_1 = branin_gradient(grid.points)
     sample_output_gradient_2 = [function_3_gradient(x) for x in grid.points]
-    constant_point = [domain[:, 0]]
-    constant_value_1 = [branin(domain[:, 0])]
-    constant_value_2 = [function_3(domain[:, 0])]
+    X0 = [domain[:, 1]]
+    y0_1 = [branin(domain[:, 1])]
+    y0_2 = [function_3(domain[:, 1])]
     # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer_1 = branin(test_points)
     gradient_answer_1 = branin_gradient(test_points)
     predict_answer_2 = [function_3(x) for x in test_points]
     gradient_answer_2 = [function_3_gradient(x) for x in test_points]
-    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1,constant_point,constant_value_1)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1,X0,y0_1)
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
     assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
     difference_predict = numpy.subtract(predict_answer_2, surrogate.predict(test_points))
     assert numpy.allclose(difference_predict, difference_predict[0])
-    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2,constant_point,constant_value_2)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2,X0,y0_2)
     assert numpy.allclose(predict_answer_2, surrogate.predict(test_points))
     surrogate = surrogate.fit(grid, sample_output_1)
     assert numpy.allclose(gradient_answer_1, surrogate.predict_gradient(test_points), rtol=1e-3)

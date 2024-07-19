@@ -452,7 +452,7 @@ class SetProductSurrogate(Surrogate):
         self._fit_gradient_flag = False
         return self
 
-    def fit_gradient(self, X, y, constant_x=None, constant_y=None):
+    def fit_gradient(self, X, y, X0=None, y0=None):
         """Fit surrogate's components (basis functions) to gradient.
 
         Parameters
@@ -463,12 +463,12 @@ class SetProductSurrogate(Surrogate):
         y : array-like of shape (n_samples, n_features)
             gradient function at grid points.
 
-        constant_x : array-like of shape (n_features)
+        X0 : array-like of shape (n_features)
             a point where the function has a specified value to solve
-            the integration constant
+            the integration constant. If None, assumed to be the lower domain.
 
-        constant_y : numeric
-            the value at constant_x
+        y0 : numeric or None
+            the value at X0
 
         Returns
         -------
@@ -588,14 +588,17 @@ class SetProductSurrogate(Surrogate):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         self._valid_cache = True
         self._fit_gradient_flag = True
-        if not constant_x is None and not constant_y is None:
+        if not y0 is None:
             # validate data inputs
-            constant_x = numpy.array(constant_x, ndmin=2)
-            if constant_x.shape != (1, self.num_dimensions):
+            if X0 is None:
+                X0 = self.domain[:,0].reshape((1,-1))
+            else:
+                X0 = numpy.array(X0, ndmin=2)
+            if X0.shape != (1, self.num_dimensions):
                 raise IndexError("Must be 2D array with shape (1, n_features)")
-            constant_y = numpy.array(constant_y).item(0)
-            predicted_y = self.predict(constant_x)
-            integration_constant = constant_y - predicted_y
+            y0 = numpy.array(y0).item(0)
+            predicted_y = self.predict(X0)
+            integration_constant = y0 - predicted_y
             self._integration_constant = integration_constant
         return self
 
