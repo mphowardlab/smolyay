@@ -21,8 +21,6 @@ class Surrogate:
     :attr:`points` stores the points that are used for sampling.
     :attr:`data` stores the output of the true function at the sampled points.
     :attr:`num_dimensions` is the number of dimensionns/independent variables.
-    :meth:`train`, generates a trained surrogate model given a function and
-    the points to sample at.
     :meth:`fit` computes the coefficients based on a set of data
     (function values at transformed grid points).
     Once the surrogate is constructed, one can evaluate the surrogate
@@ -72,17 +70,6 @@ class Surrogate:
         """numpy.ndarray: points that are sampled"""
         return self._points
 
-    def train(self, function, X):
-        """Fit surrogate's components (basis functions) to the function.
-
-        Parameters
-        ----------
-        function: callable
-            Function to be approximated.
-        """
-        data = [function(x) for x in X]
-        self.fit(X, data)
-
     @abc.abstractmethod
     def fit(self, X, y=None):
         """Fit surrogate's components (basis functions) to data.
@@ -123,7 +110,7 @@ class Surrogate:
         Raises
         ------
         RuntimeError
-            For surrogate to be evaluated, function needs to be trained.
+            For surrogate to be evaluated, function needs to be fit.
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -157,8 +144,6 @@ class SetProductSurrogate(Surrogate):
     that make up a given term.
     :attr:`coefficients` is the list of coefficients for each term in the
     surrogate equation. These cefficients are determined in :meth:`fit`.
-    :meth:`train`, generates a trained surrogate model given a function and
-    the points to sample at.
     :meth:`fit` computes the coefficients based on a set of data
     (function values at transformed grid points).
     Once the surrogate is constructed, one can evaluate the surrogate
@@ -267,7 +252,7 @@ class SetProductSurrogate(Surrogate):
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
-            raise RuntimeError("Model must be trained!")
+            raise RuntimeError("Model must be fit!")
         if self._fit_gradient_flag and not self._integration_constant_flag and not ignore_integration_warning:
            warnings.warn("Integration constant unavailable.")
         oob = any(
@@ -332,7 +317,7 @@ class SetProductSurrogate(Surrogate):
         Raises
         ------
         RuntimeError
-            For surrogate to be evaluated, function needs to be trained.
+            For surrogate to be evaluated, function needs to be fit.
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -341,7 +326,7 @@ class SetProductSurrogate(Surrogate):
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
-            raise RuntimeError("Model must be trained!")
+            raise RuntimeError("Model must be fit!")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -562,7 +547,7 @@ class SetProductSurrogate(Surrogate):
         )
         if oob:
             raise ValueError("X must lie in domain of surrogate")
-        # add inputs to training attributes for safekeeping
+        # add inputs to fitting attributes for safekeeping
         self._points = X
         self._data = y
 
