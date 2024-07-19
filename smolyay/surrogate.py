@@ -10,11 +10,7 @@ import sklearn.linear_model
 import smolyay
 
 
-class BaseSurrogate(
-    sklearn.base.BaseEstimator,
-    sklearn.base.MultiOutputMixin,
-    sklearn.base.RegressorMixin,
-):
+class Surrogate:
     r"""Create a surrogate to approximate a complex function.
 
     Depending on the dimensionality (number of independent variables),
