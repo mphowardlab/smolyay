@@ -953,6 +953,55 @@ def test_fit_gradient_error(surrogate_class):
     ],
     ids=["Tensor", "Smolyak"],
 )
+def test_successive_fits(surrogate_class, grid_obj):
+    """Test that predict and predict_gradient are unaffected by previous fittings"""
+    domain = numpy.array([[-5, 10], [0, 15]])
+    num_level = 5
+    surrogate, point_sets = create_surrogate(
+        surrogate_class,
+        smolyay.basis.ChebyshevFirstKind,
+        smolyay.samples.NestedClenshawCurtisPointSet,
+        num_level,
+        domain,
+    )
+    grid = grid_obj(point_sets=point_sets)
+    sample_output_1 = branin(grid.points)
+    sample_output_gradient_1 = branin_gradient(grid.points)
+    sample_output_gradient_2 = [function_3_gradient(x) for x in grid.points]
+    constant_point = [domain[:, 0]]
+    constant_value_1 = [branin(domain[:, 0])]
+    constant_value_2 = [function_3(domain[:, 0])]
+    # test surrogate matches at some points
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer_1 = branin(test_points)
+    gradient_answer_1 = branin_gradient(test_points)
+    predict_answer_2 = [function_3(x) for x in test_points]
+    gradient_answer_2 = [function_3_gradient(x) for x in test_points]
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1,constant_point,constant_value_1)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
+    assert numpy.allclose(surrogate.points, grid.points)
+    assert numpy.allclose(surrogate.data, sample_output_gradient_2)
+    assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
+    difference_predict = numpy.subtract(predict_answer_2, surrogate.predict(test_points))
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2,constant_point,constant_value_2)
+    assert numpy.allclose(predict_answer_2, surrogate.predict(test_points))
+    surrogate = surrogate.fit(grid, sample_output_1)
+    assert numpy.allclose(surrogate.points, grid.points)
+    assert numpy.allclose(surrogate.data, sample_output_1)
+    assert numpy.allclose(gradient_answer_1, surrogate.predict_gradient(test_points), rtol=1e-3)
+    assert numpy.allclose(predict_answer_1, surrogate.predict(test_points), rtol=1e-3)
+
+
+
+@pytest.mark.parametrize(
+    "surrogate_class,grid_obj",
+    [
+        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
 def test_predict_size_2D(surrogate_class, grid_obj):
     """Test predict returns answer of the appropriate shape"""
     domain = [[-5, 10], [0, 15]]

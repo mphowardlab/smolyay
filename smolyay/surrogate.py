@@ -174,8 +174,7 @@ class SetProductSurrogate(Surrogate):
         self._regression = None
         self._index_combinations = None
         self._coefficients = None
-        self._fit_gradient_flag = False
-        self._integration_constant_flag = False
+        self._integration_constant = 0
 
         self._basis_sets = basis_sets
         self.alpha = alpha
@@ -286,7 +285,7 @@ class SetProductSurrogate(Surrogate):
                 lookup_table[dim, i, :] = basis_fun(new_X)
 
         # use lookup table to combine terms
-        answer = numpy.zeros(len(X))
+        answer = numpy.ones(len(X)) * self._integration_constant
         for ic, coeff in zip(self.index_combinations, self.coefficients):
             answer = answer + numpy.real(
                 coeff
@@ -413,6 +412,9 @@ class SetProductSurrogate(Surrogate):
         ValueError
             Input must lie in domain of surrogate.
         """
+        # reset constant
+        self._integration_constant = 0
+        # get points
         if isinstance(
             X,
             (
@@ -528,6 +530,8 @@ class SetProductSurrogate(Surrogate):
         ValueError
             Input must lie in domain of surrogate.
         """
+        # reset constant
+        self._integration_constant = 0
         # validate inputs
         if isinstance(
             X,
@@ -648,10 +652,7 @@ class SetProductSurrogate(Surrogate):
             constant_y = numpy.array(constant_y).item(0)
             predicted_y = self.predict(constant_x)
             integration_constant = constant_y - predicted_y
-            self._coefficients[0] = integration_constant
-            self._integration_constant_flag = True
-        else:
-            self._integration_constant_flag = False
+            self._integration_constant = integration_constant
         return self
 
     @abc.abstractmethod
