@@ -225,7 +225,7 @@ class SetProductSurrogate(Surrogate):
         """numpy.ndarray: the coefficients of the terms"""
         return self._coefficients
 
-    def predict(self, X, ignore_integration_warning=False):
+    def predict(self, X):
         """Evaluate surrogate at a given input.
 
         Parameters
