@@ -5,7 +5,8 @@ import smolyay
 from smolyay.surrogate import (
     TensorProductSurrogate,
     SmolyakSparseProductSurrogate,
-    L1Regularization, L2Regularization
+    L1Regularization,
+    L2Regularization,
 )
 
 
@@ -250,19 +251,19 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     assert basis_sets[0] is surrogate.basis_sets[0]
     assert surrogate.num_dimensions == 2
     assert surrogate.regularization == None
-    surrogate.fit(domain,[1,2])
+    surrogate.fit(domain, [1, 2])
     assert numpy.array_equal(surrogate._index_combinations, index_answer)
 
     # test optional parameters
     surrogate = surrogate_class(domain, basis_sets, L2Regularization(alpha=1e-5))
-    assert isinstance(surrogate.regularization,L2Regularization)
+    assert isinstance(surrogate.regularization, L2Regularization)
     assert surrogate.regularization.alpha == 1e-5
 
     # test setting parameters
     surrogate.domain = [[-7, 15], [6, 14]]
     assert numpy.allclose(surrogate.domain, [[-7, 15], [6, 14]])
     surrogate.regularization = L1Regularization(alpha=1e-10)
-    assert isinstance(surrogate.regularization,L1Regularization)
+    assert isinstance(surrogate.regularization, L1Regularization)
     assert surrogate.regularization.alpha == 1e-10
 
 
@@ -506,7 +507,11 @@ def test_fit_1D(surrogate_class, domain):
 )
 @pytest.mark.parametrize(
     "regularization,points",
-    [(L2Regularization(alpha=1e-10), 1500), (L1Regularization(alpha=1e-10), 2500), (None, 1500)],
+    [
+        (L2Regularization(alpha=1e-10), 1500),
+        (L1Regularization(alpha=1e-10), 2500),
+        (None, 1500),
+    ],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_latin_2D(surrogate_class, regularization, points):
@@ -542,7 +547,9 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regularization",
+    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+    ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_latin_1D(surrogate_class, regularization):
     """Test if class is fit when number of terms doesn't match samples for 1D function."""
@@ -813,7 +820,9 @@ def test_fit_gradient_1D(surrogate_class, domain):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regularization",
+    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+    ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_gradient_latin_2D(surrogate_class, regularization):
     """Test if class is fit using gradient when n_terms != n_points for 2D function."""
@@ -860,7 +869,9 @@ def test_fit_gradient_latin_2D(surrogate_class, regularization):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regularization",
+    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+    ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_gradient_latin_1D(surrogate_class, regularization):
     """Test if class is fit using gradient when n_terms != n_points for 1D function."""
@@ -963,17 +974,20 @@ def test_successive_fits(surrogate_class, grid_obj):
     gradient_answer_1 = branin_gradient(test_points)
     predict_answer_2 = [function_3(x) for x in test_points]
     gradient_answer_2 = [function_3_gradient(x) for x in test_points]
-    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1,X0,y0_1)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1, X0, y0_1)
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
     assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
-    difference_predict = numpy.subtract(predict_answer_2, surrogate.predict(test_points))
+    difference_predict = numpy.subtract(
+        predict_answer_2, surrogate.predict(test_points)
+    )
     assert numpy.allclose(difference_predict, difference_predict[0])
-    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2,X0,y0_2)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2, X0, y0_2)
     assert numpy.allclose(predict_answer_2, surrogate.predict(test_points))
     surrogate = surrogate.fit(grid, sample_output_1)
-    assert numpy.allclose(gradient_answer_1, surrogate.predict_gradient(test_points), rtol=1e-3)
+    assert numpy.allclose(
+        gradient_answer_1, surrogate.predict_gradient(test_points), rtol=1e-3
+    )
     assert numpy.allclose(predict_answer_1, surrogate.predict(test_points), rtol=1e-3)
-
 
 
 @pytest.mark.parametrize(

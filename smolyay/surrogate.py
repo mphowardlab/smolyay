@@ -164,7 +164,7 @@ class SetProductSurrogate(Surrogate):
     @regularization.setter
     def regularization(self, value):
         if not value is None:
-            if not isinstance(value,RegularizationHelper):
+            if not isinstance(value, RegularizationHelper):
                 raise ValueError("Regression must be a RegularizationHelper")
         if self.regularization != value:
             self._regularization = value
@@ -391,7 +391,7 @@ class SetProductSurrogate(Surrogate):
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
             print(y.shape)
             raise IndexError("Must be 2D array with shape (n_samples,)")
-        
+
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -437,7 +437,9 @@ class SetProductSurrogate(Surrogate):
                 try:
                     self._coefficients = numpy.linalg.solve(basis_matrix, y)
                 except:
-                    self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
+                    self._coefficients = numpy.linalg.lstsq(
+                        basis_matrix, y, rcond=None
+                    )[0]
             else:
                 self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
@@ -591,7 +593,7 @@ class SetProductSurrogate(Surrogate):
         if not y0 is None:
             # validate data inputs
             if X0 is None:
-                X0 = self.domain[:,0].reshape((1,-1))
+                X0 = self.domain[:, 0].reshape((1, -1))
             else:
                 X0 = numpy.array(X0, ndmin=2)
             if X0.shape != (1, self.num_dimensions):
@@ -698,14 +700,17 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
                     (self._index_combinations, index_combinations_), axis=0
                 )
 
+
 class RegularizationHelper:
     def __init__(self):
-        self.fit_intercept=False
+        self.fit_intercept = False
+
 
 class L2Regularization(RegularizationHelper):
     def __init__(self, alpha):
         super().__init__()
         self.alpha = alpha
+
 
 class L1Regularization(RegularizationHelper):
     def __init__(self, alpha):
