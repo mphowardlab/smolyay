@@ -71,7 +71,7 @@ class Surrogate:
         return self._points
 
     @abc.abstractmethod
-    def fit(self, X, y=None):
+    def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
 
         Parameters
