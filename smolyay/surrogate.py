@@ -664,7 +664,7 @@ class SetProductSurrogate(Surrogate):
         pass
 
 
-class TensorProductSurrogate(ProductSetSurrogate):
+class TensorProductSurrogate(SetProductSurrogate):
     """A surrogate that uses a combination of tensor product as terms
 
     Parameters
@@ -694,7 +694,7 @@ class TensorProductSurrogate(ProductSetSurrogate):
             self._index_combinations[i] = point
 
 
-class SmolyakSparseProductSurrogate(ProductSetSurrogate):
+class SmolyakSparseProductSurrogate(SetProductSurrogate):
     """A surrogate from sparse combinations of terms
 
     Parameters

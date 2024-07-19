@@ -154,7 +154,7 @@ def branin_gradient(x):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,basis_sets,index_answer",
+    "surrogate_class,basis_sets,index_answer",
     [
         (
             TensorProductSurrogate,
@@ -241,10 +241,10 @@ def branin_gradient(x):
     ],
     ids=["Tensor", "Tensor mixed basis", "Smolyak", "Smolyak mixed basis"],
 )
-def test_initialization_product_set(product_set_surrogate, basis_sets, index_answer):
+def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     """Test if class is properly intiallized."""
     domain = [[-5, 10], [0, 15]]
-    surrogate = product_set_surrogate(domain, basis_sets, 1e-5, "ridge")
+    surrogate = surrogate_class(domain, basis_sets, 1e-5, "ridge")
     assert numpy.allclose(surrogate.domain, domain)
     assert basis_sets[0] is surrogate.basis_sets[0]
     assert surrogate.num_dimensions == 2
@@ -262,7 +262,7 @@ def test_initialization_product_set(product_set_surrogate, basis_sets, index_ans
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,basis_sets",
+    "surrogate_class,basis_sets",
     [
         (
             TensorProductSurrogate,
@@ -285,15 +285,15 @@ def test_initialization_product_set(product_set_surrogate, basis_sets, index_ans
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_regression_error(product_set_surrogate, basis_sets):
+def test_regression_error(surrogate_class, basis_sets):
     """test error at invalid regression method value"""
-    surrogate = product_set_surrogate([[4, 5], [3, 5]], basis_sets)
+    surrogate = surrogate_class([[4, 5], [3, 5]], basis_sets)
     with pytest.raises(ValueError):
         surrogate.regression = "not a regression method"
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
@@ -317,12 +317,12 @@ def test_regression_error(product_set_surrogate, basis_sets):
         "all different",
     ],
 )
-def test_fit_2D(product_set_surrogate, grid_obj, domain):
+def test_fit_2D(surrogate_class, grid_obj, domain):
     """Test if class is fit."""
     num_level = 5
 
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -345,20 +345,20 @@ def test_fit_2D(product_set_surrogate, grid_obj, domain):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_fit_2D_Trignometric(product_set_surrogate, grid_obj):
+def test_fit_2D_Trignometric(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
     num_level = 2
 
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.Trigonometric,
         smolyay.samples.NestedTrigonometricPointSet,
         num_level,
@@ -379,20 +379,20 @@ def test_fit_2D_Trignometric(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_fit_1D_Trignometric(product_set_surrogate, grid_obj):
+def test_fit_1D_Trignometric(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = [0, 2 * numpy.pi]
     num_level = 2
 
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.Trigonometric,
         smolyay.samples.NestedTrigonometricPointSet,
         num_level,
@@ -413,14 +413,14 @@ def test_fit_1D_Trignometric(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
+def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = [[-1, 1], [0, 2 * numpy.pi]]
     num_level = 3
@@ -444,7 +444,7 @@ def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
             point_sets[1].num_per_level,
         ),
     ]
-    surrogate = product_set_surrogate(domain, basis_sets)
+    surrogate = surrogate_class(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
     sample_output = [function_1(x) for x in grid.points]
     surrogate = surrogate.fit(grid, sample_output)
@@ -462,7 +462,7 @@ def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
@@ -479,11 +479,11 @@ def test_fit_2D_mixed_basis(product_set_surrogate, grid_obj):
         "all different",
     ],
 )
-def test_fit_1D(product_set_surrogate, domain):
+def test_fit_1D(surrogate_class, domain):
     num_level = 2
     # fit with a 1D function
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -504,7 +504,7 @@ def test_fit_1D(product_set_surrogate, domain):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
@@ -513,13 +513,13 @@ def test_fit_1D(product_set_surrogate, domain):
     [("ridge", 1500), ("lasso", 2500), ("lstsq", 1500)],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
-def test_fit_latin_2D(product_set_surrogate, regression, points):
+def test_fit_latin_2D(surrogate_class, regression, points):
     """Test if class is fit when number of terms doesn't match samples."""
     domain = [[-5, 5], [0, 10]]
     num_level = 4
 
     surrogate, _ = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -543,21 +543,21 @@ def test_fit_latin_2D(product_set_surrogate, regression, points):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-def test_fit_latin_1D(product_set_surrogate, regression):
+def test_fit_latin_1D(surrogate_class, regression):
     """Test if class is fit when number of terms doesn't match samples."""
     domain = [-5, 10]
     num_level = 4
 
     # fit with a 1D function
     surrogate, _ = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -581,14 +581,14 @@ def test_fit_latin_1D(product_set_surrogate, regression):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [
         (TensorProductSurrogate),
         (SmolyakSparseProductSurrogate),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_fit_error(product_set_surrogate):
+def test_fit_error(surrogate_class):
     """Test if fit raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
@@ -598,7 +598,7 @@ def test_fit_error(product_set_surrogate):
         )
         for _ in range(2)
     ]
-    surrogate = product_set_surrogate(domain, bs)
+    surrogate = surrogate_class(domain, bs)
 
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
@@ -615,7 +615,7 @@ def test_fit_error(product_set_surrogate):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
@@ -640,11 +640,11 @@ def test_fit_error(product_set_surrogate):
     ],
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
+def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     """Test if class is fit using the gradient."""
     num_level = 3
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -672,7 +672,7 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
@@ -680,13 +680,13 @@ def test_fit_gradient_2D(product_set_surrogate, grid_obj, domain):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
+def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
     num_level = 2
 
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.Trigonometric,
         smolyay.samples.NestedTrigonometricPointSet,
         num_level,
@@ -714,7 +714,7 @@ def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
@@ -722,7 +722,7 @@ def test_fit_gradient_2D_Trignometric(product_set_surrogate, grid_obj):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
+def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = numpy.array([[-1, 1], [0, 2 * numpy.pi]])
     num_level = 3
@@ -746,7 +746,7 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
             point_sets[1].num_per_level,
         ),
     ]
-    surrogate = product_set_surrogate(domain, basis_sets)
+    surrogate = surrogate_class(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
     sample_output = [function_1_gradient(x) for x in grid.points]
     surrogate = surrogate.fit_gradient(grid, sample_output)
@@ -771,7 +771,7 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
@@ -789,10 +789,10 @@ def test_fit_gradient_2D_mixed_basis(product_set_surrogate, grid_obj):
     ],
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_1D(product_set_surrogate, domain):
+def test_fit_gradient_1D(surrogate_class, domain):
     num_level = 3
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -823,7 +823,7 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
@@ -831,12 +831,12 @@ def test_fit_gradient_1D(product_set_surrogate, domain):
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_latin_2D(product_set_surrogate, regression):
+def test_fit_gradient_latin_2D(surrogate_class, regression):
     """Test if class is fit using gradient when number of terms != number of points."""
     domain = numpy.array([[-5, 5], [-1, 1]])
     num_level = 3
     surrogate, _ = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -873,7 +873,7 @@ def test_fit_gradient_latin_2D(product_set_surrogate, regression):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
@@ -881,13 +881,13 @@ def test_fit_gradient_latin_2D(product_set_surrogate, regression):
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
 @pytest.mark.filterwarnings("ignore")
-def test_fit_gradient_latin_1D(product_set_surrogate, regression):
+def test_fit_gradient_latin_1D(surrogate_class, regression):
     num_level = 3
     domain = [-5, 6]
     # fit with a 1D function
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
     surrogate, _ = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -915,11 +915,11 @@ def test_fit_gradient_latin_1D(product_set_surrogate, regression):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
-def test_fit_gradient_error(product_set_surrogate):
+def test_fit_gradient_error(surrogate_class):
     """Test if fit_gradient raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
@@ -929,7 +929,7 @@ def test_fit_gradient_error(product_set_surrogate):
         )
         for _ in range(2)
     ]
-    surrogate = product_set_surrogate(domain, bs)
+    surrogate = surrogate_class(domain, bs)
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
         surrogate.fit_gradient(test_points, branin(test_points))
@@ -952,19 +952,19 @@ def test_fit_gradient_error(product_set_surrogate):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_predict_size_2D(product_set_surrogate, grid_obj):
+def test_predict_size_2D(surrogate_class, grid_obj):
     """Test predict returns answer of the appropriate shape"""
     domain = [[-5, 10], [0, 15]]
     num_level = 5
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -980,16 +980,16 @@ def test_predict_size_2D(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
-def test_predict_size_1D(product_set_surrogate):
+def test_predict_size_1D(surrogate_class):
     num_level = 4
     domain = [-5, 5]
     # fit with a 1D function
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -1003,7 +1003,7 @@ def test_predict_size_1D(product_set_surrogate):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,basis_sets",
+    "surrogate_class,basis_sets",
     [
         (
             TensorProductSurrogate,
@@ -1027,9 +1027,9 @@ def test_predict_size_1D(product_set_surrogate):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.filterwarnings("error")
-def test_predict_error(product_set_surrogate, basis_sets):
+def test_predict_error(surrogate_class, basis_sets):
     """Test that predict raises correct errors"""
-    surrogate = product_set_surrogate([[-5, 10], [0, 15]], basis_sets)
+    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
     grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
     with pytest.raises(RuntimeError):
         surrogate.predict([[0.7, 0.3]])
@@ -1073,20 +1073,20 @@ def test_predict_error(product_set_surrogate, basis_sets):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,grid_obj",
+    "surrogate_class,grid_obj",
     [
         (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
         (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_predict_gradient_size_2D(product_set_surrogate, grid_obj):
+def test_predict_gradient_size_2D(surrogate_class, grid_obj):
     """Test predict_gradient returns answer of the appropriate shape."""
     domain = [[-5, 10], [0, 15]]
     num_level = 5
 
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -1104,15 +1104,15 @@ def test_predict_gradient_size_2D(product_set_surrogate, grid_obj):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate",
+    "surrogate_class",
     [TensorProductSurrogate, SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
-def test_predict_gradient_size_1D(product_set_surrogate):
+def test_predict_gradient_size_1D(surrogate_class):
     num_level = 4
     domain = [-5, 5]
     surrogate, point_sets = create_surrogate(
-        product_set_surrogate,
+        surrogate_class,
         smolyay.basis.ChebyshevFirstKind,
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
@@ -1129,7 +1129,7 @@ def test_predict_gradient_size_1D(product_set_surrogate):
 
 
 @pytest.mark.parametrize(
-    "product_set_surrogate,basis_sets",
+    "surrogate_class,basis_sets",
     [
         (
             TensorProductSurrogate,
@@ -1152,9 +1152,9 @@ def test_predict_gradient_size_1D(product_set_surrogate):
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_predict_gradient_error(product_set_surrogate, basis_sets):
+def test_predict_gradient_error(surrogate_class, basis_sets):
     """Test that predict_gradient raises correct errors"""
-    surrogate = product_set_surrogate([[-5, 10], [0, 15]], basis_sets)
+    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
     grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
     with pytest.raises(RuntimeError):
         surrogate.predict_gradient([[0.7, 0.3]])
