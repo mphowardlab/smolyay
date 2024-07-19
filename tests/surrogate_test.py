@@ -1,8 +1,6 @@
 import numpy
 import pytest
 
-import sklearn.linear_model
-
 import smolyay
 from smolyay.surrogate import (
     TensorProductSurrogate,
@@ -246,23 +244,21 @@ def branin_gradient(x):
 def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     """Test if class is properly intiallized."""
     domain = [[-5, 10], [0, 15]]
-    surrogate = surrogate_class(domain, basis_sets)
+    surrogate = surrogate_class(domain, basis_sets, 1e-5, "ridge")
     assert numpy.allclose(surrogate.domain, domain)
     assert basis_sets[0] is surrogate.basis_sets[0]
     assert surrogate.num_dimensions == 2
-    assert surrogate.regularization == None
+    assert surrogate.regression
+    assert surrogate.alpha == 1e-5
+    assert surrogate.regression == "ridge"
     assert numpy.array_equal(surrogate.index_combinations, index_answer)
-    l2 = sklearn.linear_model.Ridge(
-                    alpha=1e-10, fit_intercept=False
-                )
-    l1 = sklearn.linear_model.Lasso(
-                    alpha=1e-10, fit_intercept=False)
-    surrogate = surrogate_class(domain, basis_sets, regularization=l2)
-    assert surrogate.regularization == l2
-    surrogate.regularization = l1
-    assert surrogate.regularization == l1
+
     surrogate.domain = [[-7, 15], [6, 14]]
     assert numpy.allclose(surrogate.domain, [[-7, 15], [6, 14]])
+    surrogate.alpha = 1e-6
+    assert surrogate.alpha == 1e-6
+    surrogate.regression = "lasso"
+    assert surrogate.regression == "lasso"
 
 
 @pytest.mark.parametrize(
@@ -289,11 +285,11 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     ],
     ids=["Tensor", "Smolyak"],
 )
-def test_regularization_error(surrogate_class, basis_sets):
-    """test error at invalid regularization method value"""
+def test_regression_error(surrogate_class, basis_sets):
+    """test error at invalid regression method value"""
     surrogate = surrogate_class([[4, 5], [3, 5]], basis_sets)
     with pytest.raises(ValueError):
-        surrogate.regularization = "not a regularization method"
+        surrogate.regression = "not a regression method"
 
 
 @pytest.mark.parametrize(
@@ -513,13 +509,11 @@ def test_fit_1D(surrogate_class, domain):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization,points",
-    [(sklearn.linear_model.Ridge(
-                    alpha=1e-10, fit_intercept=False), 1500), (sklearn.linear_model.Lasso(
-                    alpha=1e-10, fit_intercept=False), 2500), (None, 1500)],
+    "regression,points",
+    [("ridge", 1500), ("lasso", 2500), ("lstsq", 1500)],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
-def test_fit_latin_2D(surrogate_class, regularization, points):
+def test_fit_latin_2D(surrogate_class, regression, points):
     """Test if class is fit when number of terms doesn't match samples."""
     domain = [[-5, 5], [0, 10]]
     num_level = 4
@@ -530,7 +524,7 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
         domain,
-        regularization=regularization,
+        regression=regression,
     )
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
     sample_output = branin(grid.points)
@@ -554,11 +548,9 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [sklearn.linear_model.Ridge(
-                    alpha=1e-10, fit_intercept=False), sklearn.linear_model.Lasso(
-                    alpha=1e-10, fit_intercept=False), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-def test_fit_latin_1D(surrogate_class, regularization):
+def test_fit_latin_1D(surrogate_class, regression):
     """Test if class is fit when number of terms doesn't match samples."""
     domain = [-5, 10]
     num_level = 4
@@ -570,7 +562,7 @@ def test_fit_latin_1D(surrogate_class, regularization):
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
         domain=domain,
-        regularization=regularization,
+        regression=regression,
     )
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
     sample_output = function_2(grid.points)
@@ -832,11 +824,9 @@ def test_fit_gradient_1D(surrogate_class, domain):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [sklearn.linear_model.Ridge(
-                    alpha=1e-10, fit_intercept=False), sklearn.linear_model.Lasso(
-                    alpha=1e-10, fit_intercept=False), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-def test_fit_gradient_latin_2D(surrogate_class, regularization):
+def test_fit_gradient_latin_2D(surrogate_class, regression):
     """Test if class is fit using gradient when number of terms != number of points."""
     domain = numpy.array([[-5, 5], [-1, 1]])
     num_level = 3
@@ -846,7 +836,7 @@ def test_fit_gradient_latin_2D(surrogate_class, regularization):
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
         domain,
-        regularization=regularization,
+        regression=regression,
     )
     grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
     sample_output = [function_3_gradient(x) for x in grid.points]
@@ -883,11 +873,9 @@ def test_fit_gradient_latin_2D(surrogate_class, regularization):
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
-    "regularization", [sklearn.linear_model.Ridge(
-                    alpha=1e-10, fit_intercept=False), sklearn.linear_model.Lasso(
-                    alpha=1e-10, fit_intercept=False), None], ids=["Ridge", "Lasso", "Least Squares"]
+    "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-def test_fit_gradient_latin_1D(surrogate_class, regularization):
+def test_fit_gradient_latin_1D(surrogate_class, regression):
     num_level = 3
     domain = [-5, 6]
     # fit with a 1D function
@@ -898,7 +886,7 @@ def test_fit_gradient_latin_1D(surrogate_class, regularization):
         smolyay.samples.NestedClenshawCurtisPointSet,
         num_level,
         domain,
-        regularization=regularization,
+        regression=regression,
     )
     sample_output = function_4_gradient(grid.points)
     surrogate.fit_gradient(grid, sample_output)
