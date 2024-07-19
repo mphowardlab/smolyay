@@ -16,6 +16,8 @@ class BasisFunction(abc.ABC):
     can be evaluated via :meth:`derivative`.
     """
 
+    _is_complex = False
+
     @property
     @abc.abstractmethod
     def domain(self):
@@ -353,6 +355,8 @@ class Trigonometric(BasisFunction):
 
     """
 
+    _is_complex = True
+
     def __init__(self, frequency):
         super().__init__()
         self.frequency = frequency
@@ -445,11 +449,6 @@ class BasisFunctionSet(collections.abc.Sequence):
     def basis_functions(self):
         """list: Basis functions."""
         return self._basis_functions
-    
-    @property
-    def is_complex(self):
-        """bool: if any basis function return complex values"""
-        return any(bf.is_complex for bf in self._basis_functions)
     
     def __len__(self):
         return len(self.basis_functions)

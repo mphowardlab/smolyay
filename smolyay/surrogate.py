@@ -280,7 +280,7 @@ class SetProductSurrogate(Surrogate):
 
         # create lookup table
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(bs.is_complex for bs in self.basis_sets):
+        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -351,7 +351,7 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
         # create lookup table
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(bs.is_complex for bs in self.basis_sets):
+        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -455,7 +455,7 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
         # create basis matrix
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(bs.is_complex for bs in self.basis_sets):
+        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -568,7 +568,7 @@ class SetProductSurrogate(Surrogate):
 
         ## Create basis matrix
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(bs.is_complex for bs in self.basis_sets):
+        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
