@@ -127,10 +127,9 @@ class SetProductSurrogate(Surrogate):
     the basis functions used to construct terms in the surrogate function,
     with the :class:BasisFunctionSet at index i in the list being the set of
     basis functions used for the ith dimensional variable.
-    ``alpha`` is the lambda parameter used by Lasso and Ridge Regression
-    ``regression`` is the method of regression used in the event that the
+    ``regularization`` is the method of regularization used in the event that the
     number of terms does not match the number of sample points. Ridge
-    regression and lasso regression are available, as well as finding
+    regularization and lasso regularization are available, as well as finding
     the solution of least squares. If the basis functions return complex
     values, then solving for least squares will be used instead of ridge
     or lasso.
@@ -160,51 +159,33 @@ class SetProductSurrogate(Surrogate):
     basis_sets: list of :class:BasisFunctionSet
         the set of basis functions used to combine terms
 
-    alpha: float, default 1e-10
-        the regression parameter used in Ridge and Lasso regression
-
-    regression : ["ridge", "lasso", "lstsq"], default "ridge"
-        the regression method if the number of points and terms don't match
+    regularization : [:class:L1Regularization, :class:L2Regularization, None], default None
+        the regularization method for determining the coefficients
     """
 
-    def __init__(self, domain, basis_sets, alpha=1e-10, regression="ridge"):
+    def __init__(self, domain, basis_sets, regularization=None):
         super().__init__(domain)
         self._basis_sets = None
-        self._alpha = None
-        self._regression = None
+        self._regularization = None
         self._index_combinations = None
         self._coefficients = None
         self._integration_constant = 0
 
         self._basis_sets = basis_sets
-        self.alpha = alpha
-        self.regression = regression
+        self.regularization = regularization
 
     @property
-    def alpha(self):
-        """float: constant of the L2 term"""
-        return self._alpha
+    def regularization(self):
+        """:class:RegularizationHelper: constant of the L2 and L1 term"""
+        return self._regularization
 
-    @alpha.setter
-    def alpha(self, value):
-        if value < 0:
-            raise ValueError("Alpha term must be positive")
-        if self.alpha != value:
-            self._alpha = value
-            self._valid_cache = False
-
-    @property
-    def regression(self):
-        """float: constant of the L2 and L1 term"""
-        return self._regression
-
-    @regression.setter
-    def regression(self, value):
-        regression = str(value).casefold()
-        if not regression in ["ridge", "lasso", "lstsq"]:
-            raise ValueError("Regression must be ridge or lasso")
-        if self.regression != regression:
-            self._regression = regression
+    @regularization.setter
+    def regularization(self, value):
+        if not value is None:
+            if not isinstance(value,RegularizationHelper):
+                raise ValueError("Regression must be a RegularizationHelper")
+        if self.regularization != value:
+            self._regularization = value
             self._valid_cache = False
 
     @property
@@ -475,27 +456,22 @@ class SetProductSurrogate(Surrogate):
             )
 
         # solve for coefficients
-        if basis_matrix.shape[0] == basis_matrix.shape[1]:
-            try:
-                self._coefficients = numpy.linalg.solve(basis_matrix, y)
-            except:
-                self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
-        else:
-            if numpy.any(numpy.iscomplex(basis_matrix)) or self.regression == "lstsq":
-
-                self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
-            elif self.regression == "ridge":
-                basis_matrix = numpy.real(basis_matrix)
-                regressor = sklearn.linear_model.Ridge(
-                    alpha=self.alpha, fit_intercept=False
-                )
-                self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
+        if self.regularization is None or numpy.any(numpy.iscomplex(basis_matrix)):
+            if basis_matrix.shape[0] == basis_matrix.shape[1]:
+                try:
+                    self._coefficients = numpy.linalg.solve(basis_matrix, y)
+                except:
+                    self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
             else:
-                basis_matrix = numpy.real(basis_matrix)
-                regressor = sklearn.linear_model.Lasso(
-                    alpha=self.alpha, fit_intercept=False
-                )
-                self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
+                self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
+        elif isinstance(self.regularization, L2Regularization):
+            regressor = sklearn.linear_model.Ridge(**self.regularization.__dict__)
+            self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
+        elif isinstance(self.regularization, L1Regularization):
+            regressor = sklearn.linear_model.Lasso(**self.regularization.__dict__)
+            self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
+        else:
+            self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         self._valid_cache = True
         self._fit_gradient_flag = False
         return self
@@ -624,24 +600,16 @@ class SetProductSurrogate(Surrogate):
         data = numpy.reshape(y, (self.num_dimensions * len(X),))
 
         # solve for coefficients
-        if (
-            basis_matrix.shape[0] / self.num_dimensions == basis_matrix.shape[1]
-            or numpy.any(numpy.iscomplex(basis_matrix))
-            or self.regression == "lstsq"
-        ):
+        if self.regularization is None or numpy.any(numpy.iscomplex(basis_matrix)):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
-        else:
-            if self.regression == "ridge":
-                basis_matrix = numpy.real(basis_matrix)
-                regressor = sklearn.linear_model.Ridge(
-                    alpha=self.alpha, fit_intercept=False
-                )
-            else:
-                basis_matrix = numpy.real(basis_matrix)
-                regressor = sklearn.linear_model.Lasso(
-                    alpha=self.alpha, fit_intercept=False
-                )
+        elif isinstance(self.regularization, L2Regularization):
+            regressor = sklearn.linear_model.Ridge(**self.regularization.__dict__)
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
+        elif isinstance(self.regularization, L1Regularization):
+            regressor = sklearn.linear_model.Lasso(**self.regularization.__dict__)
+            self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
+        else:
+            self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         self._valid_cache = True
         self._fit_gradient_flag = True
         if not constant_x is None and not constant_y is None:
@@ -672,11 +640,8 @@ class TensorProductSurrogate(SetProductSurrogate):
     basis_set: BasisFunctionSet or list of BasisFunctionSet
         the set of basis functions used to combine terms
 
-    alpha: float, default 1e-10
-        the regression parameter used in Ridge regression
-
-    regression : ["ridge","lasso"], default "ridge"
-        the regression method if the number of points and terms don't match
+    regularization : [:class:L1Regularization, :class:L2Regularization, None], default None
+        the regularization method for determining the coefficients
     """
 
     def _create_terms(self):
@@ -702,11 +667,8 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
     basis_set: BasisFunctionSet or list of BasisFunctionSet
         the set of basis functions used to combine terms
 
-    alpha: float, default 1e-10
-        the regression parameter used in Ridge regression
-
-    regression : ["ridge","lasso"], default "ridge"
-        the regression method if the number of points and terms don't match
+    regularization : [:class:L1Regularization, :class:L2Regularization, None], default None
+        the regularization method for determining the coefficients
     """
 
     def _create_terms(self):
@@ -756,3 +718,17 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
                 self._index_combinations = numpy.concatenate(
                     (self._index_combinations, index_combinations_), axis=0
                 )
+
+class RegularizationHelper:
+    def __init__(self):
+        self.fit_intercept=False
+
+class L2Regularization(RegularizationHelper):
+    def __init__(self, alpha):
+        super().__init__()
+        self.alpha = alpha
+
+class L1Regularization(RegularizationHelper):
+    def __init__(self, alpha):
+        super().__init__()
+        self.alpha = alpha
