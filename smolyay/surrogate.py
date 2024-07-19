@@ -18,8 +18,6 @@ class Surrogate:
     that approximates a set of data.
     ``domain`` is the domain of the function to be approximated.
 
-    :attr:`points` stores the points that are used for sampling.
-    :attr:`data` stores the output of the true function at the sampled points.
     :attr:`num_dimensions` is the number of dimensionns/independent variables.
     :meth:`fit` computes the coefficients based on a set of data
     (function values at transformed grid points).
@@ -34,8 +32,6 @@ class Surrogate:
 
     def __init__(self, domain):
         self._domain = None
-        self._data = None
-        self._points = None
         self._valid_cache = False
 
         self.domain = domain
@@ -56,19 +52,6 @@ class Surrogate:
     def num_dimensions(self):
         """int: number of independent variables."""
         return self.domain.shape[0]
-
-    @property
-    def data(self):
-        """list: data at sampling grid points."""
-        if self._data is not None:
-            return self._data.tolist()
-        else:
-            return None
-
-    @property
-    def points(self):
-        """numpy.ndarray: points that are sampled"""
-        return self._points
 
     @abc.abstractmethod
     def fit(self, X, y):
@@ -134,8 +117,6 @@ class SetProductSurrogate(Surrogate):
     values, then solving for least squares will be used instead of ridge
     or lasso.
 
-    :attr:`points` stores the points that are used for sampling.
-    :attr:`data` stores the output of the true function at the sampled points.
     :attr:`index_combinations` describes the combination of basis function
     used to construct the terms of the surrogate, where each row is a term
     represented by a list of size ``num_dimensions`` that give the index of
@@ -410,9 +391,7 @@ class SetProductSurrogate(Surrogate):
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
             print(y.shape)
             raise IndexError("Must be 2D array with shape (n_samples,)")
-
-        self._points = X
-        self._data = y
+        
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -533,9 +512,6 @@ class SetProductSurrogate(Surrogate):
         )
         if oob:
             raise ValueError("X must lie in domain of surrogate")
-        # add inputs to fitting attributes for safekeeping
-        self._points = X
-        self._data = y
 
         ## Create basis matrix
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])

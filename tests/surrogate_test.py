@@ -341,8 +341,6 @@ def test_fit_2D(surrogate_class, grid_obj, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = branin(test_points)
     gradient_answer = branin_gradient(test_points)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-3)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-3
@@ -377,8 +375,6 @@ def test_fit_2D_Trignometric(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_5(x) for x in test_points]
     gradient_answer = [function_5_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
@@ -411,8 +407,6 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_6(test_points))
     gradient_answer = function_6_gradient(test_points)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
@@ -458,8 +452,6 @@ def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_1(x) for x in test_points]
     gradient_answer = [function_1_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
@@ -503,8 +495,6 @@ def test_fit_1D(surrogate_class, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_2(test_points))
     gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
-    assert numpy.allclose(surrogate.points, grid_points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
@@ -540,8 +530,6 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
     test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
     predict_answer = branin(test_points)
     gradient_answer = branin_gradient(test_points)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
@@ -578,8 +566,6 @@ def test_fit_latin_1D(surrogate_class, regularization):
     test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_2(test_points))
     gradient_answer = [function_2_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01, atol=1e-3
@@ -663,8 +649,6 @@ def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_3(x) for x in test_points]
     gradient_answer = [function_3_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
     # test predict
@@ -704,8 +688,6 @@ def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_5(x) for x in test_points]
     gradient_answer = [function_5_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
     # test predict
@@ -758,8 +740,6 @@ def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_1(x) for x in test_points]
     gradient_answer = [function_1_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
     )
@@ -809,8 +789,6 @@ def test_fit_gradient_1D(surrogate_class, domain):
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_4(test_points))
     gradient_answer = function_4_gradient(test_points)
-    assert numpy.allclose(surrogate.points, grid_points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
         gradient_answer,
         surrogate.predict_gradient(test_points),
@@ -853,8 +831,6 @@ def test_fit_gradient_latin_2D(surrogate_class, regularization):
     test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
     predict_answer = [function_3(x) for x in test_points]
     gradient_answer = [function_3_gradient(x) for x in test_points]
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(
         gradient_answer,
         surrogate.predict_gradient(test_points),
@@ -903,8 +879,6 @@ def test_fit_gradient_latin_1D(surrogate_class, regularization):
     test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_4(test_points))
     gradient_answer = function_4_gradient(test_points)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output)
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
 
     # test predict
@@ -987,16 +961,12 @@ def test_successive_fits(surrogate_class, grid_obj):
     gradient_answer_2 = [function_3_gradient(x) for x in test_points]
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1,constant_point,constant_value_1)
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output_gradient_2)
     assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
     difference_predict = numpy.subtract(predict_answer_2, surrogate.predict(test_points))
     assert numpy.allclose(difference_predict, difference_predict[0])
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2,constant_point,constant_value_2)
     assert numpy.allclose(predict_answer_2, surrogate.predict(test_points))
     surrogate = surrogate.fit(grid, sample_output_1)
-    assert numpy.allclose(surrogate.points, grid.points)
-    assert numpy.allclose(surrogate.data, sample_output_1)
     assert numpy.allclose(gradient_answer_1, surrogate.predict_gradient(test_points), rtol=1e-3)
     assert numpy.allclose(predict_answer_1, surrogate.predict(test_points), rtol=1e-3)
 
