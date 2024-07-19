@@ -133,7 +133,7 @@ class BaseSurrogate(
         """
 
 
-class ProductSetSurrogate(BaseSurrogate):
+class SetProductSurrogate(Surrogate):
     r"""Create a surrogate to approximate a complex function.
 
     Depending on the dimensionality (number of independent variables),
