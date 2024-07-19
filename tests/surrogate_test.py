@@ -639,7 +639,6 @@ def test_fit_error(surrogate_class):
         "all different",
     ],
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     """Test if class is fit using the gradient."""
     num_level = 3
@@ -679,7 +678,6 @@ def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     ],
     ids=["Tensor", "Smolyak"],
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
@@ -721,7 +719,6 @@ def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
     ],
     ids=["Tensor", "Smolyak"],
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit."""
     domain = numpy.array([[-1, 1], [0, 2 * numpy.pi]])
@@ -788,7 +785,6 @@ def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
         "all different",
     ],
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_1D(surrogate_class, domain):
     num_level = 3
     surrogate, point_sets = create_surrogate(
@@ -830,7 +826,6 @@ def test_fit_gradient_1D(surrogate_class, domain):
 @pytest.mark.parametrize(
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_latin_2D(surrogate_class, regression):
     """Test if class is fit using gradient when number of terms != number of points."""
     domain = numpy.array([[-5, 5], [-1, 1]])
@@ -880,7 +875,6 @@ def test_fit_gradient_latin_2D(surrogate_class, regression):
 @pytest.mark.parametrize(
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
-@pytest.mark.filterwarnings("ignore")
 def test_fit_gradient_latin_1D(surrogate_class, regression):
     num_level = 3
     domain = [-5, 6]
@@ -1026,7 +1020,6 @@ def test_predict_size_1D(surrogate_class):
     ],
     ids=["Tensor", "Smolyak"],
 )
-@pytest.mark.filterwarnings("error")
 def test_predict_error(surrogate_class, basis_sets):
     """Test that predict raises correct errors"""
     surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
@@ -1045,31 +1038,6 @@ def test_predict_error(surrogate_class, basis_sets):
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict([[-4, -1], [3, 3]])
-    with pytest.raises(Warning):
-        surrogate.fit_gradient(grid, branin_gradient(grid.points))
-        surrogate.predict([[9, 5]])
-
-    # ensure using fit after fit_gradient resets flag
-    surrogate.fit_gradient(grid, branin_gradient(grid.points))
-    surrogate.fit(grid, branin(grid.points))
-    surrogate.predict([[8, 5]])
-
-    # ensure that fitting with integration constant does not raise warning
-    surrogate.fit_gradient(
-        grid, branin_gradient(grid.points), [grid.points[0]], [branin(grid.points[0])]
-    )
-    surrogate.predict([[8, 5]])
-
-    # ensure that fitting without integration constant does raise warning
-    with pytest.raises(Warning):
-        surrogate.fit_gradient(
-            grid,
-            branin_gradient(grid.points),
-            [grid.points[0]],
-            [branin(grid.points[0])],
-        )
-        surrogate.fit_gradient(grid, branin_gradient(grid.points))
-        surrogate.predict([[9, 5]])
 
 
 @pytest.mark.parametrize(

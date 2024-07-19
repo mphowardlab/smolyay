@@ -176,7 +176,6 @@ class SetProductSurrogate(Surrogate):
         self._coefficients = None
         self._fit_gradient_flag = False
         self._integration_constant_flag = False
-        self._ignore_integration_warning= False
 
         self._basis_sets = basis_sets
         self.alpha = alpha
@@ -254,8 +253,6 @@ class SetProductSurrogate(Surrogate):
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
-        if self._fit_gradient_flag and not self._integration_constant_flag and not self._ignore_integration_warning:
-           warnings.warn("Integration constant unavailable.")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -639,9 +636,7 @@ class SetProductSurrogate(Surrogate):
             if constant_x.shape != (1,self.num_dimensions):
                 raise IndexError("Must be 2D array with shape (1, n_features)")
             constant_y = numpy.array(constant_y).item(0)
-            self._ignore_integration_warning=True
             predicted_y = self.predict(constant_x)
-            self._ignore_integration_warning=False
             integration_constant = constant_y - predicted_y
             self._coefficients[0] = integration_constant
             self._integration_constant_flag = True
