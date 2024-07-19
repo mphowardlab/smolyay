@@ -250,7 +250,7 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, n_targets)
+        ndarray of shape (n_samples,) or (n_samples, n_features)
             Surrogate output at x.
 
         Raises
@@ -263,7 +263,9 @@ class SetProductSurrogate(Surrogate):
             Predict after fitting to gradient not supported.
         """
         # validate inputs
-        X = self._validate_data(X, ensure_2d=True, dtype="numeric", reset=False)
+        X = numpy.array(X,ndmin=2)
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
             raise RuntimeError("Model must be trained!")
         if self._fit_gradient_flag and not self._integration_constant_flag and not ignore_integration_warning:
@@ -335,7 +337,9 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
-        X = self._validate_data(X, ensure_2d=True, dtype="numeric", reset=False)
+        X = numpy.array(X,ndmin=2)
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
             raise RuntimeError("Model must be trained!")
         oob = any(
@@ -430,14 +434,16 @@ class SetProductSurrogate(Surrogate):
             ),
         ):
             X = X.points
-        X, y = self._validate_data(
-            X,
-            y,
-            multi_output=True,
-            y_numeric=True,
-            ensure_2d=True,
-            dtype="numeric",
-        )
+        
+        # validate data inputs
+        X = numpy.array(X,ndmin=2)
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+        y = numpy.array(y,ndmin=1)
+        if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
+            print(y.shape)
+            raise IndexError("Must be 2D array with shape (n_samples,)")
+
         self._points = X
         self._data = y
         oob = any(
@@ -540,17 +546,15 @@ class SetProductSurrogate(Surrogate):
             ),
         ):
             X = X.points
-        X, y = self._validate_data(
-            X,
-            y,
-            multi_output=True,
-            y_numeric=True,
-            ensure_2d=True,
-            dtype="numeric",
-        )
 
+        # validate data inputs
+        X = numpy.array(X,ndmin=2)
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+        y = numpy.array(y,ndmin=2)
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, n_features).")
+        
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -644,12 +648,12 @@ class SetProductSurrogate(Surrogate):
         self._valid_cache = True
         self._fit_gradient_flag = True
         if not constant_x is None and not constant_y is None:
-            constant_x, constant_y = self._validate_data(
-                constant_x,
-                constant_y,
-                multi_output=False,
-                y_numeric=True,
-            )
+            # validate data inputs
+            constant_x = numpy.array(constant_x,ndmin=2)
+            if constant_x.shape != (1,self.num_dimensions):
+                raise IndexError("Must be 2D array with shape (1, n_features)")
+            constant_y = numpy.array(constant_y).item(0)
+            
             predicted_y = self.predict(constant_x, ignore_integration_warning=True)
             integration_constant = constant_y - predicted_y
             self._coefficients[0] = integration_constant
