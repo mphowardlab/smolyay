@@ -248,7 +248,7 @@ class SetProductSurrogate(Surrogate):
             Predict after fitting to gradient not supported.
         """
         # validate inputs
-        X = numpy.array(X,ndmin=2)
+        X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
@@ -263,7 +263,9 @@ class SetProductSurrogate(Surrogate):
 
         # create lookup table
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
+        if any(
+            any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
+        ):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -320,7 +322,7 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
-        X = numpy.array(X,ndmin=2)
+        X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         if not self._valid_cache:
@@ -334,7 +336,9 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
         # create lookup table
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
+        if any(
+            any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
+        ):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -417,12 +421,12 @@ class SetProductSurrogate(Surrogate):
             ),
         ):
             X = X.points
-        
+
         # validate data inputs
-        X = numpy.array(X,ndmin=2)
+        X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
-        y = numpy.array(y,ndmin=1)
+        y = numpy.array(y, ndmin=1)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
             print(y.shape)
             raise IndexError("Must be 2D array with shape (n_samples,)")
@@ -438,7 +442,9 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
         # create basis matrix
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
+        if any(
+            any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
+        ):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -465,15 +471,17 @@ class SetProductSurrogate(Surrogate):
             basis_matrix[:, term] = numpy.prod(
                 [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
             )
+
         # solve for coefficients
         if basis_matrix.shape[0] == basis_matrix.shape[1]:
-            self._coefficients = numpy.linalg.solve(basis_matrix, self._data)
+            try:
+                self._coefficients = numpy.linalg.solve(basis_matrix, y)
+            except:
+                self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         else:
             if numpy.any(numpy.iscomplex(basis_matrix)) or self.regression == "lstsq":
 
-                self._coefficients = numpy.linalg.lstsq(
-                    basis_matrix, self._data, rcond=None
-                )[0]
+                self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
             elif self.regression == "ridge":
                 basis_matrix = numpy.real(basis_matrix)
                 regressor = sklearn.linear_model.Ridge(
@@ -531,13 +539,13 @@ class SetProductSurrogate(Surrogate):
             X = X.points
 
         # validate data inputs
-        X = numpy.array(X,ndmin=2)
+        X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
-        y = numpy.array(y,ndmin=2)
+        y = numpy.array(y, ndmin=2)
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, n_features).")
-        
+
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -551,7 +559,9 @@ class SetProductSurrogate(Surrogate):
 
         ## Create basis matrix
         num_basis_max = numpy.max([len(p) for p in self._basis_sets])
-        if any(any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets):
+        if any(
+            any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
+        ):
             lookup_table = numpy.zeros(
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
@@ -607,7 +617,7 @@ class SetProductSurrogate(Surrogate):
                         lookup_table_derivative[d, ic[d], :]
                     )
 
-        data = numpy.reshape(self._data, (self.num_dimensions * len(X),))
+        data = numpy.reshape(y, (self.num_dimensions * len(X),))
 
         # solve for coefficients
         if (
@@ -632,8 +642,8 @@ class SetProductSurrogate(Surrogate):
         self._fit_gradient_flag = True
         if not constant_x is None and not constant_y is None:
             # validate data inputs
-            constant_x = numpy.array(constant_x,ndmin=2)
-            if constant_x.shape != (1,self.num_dimensions):
+            constant_x = numpy.array(constant_x, ndmin=2)
+            if constant_x.shape != (1, self.num_dimensions):
                 raise IndexError("Must be 2D array with shape (1, n_features)")
             constant_y = numpy.array(constant_y).item(0)
             predicted_y = self.predict(constant_x)
