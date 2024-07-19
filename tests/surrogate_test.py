@@ -250,7 +250,8 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     assert basis_sets[0] is surrogate.basis_sets[0]
     assert surrogate.num_dimensions == 2
     assert surrogate.regularization == None
-    assert numpy.array_equal(surrogate.index_combinations, index_answer)
+    surrogate.fit(domain,[1,2])
+    assert numpy.array_equal(surrogate._index_combinations, index_answer)
 
     # test optional parameters
     surrogate = surrogate_class(domain, basis_sets, L2Regularization(alpha=1e-5))

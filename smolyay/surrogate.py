@@ -170,6 +170,7 @@ class SetProductSurrogate(Surrogate):
         self._index_combinations = None
         self._coefficients = None
         self._integration_constant = 0
+        self._terms_constructed_cache = False
 
         self._basis_sets = basis_sets
         self.regularization = regularization
@@ -192,13 +193,6 @@ class SetProductSurrogate(Surrogate):
     def basis_sets(self):
         """list of BasisFunctionSet: the set of basis functions for the terms."""
         return self._basis_sets
-
-    @property
-    def index_combinations(self):
-        """list of BasisFunctionSet: the set of basis functions for the terms."""
-        if self._index_combinations is None:
-            self._create_terms()
-        return self._index_combinations
 
     @property
     def coefficients(self):
@@ -267,7 +261,7 @@ class SetProductSurrogate(Surrogate):
 
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
-        for ic, coeff in zip(self.index_combinations, self.coefficients):
+        for ic, coeff in zip(self._index_combinations, self.coefficients):
             answer = answer + numpy.real(
                 coeff
                 * numpy.prod(
@@ -349,7 +343,7 @@ class SetProductSurrogate(Surrogate):
         # use lookup table to combine terms
         answer = numpy.zeros((len(X), self.num_dimensions))
         for d in range(self.num_dimensions):
-            for ic, coeff in zip(self.index_combinations, self.coefficients):
+            for ic, coeff in zip(self._index_combinations, self.coefficients):
                 answer[:, d] = answer[:, d] + numpy.real(
                     coeff
                     * numpy.prod(
@@ -395,6 +389,9 @@ class SetProductSurrogate(Surrogate):
         """
         # reset constant
         self._integration_constant = 0
+        if not self._terms_constructed_cache:
+            self._create_terms()
+            self._terms_constructed_cache = True
         # get points
         if isinstance(
             X,
@@ -432,11 +429,11 @@ class SetProductSurrogate(Surrogate):
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
             basis_matrix = numpy.zeros(
-                (len(X), len(self.index_combinations)), dtype="complex_"
+                (len(X), len(self._index_combinations)), dtype="complex_"
             )
         else:
             lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
-            basis_matrix = numpy.zeros((len(X), len(self.index_combinations)))
+            basis_matrix = numpy.zeros((len(X), len(self._index_combinations)))
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
@@ -450,7 +447,7 @@ class SetProductSurrogate(Surrogate):
                 lookup_table[dim, i, :] = basis_fun(new_X)
 
         # use lookup table to solve for each term
-        for term, ic in enumerate(self.index_combinations):
+        for term, ic in enumerate(self._index_combinations):
             basis_matrix[:, term] = numpy.prod(
                 [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
             )
@@ -508,6 +505,9 @@ class SetProductSurrogate(Surrogate):
         """
         # reset constant
         self._integration_constant = 0
+        if not self._terms_constructed_cache:
+            self._create_terms()
+            self._terms_constructed_cache = True
         # validate inputs
         if isinstance(
             X,
@@ -549,7 +549,7 @@ class SetProductSurrogate(Surrogate):
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
             basis_matrix = numpy.zeros(
-                (len(X) * self.num_dimensions, len(self.index_combinations)),
+                (len(X) * self.num_dimensions, len(self._index_combinations)),
                 dtype="complex_",
             )
         else:
@@ -558,7 +558,7 @@ class SetProductSurrogate(Surrogate):
                 (self.num_dimensions, num_basis_max, len(X))
             )
             basis_matrix = numpy.zeros(
-                (len(X) * self.num_dimensions, len(self.index_combinations)),
+                (len(X) * self.num_dimensions, len(self._index_combinations)),
             )
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
@@ -579,7 +579,7 @@ class SetProductSurrogate(Surrogate):
 
         # use lookup table to solve for each term
         for d in range(self.num_dimensions):
-            for term, ic in enumerate(self.index_combinations):
+            for term, ic in enumerate(self._index_combinations):
                 if self.num_dimensions > 1:
                     basis_matrix[d :: self.num_dimensions, term] = numpy.prod(
                         [
