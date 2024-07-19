@@ -318,7 +318,7 @@ def test_regression_error(surrogate_class, basis_sets):
     ],
 )
 def test_fit_2D(surrogate_class, grid_obj, domain):
-    """Test if class is fit."""
+    """Test if class is fit to 2D function."""
     num_level = 5
 
     surrogate, point_sets = create_surrogate(
@@ -353,7 +353,7 @@ def test_fit_2D(surrogate_class, grid_obj, domain):
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_2D_Trignometric(surrogate_class, grid_obj):
-    """Test if class is fit."""
+    """Test if class is fit to 2D function using periodic basis function with complex outputs."""
     domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
     num_level = 2
 
@@ -387,7 +387,7 @@ def test_fit_2D_Trignometric(surrogate_class, grid_obj):
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_1D_Trignometric(surrogate_class, grid_obj):
-    """Test if class is fit."""
+    """Test if class is fit to 1D function using periodic basis function with complex outputs."""
     domain = [0, 2 * numpy.pi]
     num_level = 2
 
@@ -421,7 +421,7 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
-    """Test if class is fit."""
+    """Test if class is fit using different basis functions."""
     domain = [[-1, 1], [0, 2 * numpy.pi]]
     num_level = 3
     point_sets = [
@@ -480,6 +480,7 @@ def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     ],
 )
 def test_fit_1D(surrogate_class, domain):
+    """Test if class is fit to 1D function."""
     num_level = 2
     # fit with a 1D function
     surrogate, point_sets = create_surrogate(
@@ -514,7 +515,7 @@ def test_fit_1D(surrogate_class, domain):
     ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_latin_2D(surrogate_class, regression, points):
-    """Test if class is fit when number of terms doesn't match samples."""
+    """Test if class is fit when number of terms doesn't match samples for 2D function."""
     domain = [[-5, 5], [0, 10]]
     num_level = 4
 
@@ -551,7 +552,7 @@ def test_fit_latin_2D(surrogate_class, regression, points):
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
 def test_fit_latin_1D(surrogate_class, regression):
-    """Test if class is fit when number of terms doesn't match samples."""
+    """Test if class is fit when number of terms doesn't match samples for 1D function."""
     domain = [-5, 10]
     num_level = 4
 
@@ -640,7 +641,7 @@ def test_fit_error(surrogate_class):
     ],
 )
 def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
-    """Test if class is fit using the gradient."""
+    """Test if class is fit to gradient for 2D function."""
     num_level = 3
     surrogate, point_sets = create_surrogate(
         surrogate_class,
@@ -679,7 +680,7 @@ def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
-    """Test if class is fit."""
+    """Test if class is fit to gradient using periodic basis function with complex outputs."""
     domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
     num_level = 2
 
@@ -720,7 +721,7 @@ def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
-    """Test if class is fit."""
+    """Test if class is fit with gradient with different basis functions."""
     domain = numpy.array([[-1, 1], [0, 2 * numpy.pi]])
     num_level = 3
     point_sets = [
@@ -786,6 +787,7 @@ def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     ],
 )
 def test_fit_gradient_1D(surrogate_class, domain):
+    """Test class is fit using gradient for 1D function."""
     num_level = 3
     surrogate, point_sets = create_surrogate(
         surrogate_class,
@@ -827,7 +829,7 @@ def test_fit_gradient_1D(surrogate_class, domain):
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
 def test_fit_gradient_latin_2D(surrogate_class, regression):
-    """Test if class is fit using gradient when number of terms != number of points."""
+    """Test if class is fit using gradient when n_terms != n_points for 2D function."""
     domain = numpy.array([[-5, 5], [-1, 1]])
     num_level = 3
     surrogate, _ = create_surrogate(
@@ -876,6 +878,7 @@ def test_fit_gradient_latin_2D(surrogate_class, regression):
     "regression", ["ridge", "lasso", "lstsq"], ids=["Ridge", "Lasso", "Least Squares"]
 )
 def test_fit_gradient_latin_1D(surrogate_class, regression):
+    """Test if class is fit using gradient when n_terms != n_points for 1D function."""
     num_level = 3
     domain = [-5, 6]
     # fit with a 1D function
