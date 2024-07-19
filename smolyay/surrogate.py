@@ -169,8 +169,6 @@ class SetProductSurrogate(Surrogate):
         self._regularization = None
         self._index_combinations = None
         self._coefficients = None
-        self._fit_gradient_flag = False
-        self._integration_constant_flag = False
 
         self._basis_sets = basis_sets
         self.regularization = regularization
@@ -595,7 +593,6 @@ class SetProductSurrogate(Surrogate):
         else:
             self._coefficients = numpy.squeeze(self.regularization.fit(basis_matrix, data).coef_)
         self._valid_cache = True
-        self._fit_gradient_flag = True
         if not constant_x is None and not constant_y is None:
             # validate data inputs
             constant_x = numpy.array(constant_x, ndmin=2)
@@ -605,9 +602,6 @@ class SetProductSurrogate(Surrogate):
             predicted_y = self.predict(constant_x)
             integration_constant = constant_y - predicted_y
             self._coefficients[0] = integration_constant
-            self._integration_constant_flag = True
-        else:
-            self._integration_constant_flag = False
         return self
 
     @abc.abstractmethod
