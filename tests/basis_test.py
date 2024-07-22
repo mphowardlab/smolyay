@@ -481,9 +481,3 @@ def test_is_complex():
     assert smolyay.basis.ChebyshevFirstKind(0).is_complex == False
     assert smolyay.basis.ChebyshevSecondKind(0).is_complex == False
     assert smolyay.basis.Trigonometric(0).is_complex == True
-    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-    f = smolyay.basis.BasisFunctionSet(bf)
-    assert f.is_complex == False
-    bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)] + [smolyay.basis.Trigonometric(1)]
-    f = smolyay.basis.BasisFunctionSet(bf)
-    assert f.is_complex == True
