@@ -2,12 +2,6 @@ import numpy
 import pytest
 
 import smolyay
-from smolyay.surrogate import (
-    TensorProductSurrogate,
-    SmolyakSparseProductSurrogate,
-    L1Regularization,
-    L2Regularization,
-)
 
 
 def create_surrogate(
@@ -159,7 +153,7 @@ def branin_gradient(x):
     "surrogate_class,basis_sets,index_answer",
     [
         (
-            TensorProductSurrogate,
+            smolyay.surrogate.TensorProductSurrogate,
             [
                 smolyay.basis.BasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
@@ -171,7 +165,7 @@ def branin_gradient(x):
             ),
         ),
         (
-            TensorProductSurrogate,
+            smolyay.surrogate.TensorProductSurrogate,
             [
                 smolyay.basis.BasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)]
@@ -185,7 +179,7 @@ def branin_gradient(x):
             ),
         ),
         (
-            SmolyakSparseProductSurrogate,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
@@ -209,7 +203,7 @@ def branin_gradient(x):
             ],
         ),
         (
-            SmolyakSparseProductSurrogate,
+             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)], [1, 2]
@@ -255,15 +249,15 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     assert numpy.array_equal(surrogate._index_combinations, index_answer)
 
     # test optional parameters
-    surrogate = surrogate_class(domain, basis_sets, L2Regularization(alpha=1e-5))
-    assert isinstance(surrogate.regularization, L2Regularization)
+    surrogate = surrogate_class(domain, basis_sets, smolyay.surrogate.L2Regularization(alpha=1e-5))
+    assert isinstance(surrogate.regularization, smolyay.surrogate.L2Regularization)
     assert surrogate.regularization.alpha == 1e-5
 
     # test setting parameters
     surrogate.domain = [[-7, 15], [6, 14]]
     assert numpy.allclose(surrogate.domain, [[-7, 15], [6, 14]])
-    surrogate.regularization = L1Regularization(alpha=1e-10)
-    assert isinstance(surrogate.regularization, L1Regularization)
+    surrogate.regularization = smolyay.surrogate.L1Regularization(alpha=1e-10)
+    assert isinstance(surrogate.regularization, smolyay.surrogate.L1Regularization)
     assert surrogate.regularization.alpha == 1e-10
 
 
@@ -271,7 +265,7 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     "surrogate_class,basis_sets",
     [
         (
-            TensorProductSurrogate,
+            smolyay.surrogate.TensorProductSurrogate,
             [
                 smolyay.basis.BasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
@@ -280,7 +274,7 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
             ],
         ),
         (
-            SmolyakSparseProductSurrogate,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
@@ -301,8 +295,8 @@ def test_regularization_error(surrogate_class, basis_sets):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+        (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -351,8 +345,8 @@ def test_fit_2D(surrogate_class, grid_obj, domain):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+        (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -383,8 +377,8 @@ def test_fit_2D_Trignometric(surrogate_class, grid_obj):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+        (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+        (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -415,8 +409,8 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -461,7 +455,7 @@ def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
@@ -502,14 +496,14 @@ def test_fit_1D(surrogate_class, domain):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
     "regularization,points",
     [
-        (L2Regularization(alpha=1e-10), 1500),
-        (L1Regularization(alpha=1e-10), 2500),
+        (smolyay.surrogate.L2Regularization(alpha=1e-10), 1500),
+        (smolyay.surrogate.L1Regularization(alpha=1e-10), 2500),
         (None, 1500),
     ],
     ids=["Ridge", "Lasso", "Least Squares"],
@@ -543,12 +537,12 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
     "regularization",
-    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+    [smolyay.surrogate.L2Regularization(alpha=1e-10), smolyay.surrogate.L1Regularization(alpha=1e-10), None],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_latin_1D(surrogate_class, regularization):
@@ -582,8 +576,8 @@ def test_fit_latin_1D(surrogate_class, regularization):
 @pytest.mark.parametrize(
     "surrogate_class",
     [
-        (TensorProductSurrogate),
-        (SmolyakSparseProductSurrogate),
+       (smolyay.surrogate.TensorProductSurrogate),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -616,8 +610,8 @@ def test_fit_error(surrogate_class):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -674,8 +668,8 @@ def test_fit_gradient_2D(surrogate_class, grid_obj, domain):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -713,8 +707,8 @@ def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -766,7 +760,7 @@ def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
@@ -816,12 +810,11 @@ def test_fit_gradient_1D(surrogate_class, domain):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
-@pytest.mark.parametrize(
-    "regularization",
-    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+@pytest.mark.parametrize("regularization",
+    [smolyay.surrogate.L2Regularization(alpha=1e-10), smolyay.surrogate.L1Regularization(alpha=1e-10), None],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_gradient_latin_2D(surrogate_class, regularization):
@@ -865,12 +858,12 @@ def test_fit_gradient_latin_2D(surrogate_class, regularization):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 @pytest.mark.parametrize(
     "regularization",
-    [L2Regularization(alpha=1e-10), L1Regularization(alpha=1e-10), None],
+    [smolyay.surrogate.L2Regularization(alpha=1e-10), smolyay.surrogate.L1Regularization(alpha=1e-10), None],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
 def test_fit_gradient_latin_1D(surrogate_class, regularization):
@@ -907,7 +900,7 @@ def test_fit_gradient_latin_1D(surrogate_class, regularization):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 def test_fit_gradient_error(surrogate_class):
@@ -945,8 +938,8 @@ def test_fit_gradient_error(surrogate_class):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -993,8 +986,8 @@ def test_successive_fits(surrogate_class, grid_obj):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -1020,7 +1013,7 @@ def test_predict_size_2D(surrogate_class, grid_obj):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 def test_predict_size_1D(surrogate_class):
@@ -1045,7 +1038,7 @@ def test_predict_size_1D(surrogate_class):
     "surrogate_class,basis_sets",
     [
         (
-            TensorProductSurrogate,
+            smolyay.surrogate.TensorProductSurrogate,
             [
                 smolyay.basis.BasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
@@ -1054,7 +1047,7 @@ def test_predict_size_1D(surrogate_class):
             ],
         ),
         (
-            SmolyakSparseProductSurrogate,
+           smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
@@ -1088,8 +1081,8 @@ def test_predict_error(surrogate_class, basis_sets):
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
     [
-        (TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
-        (SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
     ],
     ids=["Tensor", "Smolyak"],
 )
@@ -1118,7 +1111,7 @@ def test_predict_gradient_size_2D(surrogate_class, grid_obj):
 
 @pytest.mark.parametrize(
     "surrogate_class",
-    [TensorProductSurrogate, SmolyakSparseProductSurrogate],
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
     ids=["Tensor", "Smolyak"],
 )
 def test_predict_gradient_size_1D(surrogate_class):
@@ -1145,7 +1138,7 @@ def test_predict_gradient_size_1D(surrogate_class):
     "surrogate_class,basis_sets",
     [
         (
-            TensorProductSurrogate,
+            smolyay.surrogate.TensorProductSurrogate,
             [
                 smolyay.basis.BasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
@@ -1154,7 +1147,7 @@ def test_predict_gradient_size_1D(surrogate_class):
             ],
         ),
         (
-            SmolyakSparseProductSurrogate,
+           smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
                 smolyay.basis.NestedBasisFunctionSet(
                     [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
