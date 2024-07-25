@@ -534,7 +534,8 @@ class SymmetricalLogNormalizer(Normalizer):
     display data that grows exponentially or has a range with many 
     orders of magnitude. A logarithmic transform can only accept values 
     greater than zero. To get around this, a more flexible version of the 
-    logarithmic scale can be used, known as the symmetrical log scale. 
+    logarithmic scale can be used, known as the symmetrical log scale, for
+    representing data with large magnitudes that is positive and negative. 
     This scale gets around the issue of log(0) being undefined by keeping
     the interval that contains 0 linear. In this transformation, negative
     outputs are the result of negative inputs, while in a log transformation
@@ -575,7 +576,7 @@ class SymmetricalLogNormalizer(Normalizer):
 
     @property
     def linthresh(self):
-        """constant to determine size of linear interval around 0"""
+        """float: constant to determine size of linear interval around 0"""
         return self._linthresh
 
     @linthresh.setter
@@ -656,3 +657,150 @@ class SymmetricalLogNormalizer(Normalizer):
             * (numpy.log(10) ** n)
             * numpy.power(10, numpy.abs(x))
         )
+
+class AsinhNormalizer(Normalizer):
+    r"""Transforms data using the inverse hyperbolic sine
+    
+    A nonlinear transformation that on small values close to
+    zero causes little change but is asymptotically logarithmic
+    on large absolute magnitudes, thus having a similar effect
+    of a logarithmic scale on large values while also able to
+    support negative values.
+    
+    The inverse hyperbolic sine (asinh or sinh^-1) is 
+    
+    :math::
+        \sinh^{-1}(x) = \ln(x + \sqrt{x^{2} + 1})
+
+    Its inverse, the hyperbolic sine (sinh) is
+
+    :math::
+        \sinh(x) = \frac{e^{x} - e^{-x}}{2}
+
+    Its derivative is 
+
+    :math::
+        \frac{\mathrm{d} }{\mathrm{d} x} \sinh^{-1}(x) = \frac{1}{\sqrt{x^{2} + 1}}
+    
+    and contains no discontinuities.
+
+    The parameter `linthresh` designates the range about 0 that
+    will remain approximately linear after the transformation.
+    The transformation is therefore :math:c*\sinh^{-1}(x/c) where
+    c is `linthresh`.
+
+    Parameters
+    ----------
+    linthresh : float, optional
+        range about 0 that will be quasi-linear. Default is 1.
+    """
+
+    def __init__(self, linthresh=1):
+        super().__init__()
+        self._valid_cache = True
+        self._linthresh = linthresh
+
+    @property
+    def linthresh(self):
+        """float: constant to determine size of quasi-linear interval around 0"""
+        return self._linthresh
+
+    @linthresh.setter
+    def linthresh(self, value):
+        if value <= 0:
+            raise ValueError("linthresh must be greater than 0.")
+        self._linthresh = value
+
+    def transform(self, x):
+        """Normalization function
+
+        Parameters
+        ----------
+        x : numerical data
+            data to be transformed
+
+        Return
+        ------
+        normalized data
+        """
+        x = numpy.array(x)
+        return self.linthresh*numpy.arcsinh(x/self.linthresh)
+
+    def inverse_transform(self, x):
+        """Inverse normalization function
+
+        Parameters
+        ----------
+        x : numerical data
+            normalized data to be transformed
+
+        Return
+        ------
+        unnormalized data
+        """
+        x = numpy.array(x)
+        return self.linthresh*numpy.sinh(x/self.linthresh)
+
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
+
+        Evaluates the 1st and 2nd derivative of the inverse hypobolic sin.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        NotImplementedError
+            Only 1st and 2nd derivative are supported.
+        """
+        x = numpy.array(x)
+        if n == 1:
+            return 1/numpy.sqrt((x**2)/(self.linthresh**2) + 1)
+        elif n == 2:
+            return - x/((self.linthresh**2)*numpy.power((x**2)/(self.linthresh**2) + 1,3/2))
+        elif n == 3:
+            return (2 * x**2 - self.linthresh**2) / (self.linthresh**4 * (x**2 / self.linthresh**2 + 1)**(5 / 2))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " is not supported.")
+
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Evaluates the 1st and 2nd derivative of the hypobolic sin.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        NotImplementedError
+            Only 1st and 2nd derivative are supported.
+        """
+        x = numpy.array(x)
+        if n % 2 == 1:
+            return numpy.cosh(x/self.linthresh)/(self.linthresh**(n - 1))
+        elif n % 2 == 0:
+            return numpy.sinh(x/self.linthresh)/(self.linthresh**(n - 1))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " is not supported.")

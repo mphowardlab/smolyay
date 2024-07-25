@@ -9,6 +9,7 @@ from smolyay.normalize import (
     SymmetricalLogNormalizer,
     IntervalNormalizer,
     ZScoreNormalizer,
+    AsinhNormalizer,
 )
 
 
@@ -18,11 +19,13 @@ from smolyay.normalize import (
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        AsinhNormalizer(),
     ],
     ids=[
         "IntervalNormalizer",
         "SymmetricalLogNormalizer",
         "ZScoreNormalizer",
+        "AsinhNormalizer",
     ],
 )
 def test_fit(normal):
@@ -31,6 +34,8 @@ def test_fit(normal):
     n = normal.fit(x)
     assert isinstance(n, Normalizer)
     assert n == normal
+    normal.transform(x)
+    normal.inverse_transform(x)
 
 
 @pytest.mark.parametrize(
@@ -39,11 +44,13 @@ def test_fit(normal):
         IntervalNormalizer(),
         SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        AsinhNormalizer(),
     ],
     ids=[
         "IntervalNormalizer",
         "SymmetricalLogNormalizer",
         "ZScoreNormalizer",
+        "AsinhNormalizer",
     ],
 )
 @pytest.mark.parametrize(
@@ -62,6 +69,31 @@ def test_check(normal, x):
 
 
 @pytest.mark.parametrize(
+    "normal_class,set_args",
+    [
+        (SymmetricalLogNormalizer, [{"linthresh": 6}, {"linthresh": 0.5}]),
+        (AsinhNormalizer, [{"linthresh": 6}, {"linthresh": 0.5}]),
+    ],
+    ids=["SymmetricalLogNormalizer", "AsinhNormalizer"],
+)
+@pytest.mark.parametrize(
+    "x",
+    [
+        [1, 2, 3, 4, 5],
+        numpy.reshape(numpy.arange(6), (2, 3)),
+        numpy.reshape(numpy.arange(24), (2, 3, 4)),
+    ],
+    ids=["1D array", "2D array", "3D array"],
+)
+def test_check_optional_args(normal_class, set_args, x):
+    """Test if the all the normalizers pass check if given optional arguments"""
+    for a in set_args:
+        normal = normal_class(**a)
+        normal.fit(x)
+        assert normal.check_normalize(x)
+
+
+@pytest.mark.parametrize(
     "normal,answers",
     [
         (IntervalNormalizer(), [0, 0.25, 0.5, 0.75, 1]),
@@ -76,10 +108,36 @@ def test_check(normal, x):
                 2 / numpy.sqrt(2),
             ],
         ),
+        (AsinhNormalizer(), [numpy.arcsinh([1, 2, 3, 4, 5])]),
     ],
-    ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
+    ids=[
+        "IntervalNormalizer",
+        "ZScoreNormalizer",
+        "SymmetricalLogNormalizer",
+        "AsinhNormalizer",
+    ],
 )
 def test_transform(normal, answers):
+    """Test that the transforms are correct"""
+    x = [1, 2, 3, 4, 5]
+    normal.fit(x)
+    assert numpy.allclose(normal.transform(x), answers)
+
+
+@pytest.mark.parametrize(
+    "normal,answers",
+    [
+        (
+            SymmetricalLogNormalizer(6),
+            numpy.log10([1 + 1 / 6, 1 + 1 / 3, 1.5, 1 + 2 / 3, 1 + 5 / 6]),
+        ),
+        (SymmetricalLogNormalizer(0.5), numpy.log10([3, 5, 7, 9, 11])),
+        (AsinhNormalizer(6), [numpy.arcsinh([1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6]) * 6]),
+        (AsinhNormalizer(0.5), [numpy.arcsinh([2, 4, 6, 8, 10]) * 0.5]),
+    ],
+    ids=["SymmetricalLog-6", "SymmetricalLog-0.5", "Asinh-6", "Asinh-0.5"],
+)
+def test_transform_optional_args(normal, answers):
     """Test that the transforms are correct"""
     x = [1, 2, 3, 4, 5]
     normal.fit(x)
@@ -101,6 +159,13 @@ def test_transform(normal, answers):
                 5 * numpy.sqrt(2) + 3,
             ],
         ),
+        (AsinhNormalizer(), numpy.sinh([1, 2, 3, 4, 5])),
+    ],
+    ids=[
+        "IntervalNormalizer",
+        "SymmetricalLogNormalizer",
+        "ZScoreNormalizer",
+        "AsinhNormalizer",
     ],
 )
 def test_inverse(normal, answers):
@@ -111,16 +176,46 @@ def test_inverse(normal, answers):
 
 
 @pytest.mark.parametrize(
+    "normal,answers",
+    [
+        (SymmetricalLogNormalizer(6), [9 * 6, 99 * 6, 999 * 6, 9999 * 6, 99999 * 6]),
+        (
+            SymmetricalLogNormalizer(0.5),
+            [9 * 0.5, 99 * 0.5, 999 * 0.5, 9999 * 0.5, 99999 * 0.5],
+        ),
+        (AsinhNormalizer(6), [numpy.sinh([1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6]) * 6]),
+        (AsinhNormalizer(0.5), [numpy.sinh([2, 4, 6, 8, 10]) * 0.5]),
+    ],
+    ids=["SymmetricalLog-6", "SymmetricalLog-0.5", "Asinh-6", "Asinh-0.5"],
+)
+def test_inverse_optional_args(normal, answers):
+    """Test that the inverse transforms are correct"""
+    x = [1, 2, 3, 4, 5]
+    normal.fit(x)
+    assert numpy.allclose(normal.inverse_transform(x), answers)
+
+
+@pytest.mark.parametrize(
     "normal",
     [
         IntervalNormalizer(),
-        SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        SymmetricalLogNormalizer(),
+        SymmetricalLogNormalizer(6),
+        SymmetricalLogNormalizer(0.5),
+        AsinhNormalizer(),
+        AsinhNormalizer(6),
+        AsinhNormalizer(0.5),
     ],
     ids=[
-        "IntervalNormalizer",
-        "SymmetricalLogNormalizer",
-        "ZScoreNormalizer",
+        "Interval",
+        "ZScore",
+        "SymmetricalLog-1",
+        "SymmetricalLog-6",
+        "SymmetricalLog-0.5",
+        "Asinh-1",
+        "Asinh-6",
+        "Asinh-0.5",
     ],
 )
 def test_transform_derivative(normal):
@@ -144,13 +239,23 @@ def test_transform_derivative(normal):
     "normal",
     [
         IntervalNormalizer(),
-        SymmetricalLogNormalizer(),
         ZScoreNormalizer(),
+        SymmetricalLogNormalizer(),
+        SymmetricalLogNormalizer(6),
+        SymmetricalLogNormalizer(0.5),
+        AsinhNormalizer(),
+        AsinhNormalizer(6),
+        AsinhNormalizer(0.5),
     ],
     ids=[
-        "IntervalNormalizer",
-        "SymmetricalLogNormalizer",
-        "ZScoreNormalizer",
+        "Interval",
+        "ZScore",
+        "SymmetricalLog-1",
+        "SymmetricalLog-6",
+        "SymmetricalLog-0.5",
+        "Asinh-1",
+        "Asinh-6",
+        "Asinh-0.5",
     ],
 )
 def test_inverse_transform_derivative(normal):
@@ -205,11 +310,22 @@ def test_interval_refit():
 
 def test_symlog_attributes():
     """Test if the attributes of SymmetricalLogNormalizer are added"""
-    x = [1, 2, 3, 4, 5]
     normal = SymmetricalLogNormalizer(linthresh=10)
     assert normal.linthresh == 10
     normal.linthresh = 20
     assert normal.linthresh == 20
+    with pytest.raises(ValueError):
+        normal.linthresh = -5
+
+
+def test_asinh_attributes():
+    """Test if the attributes of AsinhNormalizer are added"""
+    normal = AsinhNormalizer(linthresh=10)
+    assert normal.linthresh == 10
+    normal.linthresh = 20
+    assert normal.linthresh == 20
+    with pytest.raises(ValueError):
+        normal.linthresh = -5
 
 
 def test_zscore_attributes():
