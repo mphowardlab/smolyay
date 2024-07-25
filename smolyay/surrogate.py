@@ -58,10 +58,10 @@ class Surrogate:
 
         Parameters
         ----------
-        X : list
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
             points that are sampled
 
-        y : list
+        y : array-like of shape (n_samples,)
             function at grid points.
 
         Returns
@@ -86,7 +86,7 @@ class Surrogate:
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, n_targets)
+        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
             Surrogate output at x.
 
         Raises
@@ -256,7 +256,7 @@ class SetProductSurrogate(Surrogate):
             return answer
 
     def predict_gradient(self, X):
-        """Evaluate gradient of the surrogate at a given input.
+        """Evaluate gradient or Jacobian of the surrogate at a given input.
 
         Parameters
         ----------
@@ -265,8 +265,8 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, n_targets)
-            Surrogate output at x.
+        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
+            Gradient output at x.
 
         Raises
         ------
@@ -351,7 +351,7 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
             points that are sampled
 
         y : array-like of shape (n_samples,)
@@ -458,7 +458,7 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, n_features)
             points that are sampled
 
         y : array-like of shape (n_samples, n_features)
