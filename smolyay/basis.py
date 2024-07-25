@@ -139,11 +139,6 @@ class ChebyshevFirstKind(BasisFunction):
         return numpy.array([-1, 1])
 
     @property
-    def is_complex(self):
-        """bool: if basis function returns complex values."""
-        return False
-
-    @property
     def degree(self):
         """int: Degree of polynomial."""
         return self._degree
@@ -240,11 +235,6 @@ class ChebyshevSecondKind(BasisFunction):
         return numpy.array([-1, 1])
     
     @property
-    def is_complex(self):
-        """bool: if basis function returns complex values."""
-        return False
-    
-    @property
     def degree(self):
         """int: Degree of polynomial."""
         return self._degree
@@ -283,7 +273,6 @@ class ChebyshevSecondKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1]
-
         """
         return scipy.special.eval_chebyu(self.degree, x)
 
@@ -370,11 +359,6 @@ class Trigonometric(BasisFunction):
     def frequency(self):
         """int: frequency of polynomial."""
         return self._frequency
-    
-    @property
-    def is_complex(self):
-        """bool: if basis function returns complex values."""
-        return True
     
     @frequency.setter
     def frequency(self, value):

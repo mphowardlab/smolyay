@@ -478,6 +478,6 @@ def test_nested_set_initialize_error():
         f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,2,3])
 
 def test_is_complex():
-    assert smolyay.basis.ChebyshevFirstKind(0).is_complex == False
-    assert smolyay.basis.ChebyshevSecondKind(0).is_complex == False
-    assert smolyay.basis.Trigonometric(0).is_complex == True
+    assert smolyay.basis.ChebyshevFirstKind(0)._is_complex == False
+    assert smolyay.basis.ChebyshevSecondKind(0)._is_complex == False
+    assert smolyay.basis.Trigonometric(0)._is_complex == True
