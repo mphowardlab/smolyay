@@ -48,9 +48,15 @@ def function_1(x):
 
 
 def function_1_gradient(x):
-    """Test function 1."""
+    """Test function 1 (gradient)."""
     x1, x2 = x
     return -numpy.sin(x1), 4 * x2
+
+
+def function_1_hessian(x):
+    """Test function 1 (hessian)."""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0],[0,4]]
 
 
 def function_2(x):
@@ -59,13 +65,13 @@ def function_2(x):
 
 
 def function_2_gradient(x):
-    """Test function 2."""
+    """Test function 2 (gradient)."""
     return 2 * x - 4
 
 
-def function_2_gradient(x):
-    """Test function 2."""
-    return 2 * x - 4
+def function_2_hessian(x):
+    """Test function 2 (hessian)."""
+    return 2*numpy.ones(numpy.shape(x))
 
 
 def function_3(x):
@@ -76,25 +82,32 @@ def function_3(x):
 
 def function_3_gradient(x):
     """Test function 3 (gradient)."""
-    # function f = x1*x2 - 2*x2
     x1, x2 = x
     return x2, x1 - 2
 
 
+def function_3_hessian(x):
+    """Test function 3 (hessian)."""
+    return [[0, 1],[1, 0]]
+
+
 def function_4(x):
     """Test function 4 (gradient)."""
-    # function f = x**3 -2*x
     return x**3 - 2 * x
 
 
 def function_4_gradient(x):
     """Test function 4 (gradient)."""
-    # function f = x**3 -2*x
+    return 3 * x**2 - 2
+
+
+def function_4_hessian(x):
+    """Test function 4 (hessian)."""
     return 3 * x**2 - 2
 
 
 def function_5(x):
-    """Test function 5 (gradient)."""
+    """Test function 5."""
     x1, x2 = x
     return numpy.cos(x1) + numpy.sin(x2)
 
@@ -105,14 +118,25 @@ def function_5_gradient(x):
     return -numpy.sin(x1), numpy.cos(x2)
 
 
+def function_5_hessian(x):
+    """Test function 5 (hessian)."""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0],[0, -numpy.sin(x2)]]
+
+
 def function_6(x):
-    """Test function 6 (gradient)."""
+    """Test function 6."""
     return numpy.cos(x)
 
 
 def function_6_gradient(x):
     """Test function 6 (gradient)."""
     return -numpy.sin(x)
+
+
+def function_6_hessian(x):
+    """Test function 6 (hessian)."""
+    return -numpy.cos(x)
 
 
 def branin(x):
@@ -145,6 +169,20 @@ def branin_gradient(x):
         - 51 * (x[..., 0] ** 2) / (40 * (numpy.pi**2))
         + 5 * x[..., 0] / numpy.pi
         - 6
+    )
+    return answer
+
+def branin_hessian(x):
+    """Hessian matrix of the branin function."""
+    answer = numpy.zeros(list(numpy.shape(x)) + [numpy.shape(x)[-1]])
+    #d2f/dx2
+    answer[:, 0, 0] = -((4000*(numpy.pi**4) - 500*(numpy.pi**3))*numpy.cos(x[:,0]) - 7803*(x[:,0]**2) + 30600*numpy.pi*x[:,0] + 2040*(numpy.pi**2)*x[:,1] - 32240*(numpy.pi**2))/(400*numpy.pi**4)
+    #d2f/dy2
+    answer[:, 1, 1] = 2
+    #d2f/dxdy
+    answer[:, 0, 1] = answer[:, 1, 0] = 2 * (
+        - 51 * (x[:, 0]) / (20 * (numpy.pi**2))
+        + 5 / numpy.pi
     )
     return answer
 
@@ -336,11 +374,14 @@ def test_fit_2D(surrogate_class, grid_obj, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = branin(test_points)
     gradient_answer = branin_gradient(test_points)
+    hessian_answer = branin_hessian(test_points)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-3)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-3
     )
-
+    assert numpy.allclose(
+        hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-3
+    )
 
 @pytest.mark.parametrize(
     "surrogate_class,grid_obj",
@@ -370,8 +411,10 @@ def test_fit_2D_Trignometric(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_5(x) for x in test_points]
     gradient_answer = [function_5_gradient(x) for x in test_points]
+    hessian_answer = [function_5_hessian(x) for x in test_points]
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+    assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
 
 @pytest.mark.parametrize(
@@ -402,8 +445,10 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_6(test_points))
     gradient_answer = function_6_gradient(test_points)
+    hessian_answer = function_6_hessian(test_points).reshape((-1,1,1))
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+    assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
 
 @pytest.mark.parametrize(
@@ -417,7 +462,7 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
 def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit using different basis functions."""
     domain = [[-1, 1], [0, 2 * numpy.pi]]
-    num_level = 3
+    num_level = 4
     point_sets = [
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
         smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
@@ -447,11 +492,14 @@ def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = [function_1(x) for x in test_points]
     gradient_answer = [function_1_gradient(x) for x in test_points]
-    assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+    hessian_answer = [function_1_hessian(x) for x in test_points]
+    assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(
-        gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+        gradient_answer, surrogate.predict_gradient(test_points)
     )
-
+    assert numpy.allclose(
+        hessian_answer, surrogate.predict_hessian(test_points)
+    )
 
 @pytest.mark.parametrize(
     "surrogate_class",
@@ -490,8 +538,10 @@ def test_fit_1D(surrogate_class, domain):
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
     predict_answer = numpy.squeeze(function_2(test_points))
     gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
+    hessian_answer = numpy.array(function_2_hessian(test_points),ndmin=3).reshape((-1,1,1))
     assert numpy.allclose(predict_answer, surrogate.predict(test_points))
     assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+    assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
 
 @pytest.mark.parametrize(
@@ -502,9 +552,9 @@ def test_fit_1D(surrogate_class, domain):
 @pytest.mark.parametrize(
     "regularization,points",
     [
-        (smolyay.surrogate.L2Regularization(alpha=1e-10), 1500),
-        (smolyay.surrogate.L1Regularization(alpha=1e-10), 2500),
-        (None, 1500),
+        (smolyay.surrogate.L2Regularization(alpha=1e-10), 1000),
+        (smolyay.surrogate.L1Regularization(alpha=1e-10), 2400),
+        (None, 1000),
     ],
     ids=["Ridge", "Lasso", "Least Squares"],
 )
@@ -529,9 +579,13 @@ def test_fit_latin_2D(surrogate_class, regularization, points):
     test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
     predict_answer = branin(test_points)
     gradient_answer = branin_gradient(test_points)
+    hessian_answer = branin_hessian(test_points)
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+    )
+    assert numpy.allclose(
+        hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01,atol=1e-1
     )
 
 
@@ -566,10 +620,14 @@ def test_fit_latin_1D(surrogate_class, regularization):
     # test surrogate matches at some points
     test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
     predict_answer = numpy.squeeze(function_2(test_points))
-    gradient_answer = [function_2_gradient(x) for x in test_points]
+    gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
+    hessian_answer = numpy.array(function_2_hessian(test_points),ndmin=3).reshape((-1,1,1))
     assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
     assert numpy.allclose(
         gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01, atol=1e-3
+    )
+    assert numpy.allclose(
+        hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-3
     )
 
 
@@ -1176,3 +1234,102 @@ def test_predict_gradient_error(surrogate_class, basis_sets):
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict_gradient([[-4, -1], [3, 3]])
+
+@pytest.mark.parametrize(
+    "surrogate_class,grid_obj",
+    [
+       (smolyay.surrogate.TensorProductSurrogate, smolyay.samples.TensorProductPointSet),
+       (smolyay.surrogate.SmolyakSparseProductSurrogate, smolyay.samples.SmolyakSparseProductPointSet),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+def test_predict_hessian_size_2D(surrogate_class, grid_obj):
+    """Test predict_hessian returns answer of the appropriate shape."""
+    domain = [[-5, 10], [0, 15]]
+    num_level = 5
+
+    surrogate, point_sets = create_surrogate(
+        surrogate_class,
+        smolyay.basis.ChebyshevFirstKind,
+        smolyay.samples.NestedClenshawCurtisPointSet,
+        num_level,
+        domain,
+    )
+    grid = grid_obj(point_sets=point_sets)
+    # fit with same number of points as terms
+    surrogate.fit(grid, branin(grid.points))
+    assert numpy.array_equal(
+        numpy.shape(surrogate.predict_hessian([[-0.5, 0.8], [0, 0], [0.7, 0]])), (3, 2, 2)
+    )
+    assert numpy.array_equal(
+        numpy.shape(surrogate.predict_hessian([[0.7, 0]])), (1, 2, 2)
+    )
+
+
+@pytest.mark.parametrize(
+    "surrogate_class",
+    [smolyay.surrogate.TensorProductSurrogate, smolyay.surrogate.SmolyakSparseProductSurrogate],
+    ids=["Tensor", "Smolyak"],
+)
+def test_predict_hessian_size_1D(surrogate_class):
+    num_level = 4
+    domain = [-5, 5]
+    surrogate, point_sets = create_surrogate(
+        surrogate_class,
+        smolyay.basis.ChebyshevFirstKind,
+        smolyay.samples.NestedClenshawCurtisPointSet,
+        num_level,
+        domain,
+    )
+    # fit with a 1D function
+    grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
+    sample_output = function_2(grid_points)
+    surrogate.fit(grid_points, sample_output)
+    assert numpy.array_equal(
+        numpy.shape(surrogate.predict_hessian([[-0.5], [0], [0.7]])), (3, 1, 1)
+    )
+    assert numpy.array_equal(numpy.shape(surrogate.predict_hessian([[0.7]])), ())
+
+
+@pytest.mark.parametrize(
+    "surrogate_class,basis_sets",
+    [
+        (
+            smolyay.surrogate.TensorProductSurrogate,
+            [
+                smolyay.basis.BasisFunctionSet(
+                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
+                )
+                for _ in range(2)
+            ],
+        ),
+        (
+           smolyay.surrogate.SmolyakSparseProductSurrogate,
+            [
+                smolyay.basis.NestedBasisFunctionSet(
+                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
+                )
+                for _ in range(2)
+            ],
+        ),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+def test_predict_hessian_error(surrogate_class, basis_sets):
+    """Test that predict_hessian raises correct errors"""
+    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
+    grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
+    with pytest.raises(RuntimeError):
+        surrogate.predict_hessian([[0.7, 0.3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, branin(grid.points))
+        surrogate.predict_hessian([[11, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, branin(grid.points))
+        surrogate.predict_hessian([[5, 4], [3, 20], [0, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, branin(grid.points))
+        surrogate.predict_hessian([[-19, 5], [3, 3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, branin(grid.points))
+        surrogate.predict_hessian([[-4, -1], [3, 3]])

@@ -346,6 +346,115 @@ class SetProductSurrogate(Surrogate):
         else:
             return answer
 
+    def predict_hessian(self, X):
+        """Evaluate the Hessian matrix, or 2nd order derivatives, of the surrogate.
+
+        Parameters
+        ----------
+        X: array-like with shape (n_samples, num_dimensions) or list of object
+            Points at which the model is evaluated
+
+        Returns
+        -------
+        ndarray of shape (n_samples,) or (n_samples, num_dimensions, num_dimensions)
+            Surrogate output at x.
+
+        Raises
+        ------
+        RuntimeError
+            For surrogate to be evaluated, function needs to be fit.
+        ValueError
+            Input must lie in domain of surrogate.
+        """
+        # validate inputs
+        X = numpy.array(X, ndmin=2)
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+        if not self._valid_cache:
+            raise RuntimeError("Model must be fit!")
+        oob = any(
+            numpy.any(X[:, i] < self.domain[i][0])
+            or numpy.any(X[:, i] > self.domain[i][1])
+            for i in range(self.num_dimensions)
+        )
+        if oob:
+            raise ValueError("X must lie in domain of surrogate")
+        # create lookup table
+        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        if any(
+            any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
+        ):
+            lookup_table = numpy.zeros(
+                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
+            )
+            lookup_table_derivative = numpy.zeros(
+                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
+            )
+            lookup_table_2nd_derivative = numpy.zeros(
+                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
+            )
+        else:
+            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
+            lookup_table_derivative = numpy.zeros(
+                (self.num_dimensions, num_basis_max, len(X))
+            )
+            lookup_table_2nd_derivative = numpy.zeros(
+                (self.num_dimensions, num_basis_max, len(X))
+            )
+        # solve for the inputs at all the basis functions
+        for dim in range(self.num_dimensions):
+            for i, basis_fun in enumerate(self.basis_sets[dim]):
+                new_X = basis_fun.domain[0] + (
+                    basis_fun.domain[1] - basis_fun.domain[0]
+                ) * (
+                    (X[:, dim] - self.domain[dim, 0])
+                    / (self.domain[dim, 1] - self.domain[dim, 0])
+                )
+                numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
+                lookup_table[dim, i, :] = basis_fun(new_X)
+                lookup_table_derivative[dim, i, :] = (
+                    basis_fun.derivative(new_X)
+                    * (basis_fun.domain[1] - basis_fun.domain[0])
+                    / (self.domain[dim, 1] - self.domain[dim, 0])
+                )
+                lookup_table_2nd_derivative[dim, i, :] = (
+                    basis_fun.derivative(new_X, 2)
+                    * (
+                        (basis_fun.domain[1] - basis_fun.domain[0])
+                        / (self.domain[dim, 1] - self.domain[dim, 0])
+                    )
+                    ** 2
+                )
+        # use lookup table to combine terms
+        answer = numpy.zeros((len(X), self.num_dimensions, self.num_dimensions))
+        for dx in range(self.num_dimensions):
+            for dy in range(dx, self.num_dimensions):
+                for ic, coeff in zip(self._index_combinations, self.coefficients):
+                    answer[:, dx, dy] = answer[:, dy, dx] = answer[:, dx, dy] + numpy.real(
+                        coeff
+                        * numpy.prod(
+                            [
+                                (
+                                    lookup_table_2nd_derivative[dim, ic[dim], :]
+                                    if dim == dx and dim == dy
+                                    else (
+                                        lookup_table_derivative[dim, ic[dim], :]
+                                        if dim == dx or dim == dy
+                                        else lookup_table[dim, ic[dim], :]
+                                    )
+                                )
+                                for dim in range(len(ic))
+                            ],
+                            axis=0,
+                        )
+                    )
+        # return results
+        answer.reshape(list(X.shape) + [self.num_dimensions])
+        if all(x == 1 for x in X.shape):
+            return answer.item(0)
+        else:
+            return answer
+
     def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
 
