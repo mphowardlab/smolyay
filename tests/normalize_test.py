@@ -80,7 +80,7 @@ def test_check(normal, x):
     ids=["IntervalNormalizer", "SymmetricalLogNormalizer", "ZScoreNormalizer"],
 )
 def test_transform(normal, answers):
-    """Test that the IntervalNormalizer transform is correct"""
+    """Test that the transforms are correct"""
     x = [1, 2, 3, 4, 5]
     normal.fit(x)
     assert numpy.allclose(normal.transform(x), answers)
@@ -104,11 +104,69 @@ def test_transform(normal, answers):
     ],
 )
 def test_inverse(normal, answers):
-    """Test that the IntervalNormalizer inverse transform is correct"""
+    """Test that the inverse transforms are correct"""
     x = [1, 2, 3, 4, 5]
     normal.fit(x)
     assert numpy.allclose(normal.inverse_transform(x), answers)
 
+
+@pytest.mark.parametrize(
+    "normal",
+    [
+        IntervalNormalizer(),
+        SymmetricalLogNormalizer(),
+        ZScoreNormalizer(),
+    ],
+    ids=[
+        "IntervalNormalizer",
+        "SymmetricalLogNormalizer",
+        "ZScoreNormalizer",
+    ],
+)
+def test_transform_derivative(normal):
+    """Test that the derivative function returns the rate of change of the transform."""
+    sample = numpy.arange(15)
+    normal.fit(sample)
+    X = numpy.linspace(1,2,200)
+    y = normal.transform(X)
+    answer_key = numpy.gradient(y,X[1]-X[0])
+    deriv_1 = normal.derivative(X)
+    assert numpy.allclose(deriv_1,answer_key,rtol=0.01)
+    answer_key = numpy.gradient(deriv_1,X[1]-X[0])
+    deriv_2 = normal.derivative(X, 2)
+    assert numpy.allclose(deriv_2,answer_key,rtol=0.01)
+    answer_key = numpy.gradient(deriv_2,X[1]-X[0])
+    deriv_3 = normal.derivative(X, 3)
+    assert numpy.allclose(deriv_3,answer_key,rtol=0.01)
+
+@pytest.mark.parametrize(
+    "normal",
+    [
+        IntervalNormalizer(),
+        SymmetricalLogNormalizer(),
+        ZScoreNormalizer(),
+    ],
+    ids=[
+        "IntervalNormalizer",
+        "SymmetricalLogNormalizer",
+        "ZScoreNormalizer",
+    ],
+)
+def test_inverse_transform_derivative(normal):
+    """Test that the derivative function returns the rate of change of the inverse transform."""
+    sample = numpy.arange(15)
+    normal.fit(sample)
+    X = numpy.linspace(1,2,200)
+    y = normal.inverse_transform(X)
+    answer_key = numpy.gradient(y,X[1]-X[0])
+    deriv_1 = normal.inverse_derivative(X)
+    assert numpy.allclose(deriv_1,answer_key,rtol=0.01)
+    answer_key = numpy.gradient(deriv_1,X[1]-X[0])
+    deriv_2 = normal.inverse_derivative(X, 2)
+    assert numpy.allclose(deriv_2,answer_key,rtol=0.01)
+    answer_key = numpy.gradient(deriv_2,X[1]-X[0])
+    deriv_3 = normal.inverse_derivative(X, 3)
+    assert numpy.allclose(deriv_3,answer_key,rtol=0.01)
 
 def test_interval_attributes():
     """Test if the attributes of IntervalNormalizer are added"""

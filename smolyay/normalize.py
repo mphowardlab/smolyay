@@ -1,7 +1,7 @@
 import abc
+import math
 
 import numpy
-import sklearn
 
 
 class Normalizer(abc.ABC):
@@ -40,6 +40,9 @@ class Normalizer(abc.ABC):
 
     """
 
+    def __init__(self):
+        self._valid_cache = False
+
     def fit(self, x):
         """Fit the Normalizer
 
@@ -56,6 +59,7 @@ class Normalizer(abc.ABC):
         Normalizer
             the normalizer
         """
+        self._valid_cache = True
         return self
 
     @abc.abstractmethod
@@ -184,6 +188,7 @@ class IntervalNormalizer(Normalizer):
         """
         self._max_val = numpy.max(x)
         self._min_val = numpy.min(x)
+        self._valid_cache = True
         return self
 
     def transform(self, x):
@@ -206,9 +211,9 @@ class IntervalNormalizer(Normalizer):
         Raises
         ------
         ValueError
-            min and max were never calculated
+            normalizer was never fit.
         """
-        if self._min_val is None or self._max_val is None:
+        if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         x = numpy.array(x)
         if self.min_val >= self.max_val:
@@ -236,16 +241,75 @@ class IntervalNormalizer(Normalizer):
         Raises
         ------
         ValueError
-            min and max were never calculated
+            normalizer was never fit.
         """
-        if self._min_val is None or self._max_val is None:
+        if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         x = numpy.array(x)
         if self.min_val >= self.max_val:
             return x
         else:
             return x * (self.max_val - self.min_val) + self.min_val
+        
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
 
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        ValueError
+            normalizer was never fit.
+        """
+        if not self._valid_cache:
+            raise ValueError("Normalizer needs fitting!")
+        if n == 1:
+            return 1/(self.max_val - self.min_val) * numpy.ones(numpy.shape(x))
+        elif n > 1:
+            return numpy.zeros(numpy.shape(x))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " not supported.")
+
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        ValueError
+            normalizer was never fit.
+        """
+        if not self._valid_cache:
+            raise ValueError("Normalizer needs fitting!")
+        if n == 1:
+            return (self.max_val - self.min_val) * numpy.ones(numpy.shape(x))
+        elif n > 1:
+            return numpy.zeros(numpy.shape(x))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " not supported.")
 
 class ZScoreNormalizer(Normalizer):
     """Normalizes data by setting the mean to 0 and std to 1
@@ -306,6 +370,7 @@ class ZScoreNormalizer(Normalizer):
             self._std_val = float(numpy.std(numpy.array(x, dtype=numpy.float128)))
         except AttributeError:
             self._std_val = numpy.std(x)
+        self._valid_cache = True
         return self
 
     def transform(self, x):
@@ -328,9 +393,9 @@ class ZScoreNormalizer(Normalizer):
         Raises
         ------
         ValueError
-            mean and std were never calculated
+            normalizer was never fit.
         """
-        if self._mean_val is None or self._std_val is None:
+        if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         x = numpy.array(x)
         return (x - self.mean_val) / (self.std_val)
@@ -355,13 +420,73 @@ class ZScoreNormalizer(Normalizer):
         Raises
         ------
         ValueError
-            the original data was never assigned
+            normalizer was never fit.
         """
-        if self._mean_val is None or self._std_val is None:
+        if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         x = numpy.array(x)
         return x * self.std_val + self.mean_val
 
+
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        ValueError
+            normalizer was never fit.
+        """
+        if not self._valid_cache:
+            raise ValueError("Normalizer needs fitting!")
+        if n == 1:
+            return 1/(self.std_val) * numpy.ones(numpy.shape(x))
+        elif n > 1:
+            return numpy.zeros(numpy.shape(x))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " not supported.")
+
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        ValueError
+            normalizer was never fit.
+        """
+        if not self._valid_cache:
+            raise ValueError("Normalizer needs fitting!")
+        if n == 1:
+            return (self.std_val) * numpy.ones(numpy.shape(x))
+        elif n > 1:
+            return numpy.zeros(numpy.shape(x))
+        else:
+            raise NotImplementedError("Derivative order " + str(n) + " not supported.")
 
 class SymmetricalLogNormalizer(Normalizer):
     r"""Transforms data onto the symmetrical logarithm scale
@@ -406,6 +531,7 @@ class SymmetricalLogNormalizer(Normalizer):
 
     def __init__(self, linthresh=1):
         super().__init__()
+        self._valid_cache = True
         self._linthresh = linthresh
 
     @property
@@ -446,3 +572,39 @@ class SymmetricalLogNormalizer(Normalizer):
         unnormalized data
         """
         return numpy.sign(x) * self.linthresh * (-1 + numpy.power(10, numpy.abs(x)))
+    
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+        """
+        return (-numpy.sign(x))**(n+1) * math.factorial(n-1)/(numpy.log(10)*(numpy.abs(x) + self.linthresh)**n)
+
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+        
+        n : int, optional
+            order of derivative. Default is 1.
+        
+        Returns
+        -------
+        array-like
+            derivative at x
+        """
+        return (numpy.sign(x))**(n+1) * self.linthresh * (numpy.log(10)**n) *numpy.power(10,numpy.abs(x))
