@@ -430,7 +430,9 @@ class SetProductSurrogate(Surrogate):
         for dx in range(self.num_dimensions):
             for dy in range(dx, self.num_dimensions):
                 for ic, coeff in zip(self._index_combinations, self.coefficients):
-                    answer[:, dx, dy] = answer[:, dy, dx] = answer[:, dx, dy] + numpy.real(
+                    answer[:, dx, dy] = answer[:, dy, dx] = answer[
+                        :, dx, dy
+                    ] + numpy.real(
                         coeff
                         * numpy.prod(
                             [
