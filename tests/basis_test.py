@@ -120,22 +120,82 @@ basis_derivative_answer_key = [
     ),
 ]
 
-basis_2nd_derivative_answer_key = [
+basis_nth_derivative_answer_key = [
     (
-        smolyay.basis.ChebyshevFirstKind(0),
+        2,smolyay.basis.ChebyshevFirstKind(0),
         {0.5: 0, 1: 0, -1: 0, -0.25: 0, -0.5: 0},
     ),
     (
-        smolyay.basis.ChebyshevFirstKind(1),
+        2,smolyay.basis.ChebyshevFirstKind(1),
         {0.5: 0, 1: 0, -1: 0, -0.25: 0, -0.5: 0},
     ),
     (
-        smolyay.basis.ChebyshevFirstKind(2),
+        2,smolyay.basis.ChebyshevFirstKind(2),
         {0.5: 4, 1: 4, -1: 4, -0.25: 4, -0.5: 4},
     ),
     (
-        smolyay.basis.ChebyshevFirstKind(3),
+        2,smolyay.basis.ChebyshevFirstKind(3),
         {0.5: 12, 1: 24, -1: -24, -0.25: -6, -0.5: -12},
+    ),
+    (
+        2,smolyay.basis.Trigonometric(0),
+        {
+            0: 0,
+            numpy.pi / 3: 0,
+            3 * numpy.pi / 2: 0,
+            numpy.pi / 6: 0,
+            2 * numpy.pi: 0,
+        },
+    ),
+    (
+        2,smolyay.basis.Trigonometric(1),
+        {
+            0: -1,
+            numpy.pi / 3: -1 * numpy.exp(numpy.pi / 3 * 1j),
+            3 * numpy.pi / 2: -1 * numpy.exp(3 * numpy.pi / 2 * 1j),
+            numpy.pi / 6: -1 * numpy.exp(numpy.pi / 6 * 1j),
+            2 * numpy.pi: -1 * numpy.exp(2 * numpy.pi * 1j),
+        },
+    ),
+    (
+        2,smolyay.basis.Trigonometric(-1),
+        {
+            0: -1,
+            numpy.pi / 3: -1 * numpy.exp(numpy.pi / 3 * 1j * -1),
+            3 * numpy.pi / 2: -1 * numpy.exp(3 * numpy.pi / 2 * 1j * -1),
+            numpy.pi / 6: -1 * numpy.exp(numpy.pi / 6 * 1j * -1),
+            2 * numpy.pi: -1 * numpy.exp(2 * numpy.pi * 1j * -1),
+        },
+    ),
+    (
+        3,smolyay.basis.Trigonometric(0),
+        {
+            0: 0,
+            numpy.pi / 3: 0,
+            3 * numpy.pi / 2: 0,
+            numpy.pi / 6: 0,
+            2 * numpy.pi: 0,
+        },
+    ),
+    (
+        3,smolyay.basis.Trigonometric(1),
+        {
+            0: -1j,
+            numpy.pi / 3: -1j * numpy.exp(numpy.pi / 3 * 1j),
+            3 * numpy.pi / 2: -1j * numpy.exp(3 * numpy.pi / 2 * 1j),
+            numpy.pi / 6: -1j * numpy.exp(numpy.pi / 6 * 1j),
+            2 * numpy.pi: -1j * numpy.exp(2 * numpy.pi * 1j),
+        },
+    ),
+    (
+        3,smolyay.basis.Trigonometric(-1),
+        {
+            0: 1j,
+            numpy.pi / 3: 1j * numpy.exp(numpy.pi / 3 * 1j * -1),
+            3 * numpy.pi / 2: 1j * numpy.exp(3 * numpy.pi / 2 * 1j * -1),
+            numpy.pi / 6: 1j * numpy.exp(numpy.pi / 6 * 1j * -1),
+            2 * numpy.pi: 1j * numpy.exp(2 * numpy.pi * 1j * -1),
+        },
     ),
 ]
 
@@ -156,11 +216,17 @@ basis_id = [
     "Trig [1]",
     "Trig [-1]",
 ]
-basis_id_2nd_derivative = [
-    "1st Cheb [0]",
-    "1st Cheb [1]",
-    "1st Cheb [2]",
-    "1st Cheb [3]"
+basis_id_nth_derivative = [
+    "n2-1st Cheb [0]",
+    "n2-1st Cheb [1]",
+    "n2-1st Cheb [2]",
+    "n2-1st Cheb [3]",
+    "n2-Trig [0]",
+    "n2-Trig [1]",
+    "n2-Trig [-1]",
+    "n3-Trig [0]",
+    "n3-Trig [1]",
+    "n3-Trig [-1]",
 ]
 
 # initialization tests
@@ -431,33 +497,32 @@ class TestDeriviative:
         assert numpy.allclose(basis_fun.derivative(xs8), answer8)
 
 
-# Test 2nd derivative function correctness
+# Test higher order derivative function correctness
 @pytest.mark.parametrize(
-    "basis_fun,answer_key", basis_2nd_derivative_answer_key, ids=basis_id_2nd_derivative
+    "n,basis_fun,answer_key", basis_nth_derivative_answer_key, ids=basis_id_nth_derivative
 )
 @pytest.mark.incremental
-class Test2ndDerivative:
-    def test_2nd_derivative(self, basis_fun, answer_key):
+class TestNthDerivative:
+    def test_nth_derivative(self, n, basis_fun, answer_key):
         """Test basis function derivative"""
         for x, y in answer_key.items():
-            print(x)
-            assert basis_fun.derivative(x, 2) == pytest.approx(y)
+            assert basis_fun.derivative(x, n) == pytest.approx(y)
 
 
-    def test_2nd_derivative_1D(self, basis_fun, answer_key):
+    def test_nth_derivative_1D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 1D array"""
         xs = list(answer_key.keys())
         answers = [answer_key[x] for x in xs]
-        assert numpy.shape(basis_fun.derivative(xs, 2)) == numpy.shape(xs)
-        assert numpy.allclose(basis_fun.derivative(xs, 2), answers)
+        assert numpy.shape(basis_fun.derivative(xs, n)) == numpy.shape(xs)
+        assert numpy.allclose(basis_fun.derivative(xs, n), answers)
 
         xs1 = numpy.ones((1, 1)) * xs[0]
         answer1 = numpy.ones((1, 1)) * answers[0]
-        assert numpy.shape(basis_fun.derivative(xs1, 2)) == numpy.shape(xs1)
-        assert numpy.allclose(basis_fun.derivative(xs1, 2), answer1)
+        assert numpy.shape(basis_fun.derivative(xs1, n)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1, n), answer1)
 
 
-    def test_2nd_derivative_2D(self, basis_fun, answer_key):
+    def test_nth_derivative_2D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 2D array"""
         unique_inputs = list(answer_key.keys())
         xs = list(numpy.resize(unique_inputs, (8,)))
@@ -465,26 +530,26 @@ class Test2ndDerivative:
 
         xs1 = numpy.reshape(xs, (2, 4))
         answer1 = numpy.reshape(answers, (2, 4))
-        assert numpy.shape(basis_fun.derivative(xs1, 2)) == numpy.shape(xs1)
-        assert numpy.allclose(basis_fun.derivative(xs1, 2), answer1)
+        assert numpy.shape(basis_fun.derivative(xs1, n)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1, n), answer1)
 
         xs2 = numpy.reshape(xs, (1, 8))
         answer2 = numpy.reshape(answers, (1, 8))
-        assert numpy.shape(basis_fun.derivative(xs2, 2)) == numpy.shape(xs2)
-        assert numpy.allclose(basis_fun.derivative(xs2, 2), answer2)
+        assert numpy.shape(basis_fun.derivative(xs2, n)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun.derivative(xs2, n), answer2)
 
         xs3 = numpy.reshape(xs, (8, 1))
         answer3 = numpy.reshape(answers, (8, 1))
-        assert numpy.shape(basis_fun.derivative(xs3, 2)) == numpy.shape(xs3)
-        assert numpy.allclose(basis_fun.derivative(xs3, 2), answer3)
+        assert numpy.shape(basis_fun.derivative(xs3, n)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun.derivative(xs3, n), answer3)
 
         xs4 = numpy.ones((1, 1)) * xs[0]
         answer4 = numpy.ones((1, 1)) * answers[0]
-        assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
-        assert numpy.allclose(basis_fun.derivative(xs4, 2), answer4)
+        assert numpy.shape(basis_fun.derivative(xs4, n)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun.derivative(xs4, n), answer4)
 
 
-    def test_2nd_derivative_3D(self, basis_fun, answer_key):
+    def test_nth_derivative_3D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 3D array"""
         unique_inputs = list(answer_key.keys())
         xs = list(numpy.resize(unique_inputs, (24,)))
@@ -492,43 +557,43 @@ class Test2ndDerivative:
 
         xs1 = numpy.reshape(xs, (2, 3, 4))
         answer1 = numpy.reshape(answers, (2, 3, 4))
-        assert numpy.shape(basis_fun.derivative(xs1, 2)) == numpy.shape(xs1)
-        assert numpy.allclose(basis_fun.derivative(xs1, 2), answer1)
+        assert numpy.shape(basis_fun.derivative(xs1, n)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1, n), answer1)
 
         xs2 = numpy.reshape(xs, (1, 1, 24))
         answer2 = numpy.reshape(answers, (1, 1, 24))
-        assert numpy.shape(basis_fun.derivative(xs2, 2)) == numpy.shape(xs2)
-        assert numpy.allclose(basis_fun.derivative(xs2, 2), answer2)
+        assert numpy.shape(basis_fun.derivative(xs2, n)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun.derivative(xs2, n), answer2)
 
         xs3 = numpy.reshape(xs, (1, 24, 1))
         answer3 = numpy.reshape(answers, (1, 24, 1))
-        assert numpy.shape(basis_fun.derivative(xs3, 2)) == numpy.shape(xs3)
-        assert numpy.allclose(basis_fun.derivative(xs3, 2), answer3)
+        assert numpy.shape(basis_fun.derivative(xs3, n)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun.derivative(xs3, n), answer3)
 
         xs4 = numpy.reshape(xs, (1, 1, 24))
         answer4 = numpy.reshape(answers, (1, 1, 24))
-        assert numpy.shape(basis_fun.derivative(xs4, 2)) == numpy.shape(xs4)
-        assert numpy.allclose(basis_fun.derivative(xs4, 2), answer4)
+        assert numpy.shape(basis_fun.derivative(xs4, n)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun.derivative(xs4, n), answer4)
 
         xs5 = numpy.reshape(xs, (1, 6, 4))
         answer5 = numpy.reshape(answers, (1, 6, 4))
-        assert numpy.shape(basis_fun.derivative(xs5, 2)) == numpy.shape(xs5)
-        assert numpy.allclose(basis_fun.derivative(xs5, 2), answer5)
+        assert numpy.shape(basis_fun.derivative(xs5, n)) == numpy.shape(xs5)
+        assert numpy.allclose(basis_fun.derivative(xs5, n), answer5)
 
         xs6 = numpy.reshape(xs, (6, 4, 1))
         answer6 = numpy.reshape(answers, (6, 4, 1))
-        assert numpy.shape(basis_fun.derivative(xs6, 2)) == numpy.shape(xs6)
-        assert numpy.allclose(basis_fun.derivative(xs6, 2), answer6)
+        assert numpy.shape(basis_fun.derivative(xs6, n)) == numpy.shape(xs6)
+        assert numpy.allclose(basis_fun.derivative(xs6, n), answer6)
 
         xs7 = numpy.reshape(xs, (6, 1, 4))
         answer7 = numpy.reshape(answers, (6, 1, 4))
-        assert numpy.shape(basis_fun.derivative(xs7, 2)) == numpy.shape(xs7)
-        assert numpy.allclose(basis_fun.derivative(xs7, 2), answer7)
+        assert numpy.shape(basis_fun.derivative(xs7, n)) == numpy.shape(xs7)
+        assert numpy.allclose(basis_fun.derivative(xs7, n), answer7)
 
         xs8 = numpy.ones((1, 1, 1)) * xs[0]
         answer8 = numpy.ones((1, 1, 1)) * answers[0]
-        assert numpy.shape(basis_fun.derivative(xs8, 2)) == numpy.shape(xs8)
-        assert numpy.allclose(basis_fun.derivative(xs8, 2), answer8)
+        assert numpy.shape(basis_fun.derivative(xs8, n)) == numpy.shape(xs8)
+        assert numpy.allclose(basis_fun.derivative(xs8, n), answer8)
 
 
 # Test call correctness at points that are special to a basis function

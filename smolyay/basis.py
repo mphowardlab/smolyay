@@ -460,7 +460,7 @@ class Trigonometric(BasisFunction):
             If input is outside the domain `[0, 2\pi]`
         """
         x = numpy.asarray(x)
-        return self.frequency * 1j * numpy.exp(x * self.frequency * 1j)
+        return numpy.exp(x * self.frequency * 1j) * (self.frequency * 1j)**n
 
 
 class BasisFunctionSet(collections.abc.Sequence):
