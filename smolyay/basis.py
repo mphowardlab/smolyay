@@ -41,13 +41,16 @@ class BasisFunction(abc.ABC):
             raise ValueError("Input is outside the domain " + str(self.domain))
         return self._function(x)
 
-    def derivative(self, x):
+    def derivative(self, x, n=1):
         """Evaluate the first derivative of the basis function.
 
         Parameters
         ----------
         x : float
             one-dimensional point.
+
+        n : int, optional
+            order of derivative. Default is one.
 
         Returns
         -------
@@ -56,7 +59,7 @@ class BasisFunction(abc.ABC):
         """
         if not numpy.all(self.in_domain(x)):
             raise ValueError("Input is outside the domain")
-        return self._derivative(x)
+        return self._derivative(x, n)
 
     def in_domain(self, x):
         """Check if the input is within the natural domain.
@@ -176,12 +179,15 @@ class ChebyshevFirstKind(BasisFunction):
         """
         return scipy.special.eval_chebyt(self.degree, x)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         """Evaluate the derivative of ChebyshevFirstKind.
 
-        The first derivative of Chebyshev polynomials of first kind is
+        The derivative of Chebyshev polynomials of first kind is
         evaluated using the relation between Chebyshev polynomial of
         first kind and second kind.
+
+        The 1st and 2nd derivative are supported. Higher order
+        derivative will raise an error.
 
         ..math::
             T_n'(x) = nU_{n-1}(x)
@@ -190,6 +196,9 @@ class ChebyshevFirstKind(BasisFunction):
         ----------
         x: float
             input in [-1, 1] domain.
+
+        n : int, optional
+            order of derivative. Default is 1.
 
         Returns
         -------
@@ -200,8 +209,34 @@ class ChebyshevFirstKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1].
+        NotImplementedError
+            Order of derivative outside supported range (1, 2).
         """
-        return self.degree * scipy.special.eval_chebyu(self.degree - 1, x)
+        if n == 1:
+            return self.degree * scipy.special.eval_chebyu(self.degree - 1, x)
+        elif n == 2:
+            x = numpy.asarray(x)
+            y = numpy.zeros(x.shape)
+            u_limit = (self.degree - 1) * (self.degree) * (self.degree + 1) / 3
+            flag_upper = x == 1
+            y[flag_upper] = u_limit * self.degree
+            flag_lower = x == -1
+            y[flag_lower] = (-1) ** (self.degree) * u_limit * self.degree
+
+            flag = ~(flag_upper | flag_lower)
+            y[flag] = (
+                (
+                    (self.degree) * scipy.special.eval_chebyt(self.degree, x[flag])
+                    - x[flag] * scipy.special.eval_chebyu(self.degree - 1, x[flag])
+                )
+                / (x[flag] ** 2 - 1)
+                * self.degree
+            )
+            if y.ndim == 0:
+                y = y.item()
+            return y
+        else:
+            raise NotImplementedError("nth derivative outside supported range (1, 2).")
 
 
 class ChebyshevSecondKind(BasisFunction):
@@ -233,7 +268,7 @@ class ChebyshevSecondKind(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([-1, 1])
-    
+
     @property
     def degree(self):
         """int: Degree of polynomial."""
@@ -276,7 +311,7 @@ class ChebyshevSecondKind(BasisFunction):
         """
         return scipy.special.eval_chebyu(self.degree, x)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         r"""Evaluate the derivative of Chebyshev Second Kind.
 
         The first derivative of Chebyshev polynomials of second kind is
@@ -297,6 +332,9 @@ class ChebyshevSecondKind(BasisFunction):
         x: float
             input in [-1, 1] domain.
 
+        n : int, optional
+            order of derivative. Default is 1.
+
         Returns
         -------
         float
@@ -306,24 +344,30 @@ class ChebyshevSecondKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1].
+
+        NotImplementedError
+            Order of derivative outside supported range (1).
         """
-        x = numpy.asarray(x)
-        y = numpy.zeros(x.shape)
-        u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
-        flag_upper = x == 1
-        y[flag_upper] = u_limit
+        if n == 1:
+            x = numpy.asarray(x)
+            y = numpy.zeros(x.shape)
+            u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
+            flag_upper = x == 1
+            y[flag_upper] = u_limit
 
-        flag_lower = x == -1
-        y[flag_lower] = (-1) ** (self.degree + 1) * u_limit
+            flag_lower = x == -1
+            y[flag_lower] = (-1) ** (self.degree + 1) * u_limit
 
-        flag = ~(flag_upper | flag_lower)
-        y[flag] = (
-            (self.degree + 1) * scipy.special.eval_chebyt(self.degree + 1, x[flag])
-            - x[flag] * scipy.special.eval_chebyu(self.degree, x[flag])
-        ) / (x[flag] ** 2 - 1)
-        if y.ndim == 0:
-            y = y.item()
-        return y
+            flag = ~(flag_upper | flag_lower)
+            y[flag] = (
+                (self.degree + 1) * scipy.special.eval_chebyt(self.degree + 1, x[flag])
+                - x[flag] * scipy.special.eval_chebyu(self.degree, x[flag])
+            ) / (x[flag] ** 2 - 1)
+            if y.ndim == 0:
+                y = y.item()
+            return y
+        else:
+            raise NotImplementedError("nth derivative outside supported range (1).")
 
 
 class Trigonometric(BasisFunction):
@@ -359,7 +403,7 @@ class Trigonometric(BasisFunction):
     def frequency(self):
         """int: frequency of polynomial."""
         return self._frequency
-    
+
     @frequency.setter
     def frequency(self, value):
         self._frequency = int(value)
@@ -394,7 +438,7 @@ class Trigonometric(BasisFunction):
         x = numpy.asarray(x)
         return numpy.exp(x * self.frequency * 1j)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         r"""Evaluate the derivetive of the trigonometric polynomials.
 
         Parameters
@@ -406,6 +450,9 @@ class Trigonometric(BasisFunction):
         -------
         float
             Value of the derivative of Trigonometric polynomial.
+
+        n : int, optional
+            order of derivative. Default is 1.
 
         Raises
         ------
@@ -433,7 +480,7 @@ class BasisFunctionSet(collections.abc.Sequence):
     def basis_functions(self):
         """list: Basis functions."""
         return self._basis_functions
-    
+
     def __len__(self):
         return len(self.basis_functions)
 
