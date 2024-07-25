@@ -250,7 +250,7 @@ class IntervalNormalizer(Normalizer):
             return x
         else:
             return x * (self.max_val - self.min_val) + self.min_val
-        
+
     def derivative(self, x, n=1):
         """The derivative of the transformation.
 
@@ -258,10 +258,10 @@ class IntervalNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
@@ -275,7 +275,7 @@ class IntervalNormalizer(Normalizer):
         if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         if n == 1:
-            return 1/(self.max_val - self.min_val) * numpy.ones(numpy.shape(x))
+            return 1 / (self.max_val - self.min_val) * numpy.ones(numpy.shape(x))
         elif n > 1:
             return numpy.zeros(numpy.shape(x))
         else:
@@ -288,10 +288,10 @@ class IntervalNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
@@ -310,6 +310,7 @@ class IntervalNormalizer(Normalizer):
             return numpy.zeros(numpy.shape(x))
         else:
             raise NotImplementedError("Derivative order " + str(n) + " not supported.")
+
 
 class ZScoreNormalizer(Normalizer):
     """Normalizes data by setting the mean to 0 and std to 1
@@ -427,7 +428,6 @@ class ZScoreNormalizer(Normalizer):
         x = numpy.array(x)
         return x * self.std_val + self.mean_val
 
-
     def derivative(self, x, n=1):
         """The derivative of the transformation.
 
@@ -435,10 +435,10 @@ class ZScoreNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
@@ -452,7 +452,7 @@ class ZScoreNormalizer(Normalizer):
         if not self._valid_cache:
             raise ValueError("Normalizer needs fitting!")
         if n == 1:
-            return 1/(self.std_val) * numpy.ones(numpy.shape(x))
+            return 1 / (self.std_val) * numpy.ones(numpy.shape(x))
         elif n > 1:
             return numpy.zeros(numpy.shape(x))
         else:
@@ -465,10 +465,10 @@ class ZScoreNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
@@ -487,6 +487,7 @@ class ZScoreNormalizer(Normalizer):
             return numpy.zeros(numpy.shape(x))
         else:
             raise NotImplementedError("Derivative order " + str(n) + " not supported.")
+
 
 class SymmetricalLogNormalizer(Normalizer):
     r"""Transforms data onto the symmetrical logarithm scale
@@ -572,7 +573,7 @@ class SymmetricalLogNormalizer(Normalizer):
         unnormalized data
         """
         return numpy.sign(x) * self.linthresh * (-1 + numpy.power(10, numpy.abs(x)))
-    
+
     def derivative(self, x, n=1):
         """The derivative of the transformation.
 
@@ -580,16 +581,20 @@ class SymmetricalLogNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
             derivative at x
         """
-        return (-numpy.sign(x))**(n+1) * math.factorial(n-1)/(numpy.log(10)*(numpy.abs(x) + self.linthresh)**n)
+        return (
+            (-numpy.sign(x)) ** (n + 1)
+            * math.factorial(n - 1)
+            / (numpy.log(10) * (numpy.abs(x) + self.linthresh) ** n)
+        )
 
     def inverse_derivative(self, x, n=1):
         """The derivative of the inverse transformation.
@@ -598,13 +603,18 @@ class SymmetricalLogNormalizer(Normalizer):
         ----------
         x : array-like
             the input data
-        
+
         n : int, optional
             order of derivative. Default is 1.
-        
+
         Returns
         -------
         array-like
             derivative at x
         """
-        return (numpy.sign(x))**(n+1) * self.linthresh * (numpy.log(10)**n) *numpy.power(10,numpy.abs(x))
+        return (
+            (numpy.sign(x)) ** (n + 1)
+            * self.linthresh
+            * (numpy.log(10) ** n)
+            * numpy.power(10, numpy.abs(x))
+        )
