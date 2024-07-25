@@ -217,206 +217,194 @@ def test_derivative_outside_domain_error(basis_fun, too_large, too_small, valid_
 
 # Test call function correctness
 @pytest.mark.parametrize("basis_fun,answer_key", basis_call_answer_key, ids=basis_id)
-def test_call(basis_fun, answer_key):
-    """Test basis function call"""
-    for x, y in answer_key.items():
-        assert basis_fun(x) == pytest.approx(y)
+@pytest.mark.incremental
+class TestCall:
+    def test_call(self, basis_fun, answer_key):
+        """Test basis function call"""
+        for x, y in answer_key.items():
+            assert basis_fun(x) == pytest.approx(y)
 
+    def test_call_1D(self, basis_fun, answer_key):
+        """Test basis function call with a 1D array"""
+        xs = list(answer_key.keys())
+        answers = [answer_key[x] for x in xs]
+        assert numpy.shape(basis_fun(xs)) == numpy.shape(xs)
+        assert numpy.allclose(basis_fun(xs), answers)
 
-@pytest.mark.parametrize("basis_fun,answer_key", basis_call_answer_key, ids=basis_id)
-def test_call_1D(basis_fun, answer_key):
-    """Test basis function call with a 1D array"""
-    xs = list(answer_key.keys())
-    answers = [answer_key[x] for x in xs]
-    assert numpy.shape(basis_fun(xs)) == numpy.shape(xs)
-    assert numpy.allclose(basis_fun(xs), answers)
+        xs1 = numpy.ones((1, 1)) * xs[0]
+        answer1 = numpy.ones((1, 1)) * answers[0]
+        assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun(xs1), answer1)
 
-    xs1 = numpy.ones((1, 1)) * xs[0]
-    answer1 = numpy.ones((1, 1)) * answers[0]
-    assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun(xs1), answer1)
+    def test_call_2D(self, basis_fun, answer_key):
+        """Test basis function call with a 2D array"""
+        unique_inputs = list(answer_key.keys())
+        xs = list(numpy.resize(unique_inputs, (8,)))
+        answers = [answer_key[x] for x in xs]
 
+        xs1 = numpy.reshape(xs, (2, 4))
+        answer1 = numpy.reshape(answers, (2, 4))
+        assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun(xs1), answer1)
 
-@pytest.mark.parametrize("basis_fun,answer_key", basis_call_answer_key, ids=basis_id)
-def test_call_2D(basis_fun, answer_key):
-    """Test basis function call with a 2D array"""
-    unique_inputs = list(answer_key.keys())
-    xs = list(numpy.resize(unique_inputs, (8,)))
-    answers = [answer_key[x] for x in xs]
+        xs2 = numpy.reshape(xs, (1, 8))
+        answer2 = numpy.reshape(answers, (1, 8))
+        assert numpy.shape(basis_fun(xs2)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun(xs2), answer2)
 
-    xs1 = numpy.reshape(xs, (2, 4))
-    answer1 = numpy.reshape(answers, (2, 4))
-    assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun(xs1), answer1)
+        xs3 = numpy.reshape(xs, (8, 1))
+        answer3 = numpy.reshape(answers, (8, 1))
+        assert numpy.shape(basis_fun(xs3)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun(xs3), answer3)
 
-    xs2 = numpy.reshape(xs, (1, 8))
-    answer2 = numpy.reshape(answers, (1, 8))
-    assert numpy.shape(basis_fun(xs2)) == numpy.shape(xs2)
-    assert numpy.allclose(basis_fun(xs2), answer2)
+        xs4 = numpy.ones((1, 1)) * xs[0]
+        answer4 = numpy.ones((1, 1)) * answers[0]
+        assert numpy.shape(basis_fun(xs4)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun(xs4), answer4)
 
-    xs3 = numpy.reshape(xs, (8, 1))
-    answer3 = numpy.reshape(answers, (8, 1))
-    assert numpy.shape(basis_fun(xs3)) == numpy.shape(xs3)
-    assert numpy.allclose(basis_fun(xs3), answer3)
+    def test_call_3D(self, basis_fun, answer_key):
+        """Test basis function call with a 3D array"""
+        unique_inputs = list(answer_key.keys())
+        xs = list(numpy.resize(unique_inputs, (24,)))
+        answers = [answer_key[x] for x in xs]
 
-    xs4 = numpy.ones((1, 1)) * xs[0]
-    answer4 = numpy.ones((1, 1)) * answers[0]
-    assert numpy.shape(basis_fun(xs4)) == numpy.shape(xs4)
-    assert numpy.allclose(basis_fun(xs4), answer4)
+        xs1 = numpy.reshape(xs, (2, 3, 4))
+        answer1 = numpy.reshape(answers, (2, 3, 4))
+        assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun(xs1), answer1)
 
+        xs2 = numpy.reshape(xs, (1, 1, 24))
+        answer2 = numpy.reshape(answers, (1, 1, 24))
+        assert numpy.shape(basis_fun(xs2)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun(xs2), answer2)
 
-@pytest.mark.parametrize("basis_fun,answer_key", basis_call_answer_key, ids=basis_id)
-def test_call_3D(basis_fun, answer_key):
-    """Test basis function call with a 3D array"""
-    unique_inputs = list(answer_key.keys())
-    xs = list(numpy.resize(unique_inputs, (24,)))
-    answers = [answer_key[x] for x in xs]
+        xs3 = numpy.reshape(xs, (1, 24, 1))
+        answer3 = numpy.reshape(answers, (1, 24, 1))
+        assert numpy.shape(basis_fun(xs3)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun(xs3), answer3)
 
-    xs1 = numpy.reshape(xs, (2, 3, 4))
-    answer1 = numpy.reshape(answers, (2, 3, 4))
-    assert numpy.shape(basis_fun(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun(xs1), answer1)
+        xs4 = numpy.reshape(xs, (1, 1, 24))
+        answer4 = numpy.reshape(answers, (1, 1, 24))
+        assert numpy.shape(basis_fun(xs4)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun(xs4), answer4)
 
-    xs2 = numpy.reshape(xs, (1, 1, 24))
-    answer2 = numpy.reshape(answers, (1, 1, 24))
-    assert numpy.shape(basis_fun(xs2)) == numpy.shape(xs2)
-    assert numpy.allclose(basis_fun(xs2), answer2)
+        xs5 = numpy.reshape(xs, (1, 6, 4))
+        answer5 = numpy.reshape(answers, (1, 6, 4))
+        assert numpy.shape(basis_fun(xs5)) == numpy.shape(xs5)
+        assert numpy.allclose(basis_fun(xs5), answer5)
 
-    xs3 = numpy.reshape(xs, (1, 24, 1))
-    answer3 = numpy.reshape(answers, (1, 24, 1))
-    assert numpy.shape(basis_fun(xs3)) == numpy.shape(xs3)
-    assert numpy.allclose(basis_fun(xs3), answer3)
+        xs6 = numpy.reshape(xs, (6, 4, 1))
+        answer6 = numpy.reshape(answers, (6, 4, 1))
+        assert numpy.shape(basis_fun(xs6)) == numpy.shape(xs6)
+        assert numpy.allclose(basis_fun(xs6), answer6)
 
-    xs4 = numpy.reshape(xs, (1, 1, 24))
-    answer4 = numpy.reshape(answers, (1, 1, 24))
-    assert numpy.shape(basis_fun(xs4)) == numpy.shape(xs4)
-    assert numpy.allclose(basis_fun(xs4), answer4)
+        xs7 = numpy.reshape(xs, (6, 1, 4))
+        answer7 = numpy.reshape(answers, (6, 1, 4))
+        assert numpy.shape(basis_fun(xs7)) == numpy.shape(xs7)
+        assert numpy.allclose(basis_fun(xs7), answer7)
 
-    xs5 = numpy.reshape(xs, (1, 6, 4))
-    answer5 = numpy.reshape(answers, (1, 6, 4))
-    assert numpy.shape(basis_fun(xs5)) == numpy.shape(xs5)
-    assert numpy.allclose(basis_fun(xs5), answer5)
-
-    xs6 = numpy.reshape(xs, (6, 4, 1))
-    answer6 = numpy.reshape(answers, (6, 4, 1))
-    assert numpy.shape(basis_fun(xs6)) == numpy.shape(xs6)
-    assert numpy.allclose(basis_fun(xs6), answer6)
-
-    xs7 = numpy.reshape(xs, (6, 1, 4))
-    answer7 = numpy.reshape(answers, (6, 1, 4))
-    assert numpy.shape(basis_fun(xs7)) == numpy.shape(xs7)
-    assert numpy.allclose(basis_fun(xs7), answer7)
-
-    xs8 = numpy.ones((1, 1, 1)) * xs[0]
-    answer8 = numpy.ones((1, 1, 1)) * answers[0]
-    assert numpy.shape(basis_fun(xs8)) == numpy.shape(xs8)
-    assert numpy.allclose(basis_fun(xs8), answer8)
+        xs8 = numpy.ones((1, 1, 1)) * xs[0]
+        answer8 = numpy.ones((1, 1, 1)) * answers[0]
+        assert numpy.shape(basis_fun(xs8)) == numpy.shape(xs8)
+        assert numpy.allclose(basis_fun(xs8), answer8)
 
 
 # Test derivative function correctness
 @pytest.mark.parametrize(
     "basis_fun,answer_key", basis_derivative_answer_key, ids=basis_id
 )
-def test_derivative(basis_fun, answer_key):
-    """Test basis function derivative"""
-    for x, y in answer_key.items():
-        assert basis_fun.derivative(x) == pytest.approx(y)
+@pytest.mark.incremental
+class TestDeriviative:
+    def test_derivative(self, basis_fun, answer_key):
+        """Test basis function derivative"""
+        for x, y in answer_key.items():
+            assert basis_fun.derivative(x) == pytest.approx(y)
+
+    def test_derivative_1D(self, basis_fun, answer_key):
+        """Test basis function derivative with a 1D array"""
+        xs = list(answer_key.keys())
+        answers = [answer_key[x] for x in xs]
+        assert numpy.shape(basis_fun.derivative(xs)) == numpy.shape(xs)
+        assert numpy.allclose(basis_fun.derivative(xs), answers)
+
+        xs1 = numpy.ones((1, 1)) * xs[0]
+        answer1 = numpy.ones((1, 1)) * answers[0]
+        assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1), answer1)
 
 
-@pytest.mark.parametrize(
-    "basis_fun,answer_key", basis_derivative_answer_key, ids=basis_id
-)
-def test_derivative_1D(basis_fun, answer_key):
-    """Test basis function derivative with a 1D array"""
-    xs = list(answer_key.keys())
-    answers = [answer_key[x] for x in xs]
-    assert numpy.shape(basis_fun.derivative(xs)) == numpy.shape(xs)
-    assert numpy.allclose(basis_fun.derivative(xs), answers)
+    def test_derivative_2D(self, basis_fun, answer_key):
+        """Test basis function derivative with a 2D array"""
+        unique_inputs = list(answer_key.keys())
+        xs = list(numpy.resize(unique_inputs, (8,)))
+        answers = [answer_key[x] for x in xs]
 
-    xs1 = numpy.ones((1, 1)) * xs[0]
-    answer1 = numpy.ones((1, 1)) * answers[0]
-    assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun.derivative(xs1), answer1)
+        xs1 = numpy.reshape(xs, (2, 4))
+        answer1 = numpy.reshape(answers, (2, 4))
+        assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1), answer1)
 
+        xs2 = numpy.reshape(xs, (1, 8))
+        answer2 = numpy.reshape(answers, (1, 8))
+        assert numpy.shape(basis_fun.derivative(xs2)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun.derivative(xs2), answer2)
 
-@pytest.mark.parametrize(
-    "basis_fun,answer_key", basis_derivative_answer_key, ids=basis_id
-)
-def test_derivative_2D(basis_fun, answer_key):
-    """Test basis function derivative with a 2D array"""
-    unique_inputs = list(answer_key.keys())
-    xs = list(numpy.resize(unique_inputs, (8,)))
-    answers = [answer_key[x] for x in xs]
+        xs3 = numpy.reshape(xs, (8, 1))
+        answer3 = numpy.reshape(answers, (8, 1))
+        assert numpy.shape(basis_fun.derivative(xs3)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun.derivative(xs3), answer3)
 
-    xs1 = numpy.reshape(xs, (2, 4))
-    answer1 = numpy.reshape(answers, (2, 4))
-    assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun.derivative(xs1), answer1)
-
-    xs2 = numpy.reshape(xs, (1, 8))
-    answer2 = numpy.reshape(answers, (1, 8))
-    assert numpy.shape(basis_fun.derivative(xs2)) == numpy.shape(xs2)
-    assert numpy.allclose(basis_fun.derivative(xs2), answer2)
-
-    xs3 = numpy.reshape(xs, (8, 1))
-    answer3 = numpy.reshape(answers, (8, 1))
-    assert numpy.shape(basis_fun.derivative(xs3)) == numpy.shape(xs3)
-    assert numpy.allclose(basis_fun.derivative(xs3), answer3)
-
-    xs4 = numpy.ones((1, 1)) * xs[0]
-    answer4 = numpy.ones((1, 1)) * answers[0]
-    assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
-    assert numpy.allclose(basis_fun.derivative(xs4), answer4)
+        xs4 = numpy.ones((1, 1)) * xs[0]
+        answer4 = numpy.ones((1, 1)) * answers[0]
+        assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun.derivative(xs4), answer4)
 
 
-@pytest.mark.parametrize(
-    "basis_fun,answer_key", basis_derivative_answer_key, ids=basis_id
-)
-def test_derivative_3D(basis_fun, answer_key):
-    """Test basis function derivative with a 3D array"""
-    unique_inputs = list(answer_key.keys())
-    xs = list(numpy.resize(unique_inputs, (24,)))
-    answers = [answer_key[x] for x in xs]
+    def test_derivative_3D(self, basis_fun, answer_key):
+        """Test basis function derivative with a 3D array"""
+        unique_inputs = list(answer_key.keys())
+        xs = list(numpy.resize(unique_inputs, (24,)))
+        answers = [answer_key[x] for x in xs]
 
-    xs1 = numpy.reshape(xs, (2, 3, 4))
-    answer1 = numpy.reshape(answers, (2, 3, 4))
-    assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
-    assert numpy.allclose(basis_fun.derivative(xs1), answer1)
+        xs1 = numpy.reshape(xs, (2, 3, 4))
+        answer1 = numpy.reshape(answers, (2, 3, 4))
+        assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
+        assert numpy.allclose(basis_fun.derivative(xs1), answer1)
 
-    xs2 = numpy.reshape(xs, (1, 1, 24))
-    answer2 = numpy.reshape(answers, (1, 1, 24))
-    assert numpy.shape(basis_fun.derivative(xs2)) == numpy.shape(xs2)
-    assert numpy.allclose(basis_fun.derivative(xs2), answer2)
+        xs2 = numpy.reshape(xs, (1, 1, 24))
+        answer2 = numpy.reshape(answers, (1, 1, 24))
+        assert numpy.shape(basis_fun.derivative(xs2)) == numpy.shape(xs2)
+        assert numpy.allclose(basis_fun.derivative(xs2), answer2)
 
-    xs3 = numpy.reshape(xs, (1, 24, 1))
-    answer3 = numpy.reshape(answers, (1, 24, 1))
-    assert numpy.shape(basis_fun.derivative(xs3)) == numpy.shape(xs3)
-    assert numpy.allclose(basis_fun.derivative(xs3), answer3)
+        xs3 = numpy.reshape(xs, (1, 24, 1))
+        answer3 = numpy.reshape(answers, (1, 24, 1))
+        assert numpy.shape(basis_fun.derivative(xs3)) == numpy.shape(xs3)
+        assert numpy.allclose(basis_fun.derivative(xs3), answer3)
 
-    xs4 = numpy.reshape(xs, (1, 1, 24))
-    answer4 = numpy.reshape(answers, (1, 1, 24))
-    assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
-    assert numpy.allclose(basis_fun.derivative(xs4), answer4)
+        xs4 = numpy.reshape(xs, (1, 1, 24))
+        answer4 = numpy.reshape(answers, (1, 1, 24))
+        assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
+        assert numpy.allclose(basis_fun.derivative(xs4), answer4)
 
-    xs5 = numpy.reshape(xs, (1, 6, 4))
-    answer5 = numpy.reshape(answers, (1, 6, 4))
-    assert numpy.shape(basis_fun.derivative(xs5)) == numpy.shape(xs5)
-    assert numpy.allclose(basis_fun.derivative(xs5), answer5)
+        xs5 = numpy.reshape(xs, (1, 6, 4))
+        answer5 = numpy.reshape(answers, (1, 6, 4))
+        assert numpy.shape(basis_fun.derivative(xs5)) == numpy.shape(xs5)
+        assert numpy.allclose(basis_fun.derivative(xs5), answer5)
 
-    xs6 = numpy.reshape(xs, (6, 4, 1))
-    answer6 = numpy.reshape(answers, (6, 4, 1))
-    assert numpy.shape(basis_fun.derivative(xs6)) == numpy.shape(xs6)
-    assert numpy.allclose(basis_fun.derivative(xs6), answer6)
+        xs6 = numpy.reshape(xs, (6, 4, 1))
+        answer6 = numpy.reshape(answers, (6, 4, 1))
+        assert numpy.shape(basis_fun.derivative(xs6)) == numpy.shape(xs6)
+        assert numpy.allclose(basis_fun.derivative(xs6), answer6)
 
-    xs7 = numpy.reshape(xs, (6, 1, 4))
-    answer7 = numpy.reshape(answers, (6, 1, 4))
-    assert numpy.shape(basis_fun.derivative(xs7)) == numpy.shape(xs7)
-    assert numpy.allclose(basis_fun.derivative(xs7), answer7)
+        xs7 = numpy.reshape(xs, (6, 1, 4))
+        answer7 = numpy.reshape(answers, (6, 1, 4))
+        assert numpy.shape(basis_fun.derivative(xs7)) == numpy.shape(xs7)
+        assert numpy.allclose(basis_fun.derivative(xs7), answer7)
 
-    xs8 = numpy.ones((1, 1, 1)) * xs[0]
-    answer8 = numpy.ones((1, 1, 1)) * answers[0]
-    assert numpy.shape(basis_fun.derivative(xs8)) == numpy.shape(xs8)
-    assert numpy.allclose(basis_fun.derivative(xs8), answer8)
+        xs8 = numpy.ones((1, 1, 1)) * xs[0]
+        answer8 = numpy.ones((1, 1, 1)) * answers[0]
+        assert numpy.shape(basis_fun.derivative(xs8)) == numpy.shape(xs8)
+        assert numpy.allclose(basis_fun.derivative(xs8), answer8)
 
 
 # Test call correctness at points that are special to a basis function
