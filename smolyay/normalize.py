@@ -106,6 +106,44 @@ class Normalizer(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+        """
+        pass
+
+    @abc.abstractmethod
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+        """
+        pass
+
     def check_normalize(self, x):
         """Check error from normalizing process
         If defined correctly, performing :meth:`inverse_transform` on
