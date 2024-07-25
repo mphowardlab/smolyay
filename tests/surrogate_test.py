@@ -1167,16 +1167,10 @@ def test_predict_gradient_error(surrogate_class, basis_sets):
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict_gradient([[11, 5]])
-        surrogate.fit(grid, branin(grid.points))
-        surrogate.predict_gradient([[11, 5]])
     with pytest.raises(ValueError):
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict_gradient([[5, 4], [3, 20], [0, 5]])
-        surrogate.fit(grid, branin(grid.points))
-        surrogate.predict_gradient([[5, 4], [3, 20], [0, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, branin(grid.points))
-        surrogate.predict_gradient([[-19, 5], [3, 3]])
         surrogate.fit(grid, branin(grid.points))
         surrogate.predict_gradient([[-19, 5], [3, 3]])
     with pytest.raises(ValueError):
