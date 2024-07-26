@@ -179,7 +179,7 @@ class SetProductSurrogate(Surrogate):
         Parameters
         ----------
         X: array-like with shape (n_samples, num_dimensions) or list of object
-            Points at which the model is evaluated
+            Points at which the model is evaluated.
 
         Returns
         -------
@@ -190,22 +190,25 @@ class SetProductSurrogate(Surrogate):
         ------
         RuntimeError
             For surrogate to be evaluated, function needs to be trained.
+        IndexError
+            Input must be 2D array with shape (n_samples, n_features).
         ValueError
             Input must lie in domain of surrogate.
+
         """
         # validate inputs
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
             for i in range(self.num_dimensions)
         )
         if oob:
-            raise ValueError("X must lie in domain of surrogate")
+            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = [self.basis_sets[dim](X[:,dim],self.domain[dim]) for dim in range(self.num_dimensions)]
