@@ -809,7 +809,7 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
                 )
 
 
-class RegularizationHelper:
+class RegularizationMethod:
     def __init__(self):
         self.fit_intercept = False
 
