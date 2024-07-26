@@ -192,8 +192,6 @@ class SetProductSurrogate(Surrogate):
             For surrogate to be evaluated, function needs to be trained.
         ValueError
             Input must lie in domain of surrogate.
-        NotImplementedError
-            Predict after fitting to gradient not supported.
         """
         # validate inputs
         if not self._valid_cache:
