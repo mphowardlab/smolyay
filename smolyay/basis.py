@@ -459,7 +459,7 @@ class Trigonometric(BasisFunction):
             If input is outside the domain `[0, 2\pi]`
         """
         x = numpy.asarray(x)
-        return numpy.exp(x * self.frequency * 1j) * (self.frequency * 1j)**n
+        return numpy.exp(x * self.frequency * 1j) * (self.frequency * 1j) ** n
 
 
 class BasisFunctionSet(collections.abc.Sequence):
@@ -470,9 +470,19 @@ class BasisFunctionSet(collections.abc.Sequence):
     basis_functions : list
         Basis functions in set.
 
+    Raises
+    ------
+    ValueError
+        basis functions must have the same domain.
     """
 
     def __init__(self, basis_functions):
+        if len(basis_functions) != 0:
+            domain = basis_functions[0].domain
+            if any(
+                not numpy.array_equal(domain, b.domain) for b in basis_functions[1:]
+            ):
+                raise ValueError("Basis functions must have the same domain.")
         self._basis_functions = basis_functions
 
     @property
@@ -486,6 +496,15 @@ class BasisFunctionSet(collections.abc.Sequence):
     def __getitem__(self, key):
         return self.basis_functions[key]
 
+    def _scale_to_domain(self, points, old_domain):
+        if len(self.basis_functions) == 0:
+            raise ValueError("No domain to scale to.")
+        domain = self.basis_functions[0].domain
+        points = domain[0] + (domain[1] - domain[0]) * (
+            (points - old_domain[0]) / (old_domain[1] - old_domain[0])
+        )
+        return numpy.clip(points, domain[0], domain[1])
+
 
 class NestedBasisFunctionSet(BasisFunctionSet):
     """Set of nested basis functions and sample points.
@@ -496,12 +515,12 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         Basis functions in set.
 
     num_per_level : list
-        number of unique functions per level
+        number of unique functions per level.
 
     Raises
     ------
     IndexError
-        number of basis function does not match functions in each level
+        number of basis function does not match functions in each level.
     """
 
     def __init__(self, basis_functions, num_per_level):

@@ -122,23 +122,28 @@ basis_derivative_answer_key = [
 
 basis_nth_derivative_answer_key = [
     (
-        2,smolyay.basis.ChebyshevFirstKind(0),
+        2,
+        smolyay.basis.ChebyshevFirstKind(0),
         {0.5: 0, 1: 0, -1: 0, -0.25: 0, -0.5: 0},
     ),
     (
-        2,smolyay.basis.ChebyshevFirstKind(1),
+        2,
+        smolyay.basis.ChebyshevFirstKind(1),
         {0.5: 0, 1: 0, -1: 0, -0.25: 0, -0.5: 0},
     ),
     (
-        2,smolyay.basis.ChebyshevFirstKind(2),
+        2,
+        smolyay.basis.ChebyshevFirstKind(2),
         {0.5: 4, 1: 4, -1: 4, -0.25: 4, -0.5: 4},
     ),
     (
-        2,smolyay.basis.ChebyshevFirstKind(3),
+        2,
+        smolyay.basis.ChebyshevFirstKind(3),
         {0.5: 12, 1: 24, -1: -24, -0.25: -6, -0.5: -12},
     ),
     (
-        2,smolyay.basis.Trigonometric(0),
+        2,
+        smolyay.basis.Trigonometric(0),
         {
             0: 0,
             numpy.pi / 3: 0,
@@ -148,7 +153,8 @@ basis_nth_derivative_answer_key = [
         },
     ),
     (
-        2,smolyay.basis.Trigonometric(1),
+        2,
+        smolyay.basis.Trigonometric(1),
         {
             0: -1,
             numpy.pi / 3: -1 * numpy.exp(numpy.pi / 3 * 1j),
@@ -158,7 +164,8 @@ basis_nth_derivative_answer_key = [
         },
     ),
     (
-        2,smolyay.basis.Trigonometric(-1),
+        2,
+        smolyay.basis.Trigonometric(-1),
         {
             0: -1,
             numpy.pi / 3: -1 * numpy.exp(numpy.pi / 3 * 1j * -1),
@@ -168,7 +175,8 @@ basis_nth_derivative_answer_key = [
         },
     ),
     (
-        3,smolyay.basis.Trigonometric(0),
+        3,
+        smolyay.basis.Trigonometric(0),
         {
             0: 0,
             numpy.pi / 3: 0,
@@ -178,7 +186,8 @@ basis_nth_derivative_answer_key = [
         },
     ),
     (
-        3,smolyay.basis.Trigonometric(1),
+        3,
+        smolyay.basis.Trigonometric(1),
         {
             0: -1j,
             numpy.pi / 3: -1j * numpy.exp(numpy.pi / 3 * 1j),
@@ -188,7 +197,8 @@ basis_nth_derivative_answer_key = [
         },
     ),
     (
-        3,smolyay.basis.Trigonometric(-1),
+        3,
+        smolyay.basis.Trigonometric(-1),
         {
             0: 1j,
             numpy.pi / 3: 1j * numpy.exp(numpy.pi / 3 * 1j * -1),
@@ -228,6 +238,7 @@ basis_id_nth_derivative = [
     "n3-Trig [1]",
     "n3-Trig [-1]",
 ]
+
 
 # initialization tests
 @pytest.mark.parametrize(
@@ -422,7 +433,6 @@ class TestDeriviative:
         assert numpy.shape(basis_fun.derivative(xs1)) == numpy.shape(xs1)
         assert numpy.allclose(basis_fun.derivative(xs1), answer1)
 
-
     def test_derivative_2D(self, basis_fun, answer_key):
         """Test basis function derivative with a 2D array"""
         unique_inputs = list(answer_key.keys())
@@ -448,7 +458,6 @@ class TestDeriviative:
         answer4 = numpy.ones((1, 1)) * answers[0]
         assert numpy.shape(basis_fun.derivative(xs4)) == numpy.shape(xs4)
         assert numpy.allclose(basis_fun.derivative(xs4), answer4)
-
 
     def test_derivative_3D(self, basis_fun, answer_key):
         """Test basis function derivative with a 3D array"""
@@ -499,7 +508,9 @@ class TestDeriviative:
 
 # Test higher order derivative function correctness
 @pytest.mark.parametrize(
-    "n,basis_fun,answer_key", basis_nth_derivative_answer_key, ids=basis_id_nth_derivative
+    "n,basis_fun,answer_key",
+    basis_nth_derivative_answer_key,
+    ids=basis_id_nth_derivative,
 )
 @pytest.mark.incremental
 class TestNthDerivative:
@@ -507,7 +518,6 @@ class TestNthDerivative:
         """Test basis function derivative"""
         for x, y in answer_key.items():
             assert basis_fun.derivative(x, n) == pytest.approx(y)
-
 
     def test_nth_derivative_1D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 1D array"""
@@ -520,7 +530,6 @@ class TestNthDerivative:
         answer1 = numpy.ones((1, 1)) * answers[0]
         assert numpy.shape(basis_fun.derivative(xs1, n)) == numpy.shape(xs1)
         assert numpy.allclose(basis_fun.derivative(xs1, n), answer1)
-
 
     def test_nth_derivative_2D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 2D array"""
@@ -547,7 +556,6 @@ class TestNthDerivative:
         answer4 = numpy.ones((1, 1)) * answers[0]
         assert numpy.shape(basis_fun.derivative(xs4, n)) == numpy.shape(xs4)
         assert numpy.allclose(basis_fun.derivative(xs4, n), answer4)
-
 
     def test_nth_derivative_3D(self, n, basis_fun, answer_key):
         """Test basis function derivative with a 3D array"""
@@ -626,7 +634,7 @@ def test_cheb_2nd_call_root_points():
 
 # Test a set of basis functions
 def test_set_initialize():
-    """Check BasisFunctionSet correctly initializes"""
+    """Test BasisFunctionSet correctly initializes"""
     f = smolyay.basis.BasisFunctionSet([])
     f2 = smolyay.basis.BasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)])
     assert f.basis_functions == []
@@ -635,26 +643,70 @@ def test_set_initialize():
     assert f2[0].degree == 0
     assert len(f2) == 1
 
+
+def test_set_initialize_error():
+    """Test BasisFunctionSet gives error if basis function have different domains"""
+    # this should not error
+    smolyay.basis.BasisFunctionSet(
+        [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.ChebyshevSecondKind(0)]
+    )
+    # this should error
+    with pytest.raises(ValueError):
+        smolyay.basis.BasisFunctionSet(
+            [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)]
+        )
+    with pytest.raises(ValueError):
+        smolyay.basis.BasisFunctionSet(
+            [smolyay.basis.ChebyshevSecondKind(0), smolyay.basis.Trigonometric(0)]
+        )
+
+
+@pytest.mark.parametrize(
+    "basis_fun,answer_single,answer_multi",
+    [
+        (smolyay.basis.ChebyshevFirstKind, -0.2, [-0.2, -0.1, 0, 0.1]),
+        (smolyay.basis.ChebyshevSecondKind, -0.2, [-0.2, -0.1, 0, 0.1]),
+        (
+            smolyay.basis.Trigonometric,
+            4 * numpy.pi / 5,
+            [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
+        ),
+    ],
+    ids=["1st Cheb", "2nd Cheb", "Trig"],
+)
+def test_set_scale_domain(basis_fun, answer_single, answer_multi):
+    """Test the set can scale points to basis function domain"""
+    domain = (-8, 12)
+    f = smolyay.basis.BasisFunctionSet([basis_fun(0)])
+    assert f._scale_to_domain(0, domain) == pytest.approx(answer_single)
+    assert numpy.allclose(
+        f._scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
+    )
+
+
 def test_nested_set_initialize():
-    """Check NestedBasisFunctionSet correctly initializes"""
+    """Test NestedBasisFunctionSet correctly initializes"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-    f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,1,2])
+    f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 2])
     assert f.basis_functions == bf
     assert len(f) == 5
     assert f.num_levels == 4
-    assert numpy.array_equal(f.end_level,[1,2,3,5])
-    assert numpy.array_equal(f.start_level,[0,1,2,3])
-    assert numpy.array_equal(f.level(3),bf[3:])
+    assert numpy.array_equal(f.end_level, [1, 2, 3, 5])
+    assert numpy.array_equal(f.start_level, [0, 1, 2, 3])
+    assert numpy.array_equal(f.level(3), bf[3:])
+
 
 def test_nested_set_initialize_error():
-    """Check NestedBasisFunctionSet error for invalid constructor inputs"""
+    """Test NestedBasisFunctionSet error for invalid constructor inputs"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
     with pytest.raises(IndexError):
-        f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,1,1])
+        f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 1])
     with pytest.raises(IndexError):
-        f = smolyay.basis.NestedBasisFunctionSet(bf,[1,1,2,3])
+        f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 2, 3])
+
 
 def test_is_complex():
+    """Test that basis functions that output complex values indicate it"""
     assert smolyay.basis.ChebyshevFirstKind(0)._is_complex == False
     assert smolyay.basis.ChebyshevSecondKind(0)._is_complex == False
     assert smolyay.basis.Trigonometric(0)._is_complex == True
