@@ -348,7 +348,8 @@ class ChebyshevSecondKind(BasisFunction):
         NotImplementedError
             Order of derivative outside supported range (1).
         """
-        if n == 1:
+        if n != 1:
+            raise NotImplementedError("Only first derivative is supported.")
             x = numpy.asarray(x)
             y = numpy.zeros(x.shape)
             u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
