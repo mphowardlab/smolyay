@@ -162,7 +162,7 @@ class SetProductSurrogate(Surrogate):
 
     @regularization.setter
     def regularization(self, value):
-        if value is not None and not isinstance(value, RegularizationHelper):
+        if value is not None and not isinstance(value, RegularizationMethod):
                 raise ValueError("Regression must be a RegularizationHelper")
         if self.regularization != value:
             self._regularization = value
@@ -814,13 +814,13 @@ class RegularizationMethod:
         self.fit_intercept = False
 
 
-class L2Regularization(RegularizationHelper):
+class L2Regularization(RegularizationMethod):
     def __init__(self, alpha):
         super().__init__()
         self.alpha = alpha
 
 
-class L1Regularization(RegularizationHelper):
+class L1Regularization(RegularizationMethod):
     def __init__(self, alpha):
         super().__init__()
         self.alpha = alpha

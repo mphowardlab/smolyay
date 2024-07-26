@@ -350,25 +350,23 @@ class ChebyshevSecondKind(BasisFunction):
         """
         if n != 1:
             raise NotImplementedError("Only first derivative is supported.")
-            x = numpy.asarray(x)
-            y = numpy.zeros(x.shape)
-            u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
-            flag_upper = x == 1
-            y[flag_upper] = u_limit
+        x = numpy.asarray(x)
+        y = numpy.zeros(x.shape)
+        u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
+        flag_upper = x == 1
+        y[flag_upper] = u_limit
 
-            flag_lower = x == -1
-            y[flag_lower] = (-1) ** (self.degree + 1) * u_limit
+        flag_lower = x == -1
+        y[flag_lower] = (-1) ** (self.degree + 1) * u_limit
 
-            flag = ~(flag_upper | flag_lower)
-            y[flag] = (
-                (self.degree + 1) * scipy.special.eval_chebyt(self.degree + 1, x[flag])
-                - x[flag] * scipy.special.eval_chebyu(self.degree, x[flag])
-            ) / (x[flag] ** 2 - 1)
-            if y.ndim == 0:
-                y = y.item()
-            return y
-        else:
-            raise NotImplementedError("nth derivative outside supported range (1).")
+        flag = ~(flag_upper | flag_lower)
+        y[flag] = (
+            (self.degree + 1) * scipy.special.eval_chebyt(self.degree + 1, x[flag])
+            - x[flag] * scipy.special.eval_chebyu(self.degree, x[flag])
+        ) / (x[flag] ** 2 - 1)
+        if y.ndim == 0:
+            y = y.item()
+        return y
 
 
 class Trigonometric(BasisFunction):
