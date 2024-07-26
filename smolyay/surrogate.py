@@ -210,15 +210,18 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
 
         # create lookup table
-        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        num_basis_max = [len(p) for p in self._basis_sets]
         if any(
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
         else:
-            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
+            lookup_table = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
@@ -229,7 +232,7 @@ class SetProductSurrogate(Surrogate):
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
-                lookup_table[dim, i, :] = basis_fun(new_X)
+                lookup_table[dim][i, :] = basis_fun(new_X)
 
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
@@ -237,7 +240,7 @@ class SetProductSurrogate(Surrogate):
             answer = answer + numpy.real(
                 coeff
                 * numpy.prod(
-                    [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
+                    [lookup_table[dim][ic[dim], :] for dim in range(len(ic))], axis=0
                 )
             )
 
@@ -281,21 +284,25 @@ class SetProductSurrogate(Surrogate):
         if oob:
             raise ValueError("X must lie in domain of surrogate")
         # create lookup table
-        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        num_basis_max = [len(p) for p in self._basis_sets]
         if any(
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
         else:
-            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X))
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
@@ -306,8 +313,8 @@ class SetProductSurrogate(Surrogate):
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
-                lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = (
+                lookup_table[dim][i, :] = basis_fun(new_X)
+                lookup_table_derivative[dim][i, :] = (
                     basis_fun.derivative(new_X)
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
@@ -321,9 +328,9 @@ class SetProductSurrogate(Surrogate):
                     * numpy.prod(
                         [
                             (
-                                lookup_table_derivative[dim, ic[dim], :]
+                                lookup_table_derivative[dim][ic[dim], :]
                                 if dim == d
-                                else lookup_table[dim, ic[dim], :]
+                                else lookup_table[dim][ic[dim], :]
                             )
                             for dim in range(len(ic))
                         ],
@@ -372,27 +379,32 @@ class SetProductSurrogate(Surrogate):
         if oob:
             raise ValueError("X must lie in domain of surrogate")
         # create lookup table
-        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        num_basis_max = [len(p) for p in self._basis_sets]
         if any(
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
-            lookup_table_2nd_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
+            lookup_table_2nd_derivative = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
         else:
-            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X))
-            )
-            lookup_table_2nd_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X))
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
+            lookup_table_2nd_derivative = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
@@ -403,13 +415,13 @@ class SetProductSurrogate(Surrogate):
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
-                lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = (
+                lookup_table[dim][i, :] = basis_fun(new_X)
+                lookup_table_derivative[dim][i, :] = (
                     basis_fun.derivative(new_X)
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
-                lookup_table_2nd_derivative[dim, i, :] = (
+                lookup_table_2nd_derivative[dim][i, :] = (
                     basis_fun.derivative(new_X, 2)
                     * (
                         (basis_fun.domain[1] - basis_fun.domain[0])
@@ -429,12 +441,12 @@ class SetProductSurrogate(Surrogate):
                         * numpy.prod(
                             [
                                 (
-                                    lookup_table_2nd_derivative[dim, ic[dim], :]
+                                    lookup_table_2nd_derivative[dim][ic[dim], :]
                                     if dim == dx and dim == dy
                                     else (
-                                        lookup_table_derivative[dim, ic[dim], :]
+                                        lookup_table_derivative[dim][ic[dim], :]
                                         if dim == dx or dim == dy
-                                        else lookup_table[dim, ic[dim], :]
+                                        else lookup_table[dim][ic[dim], :]
                                     )
                                 )
                                 for dim in range(len(ic))
@@ -501,18 +513,21 @@ class SetProductSurrogate(Surrogate):
         if oob:
             raise ValueError("X must lie in domain of surrogate")
         # create basis matrix
-        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        num_basis_max = [len(p) for p in self._basis_sets]
         if any(
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
             basis_matrix = numpy.zeros(
                 (len(X), len(self._index_combinations)), dtype="complex_"
             )
         else:
-            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
+            lookup_table = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
             basis_matrix = numpy.zeros((len(X), len(self._index_combinations)))
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
@@ -524,12 +539,12 @@ class SetProductSurrogate(Surrogate):
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
-                lookup_table[dim, i, :] = basis_fun(new_X)
+                lookup_table[dim][i, :] = basis_fun(new_X)
 
         # use lookup table to solve for each term
         for term, ic in enumerate(self._index_combinations):
             basis_matrix[:, term] = numpy.prod(
-                [lookup_table[dim, ic[dim], :] for dim in range(len(ic))], axis=0
+                [lookup_table[dim][ic[dim], :] for dim in range(len(ic))], axis=0
             )
 
         # solve for coefficients
@@ -537,7 +552,7 @@ class SetProductSurrogate(Surrogate):
             if basis_matrix.shape[0] == basis_matrix.shape[1]:
                 try:
                     self._coefficients = numpy.linalg.solve(basis_matrix, y)
-                except (numpy.linalg.LinAlgError):
+                except numpy.linalg.LinAlgError:
                     self._coefficients = numpy.linalg.lstsq(
                         basis_matrix, y, rcond=None
                     )[0]
@@ -617,25 +632,29 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate")
 
         ## Create basis matrix
-        num_basis_max = numpy.max([len(p) for p in self._basis_sets])
+        num_basis_max = [len(p) for p in self._basis_sets]
         if any(
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X)), dtype="complex_")
+                for num_basis in num_basis_max
+            ]
             basis_matrix = numpy.zeros(
                 (len(X) * self.num_dimensions, len(self._index_combinations)),
                 dtype="complex_",
             )
         else:
-            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
-            lookup_table_derivative = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X))
-            )
+            lookup_table = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
+            lookup_table_derivative = [
+                numpy.zeros((num_basis, len(X))) for num_basis in num_basis_max
+            ]
             basis_matrix = numpy.zeros(
                 (len(X) * self.num_dimensions, len(self._index_combinations)),
             )
@@ -649,8 +668,8 @@ class SetProductSurrogate(Surrogate):
                     / (self.domain[dim, 1] - self.domain[dim, 0])
                 )
                 numpy.clip(new_X, basis_fun.domain[0], basis_fun.domain[1], out=new_X)
-                lookup_table[dim, i, :] = basis_fun(new_X)
-                lookup_table_derivative[dim, i, :] = (
+                lookup_table[dim][i, :] = basis_fun(new_X)
+                lookup_table_derivative[dim][i, :] = (
                     basis_fun.derivative(new_X)
                     * (basis_fun.domain[1] - basis_fun.domain[0])
                     / (self.domain[dim, 1] - self.domain[dim, 0])
@@ -663,9 +682,9 @@ class SetProductSurrogate(Surrogate):
                     basis_matrix[d :: self.num_dimensions, term] = numpy.prod(
                         [
                             (
-                                lookup_table_derivative[dim, ic[dim], :]
+                                lookup_table_derivative[dim][ic[dim], :]
                                 if dim == d
-                                else lookup_table[dim, ic[dim], :]
+                                else lookup_table[dim][ic[dim], :]
                             )
                             for dim in range(len(ic))
                         ],
@@ -673,7 +692,7 @@ class SetProductSurrogate(Surrogate):
                     )
                 else:
                     basis_matrix[d :: self.num_dimensions, term] = (
-                        lookup_table_derivative[d, ic[d], :]
+                        lookup_table_derivative[d][ic[d], :]
                     )
 
         data = numpy.reshape(y, (self.num_dimensions * len(X),))
