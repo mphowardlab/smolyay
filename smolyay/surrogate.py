@@ -211,7 +211,10 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
-        lookup_table = [self.basis_sets[dim](X[:,dim],self.domain[dim]) for dim in range(self.num_dimensions)]
+        lookup_table = [
+            self.basis_sets[dim](X[:, dim], self.domain[dim])
+            for dim in range(self.num_dimensions)
+        ]
 
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
@@ -264,13 +267,15 @@ class SetProductSurrogate(Surrogate):
         )
         if oob:
             raise ValueError("X must lie in domain of surrogate.")
-        
+
         # create lookup table and solve for all the basis functions
         lookup_table = []
         lookup_table_derivative = []
         for dim in range(self.num_dimensions):
-            lookup_table.append(self.basis_sets[dim](X[:,dim],self.domain[dim]))
-            lookup_table_derivative.append(self.basis_sets[dim].derivative(X[:,dim],self.domain[dim]))
+            lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
+            lookup_table_derivative.append(
+                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+            )
 
         # use lookup table to combine terms
         answer = numpy.zeros((len(X), self.num_dimensions))
@@ -339,9 +344,13 @@ class SetProductSurrogate(Surrogate):
         lookup_table_derivative = []
         lookup_table_2nd_derivative = []
         for dim in range(self.num_dimensions):
-            lookup_table.append(self.basis_sets[dim](X[:,dim],self.domain[dim]))
-            lookup_table_derivative.append(self.basis_sets[dim].derivative(X[:,dim],self.domain[dim]))
-            lookup_table_2nd_derivative.append(self.basis_sets[dim].derivative(X[:,dim],self.domain[dim],2))
+            lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
+            lookup_table_derivative.append(
+                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+            )
+            lookup_table_2nd_derivative.append(
+                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim], 2)
+            )
 
         # use lookup table to combine terms
         answer = numpy.zeros((len(X), self.num_dimensions, self.num_dimensions))
@@ -432,7 +441,10 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
-        lookup_table = [self.basis_sets[dim](X[:,dim],self.domain[dim]) for dim in range(self.num_dimensions)]
+        lookup_table = [
+            self.basis_sets[dim](X[:, dim], self.domain[dim])
+            for dim in range(self.num_dimensions)
+        ]
 
         # create basis matrix
         if any(
@@ -541,8 +553,10 @@ class SetProductSurrogate(Surrogate):
         lookup_table = []
         lookup_table_derivative = []
         for dim in range(self.num_dimensions):
-            lookup_table.append(self.basis_sets[dim](X[:,dim],self.domain[dim]))
-            lookup_table_derivative.append(self.basis_sets[dim].derivative(X[:,dim],self.domain[dim]))
+            lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
+            lookup_table_derivative.append(
+                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+            )
 
         # create basis matrix
         if any(
@@ -598,7 +612,9 @@ class SetProductSurrogate(Surrogate):
             else:
                 X0 = numpy.array(X0, ndmin=2)
             if X0.shape != (1, self.num_dimensions):
-                raise IndexError("Must be 2D array with shape (1, num_dimensions) if not None.")
+                raise IndexError(
+                    "Must be 2D array with shape (1, num_dimensions) if not None."
+                )
             y0 = numpy.array(y0).item(0)
             predicted_y = self.predict(X0)
             integration_constant = y0 - predicted_y

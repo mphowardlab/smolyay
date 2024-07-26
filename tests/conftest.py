@@ -7,6 +7,7 @@ import pytest
 # store history of failures per test class name and per index in parametrize (if parametrize used)
 _test_failed_incremental: Dict[str, Dict[Tuple[int, ...], str]] = {}
 
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "incremental(name): mark tests that fail if previous test fails"
