@@ -494,25 +494,21 @@ def test_fit_1D_Trignometric(surrogate_class, grid_obj):
 )
 def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit using different basis functions."""
-    domain = [[-1, 1], [0, 2 * numpy.pi]]
-    num_level = 4
+    domain = [[0, 2 * numpy.pi], [-1, 1]]
+    num_level = 2
     point_sets = [
-        smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
         smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
+        smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
     ]
-    num_trig = numpy.arange(len(point_sets[1]) - 2, dtype=int)
+    num_trig = numpy.arange(len(point_sets[0]), dtype=int)
     frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
     basis_sets = [
         smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[0]))],
+            [smolyay.basis.Trigonometric(n) for n in frequencies],
             point_sets[0].num_per_level,
         ),
         smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.Trigonometric(n) for n in frequencies]
-            + [
-                smolyay.basis.ChebyshevFirstKind(1),
-                smolyay.basis.ChebyshevFirstKind(2),
-            ],
+            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[1]))],
             point_sets[1].num_per_level,
         ),
     ]
@@ -841,25 +837,21 @@ def test_fit_gradient_2D_Trignometric(surrogate_class, grid_obj):
 )
 def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     """Test if class is fit with gradient with different basis functions."""
-    domain = numpy.array([[-1, 1], [0, 2 * numpy.pi]])
-    num_level = 4
+    domain = numpy.array([[0, 2 * numpy.pi], [-1, 1]])
+    num_level = 2
     point_sets = [
-        smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
         smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
+        smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
     ]
-    num_trig = numpy.arange(len(point_sets[1]) - 2, dtype=int)
+    num_trig = numpy.arange(len(point_sets[0]), dtype=int)
     frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
     basis_sets = [
         smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[0]))],
+            [smolyay.basis.Trigonometric(n) for n in frequencies],
             point_sets[0].num_per_level,
         ),
         smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.Trigonometric(n) for n in frequencies]
-            + [
-                smolyay.basis.ChebyshevFirstKind(1),
-                smolyay.basis.ChebyshevFirstKind(2),
-            ],
+            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[1]))],
             point_sets[1].num_per_level,
         ),
     ]
