@@ -684,6 +684,236 @@ def test_set_scale_domain(basis_fun, answer_single, answer_multi):
     )
 
 
+@pytest.mark.parametrize(
+    "basis_functions,answer_key,X",
+    [
+        (
+            [
+                smolyay.basis.ChebyshevFirstKind(0),
+                smolyay.basis.ChebyshevFirstKind(1),
+                smolyay.basis.ChebyshevFirstKind(2),
+            ],
+            [[1, 1, 1, 1, 1], [0.5, 1, -1, -0.25, -0.5], [-0.5, 1, 1, -0.875, -0.5]],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.ChebyshevSecondKind(0),
+                smolyay.basis.ChebyshevSecondKind(1),
+                smolyay.basis.ChebyshevSecondKind(2),
+            ],
+            [[1, 1, 1, 1, 1], [1, 2, -2, -0.5, -1], [0, 3, 3, -0.75, 0]],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.Trigonometric(0),
+                smolyay.basis.Trigonometric(1),
+                smolyay.basis.Trigonometric(-1),
+            ],
+            [
+                [1, 1, 1, 1, 1],
+                [
+                    1,
+                    numpy.exp(numpy.pi / 3 * 1j),
+                    numpy.exp(3 * numpy.pi / 2 * 1j),
+                    numpy.exp(numpy.pi / 6 * 1j),
+                    numpy.exp(2 * numpy.pi * 1j),
+                ],
+                [
+                    1,
+                    numpy.exp(numpy.pi / 3 * 1j * -1),
+                    numpy.exp(3 * numpy.pi / 2 * 1j * -1),
+                    numpy.exp(numpy.pi / 6 * 1j * -1),
+                    numpy.exp(2 * numpy.pi * 1j * -1),
+                ],
+            ],
+            [-8, -14 / 3, 7, -19 / 3, 12],
+        ),
+    ],
+    ids=["1st Cheb", "2nd Cheb", "Trig"],
+)
+def test_set_call(basis_functions, answer_key, X):
+    """Test the set can scale points to basis function domain"""
+    domain = (-8, 12)
+    f = smolyay.basis.BasisFunctionSet(basis_functions)
+    assert numpy.allclose(f(X, domain), answer_key)
+
+
+@pytest.mark.parametrize(
+    "basis_functions,answer_key,X",
+    [
+        (
+            [
+                smolyay.basis.ChebyshevFirstKind(0),
+                smolyay.basis.ChebyshevFirstKind(1),
+                smolyay.basis.ChebyshevFirstKind(2),
+            ],
+            [[1, 1, 1, 1, 1], [0.5, 1, -1, -0.25, -0.5], [-0.5, 1, 1, -0.875, -0.5]],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.ChebyshevSecondKind(0),
+                smolyay.basis.ChebyshevSecondKind(1),
+                smolyay.basis.ChebyshevSecondKind(2),
+            ],
+            [[1, 1, 1, 1, 1], [1, 2, -2, -0.5, -1], [0, 3, 3, -0.75, 0]],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.Trigonometric(0),
+                smolyay.basis.Trigonometric(1),
+                smolyay.basis.Trigonometric(-1),
+            ],
+            [
+                [1, 1, 1, 1, 1],
+                [
+                    1,
+                    numpy.exp(numpy.pi / 3 * 1j),
+                    numpy.exp(3 * numpy.pi / 2 * 1j),
+                    numpy.exp(numpy.pi / 6 * 1j),
+                    numpy.exp(2 * numpy.pi * 1j),
+                ],
+                [
+                    1,
+                    numpy.exp(numpy.pi / 3 * 1j * -1),
+                    numpy.exp(3 * numpy.pi / 2 * 1j * -1),
+                    numpy.exp(numpy.pi / 6 * 1j * -1),
+                    numpy.exp(2 * numpy.pi * 1j * -1),
+                ],
+            ],
+            [-8, -14 / 3, 7, -19 / 3, 12],
+        ),
+    ],
+    ids=["1st Cheb", "2nd Cheb", "Trig"],
+)
+def test_set_call(basis_functions, answer_key, X):
+    """Test the set can evaluate all basis functions"""
+    domain = (-8, 12)
+    f = smolyay.basis.BasisFunctionSet(basis_functions)
+    assert numpy.allclose(f(X, domain), answer_key)
+
+
+@pytest.mark.parametrize(
+    "basis_functions,answer_key,X",
+    [
+        (
+            [
+                smolyay.basis.ChebyshevFirstKind(0),
+                smolyay.basis.ChebyshevFirstKind(1),
+                smolyay.basis.ChebyshevFirstKind(2),
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [1 / 10, 1 / 10, 1 / 10, 1 / 10, 1 / 10],
+                [2 / 10, 4 / 10, -4 / 10, -1 / 10, -2 / 10],
+            ],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.ChebyshevSecondKind(0),
+                smolyay.basis.ChebyshevSecondKind(1),
+                smolyay.basis.ChebyshevSecondKind(2),
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [2 / 10, 2 / 10, 2 / 10, 2 / 10, 2 / 10],
+                [4 / 10, 8 / 10, -8 / 10, -2 / 10, -4 / 10],
+            ],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.Trigonometric(0),
+                smolyay.basis.Trigonometric(1),
+                smolyay.basis.Trigonometric(-1),
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [
+                    1j * numpy.pi / 10,
+                    1j * numpy.exp(numpy.pi / 3 * 1j) * numpy.pi / 10,
+                    1j * numpy.exp(3 * numpy.pi / 2 * 1j) * numpy.pi / 10,
+                    1j * numpy.exp(numpy.pi / 6 * 1j) * numpy.pi / 10,
+                    1j * numpy.exp(2 * numpy.pi * 1j) * numpy.pi / 10,
+                ],
+                [
+                    -1j * numpy.pi / 10,
+                    -1j * numpy.exp(numpy.pi / 3 * 1j * -1) * numpy.pi / 10,
+                    -1j * numpy.exp(3 * numpy.pi / 2 * 1j * -1) * numpy.pi / 10,
+                    -1j * numpy.exp(numpy.pi / 6 * 1j * -1) * numpy.pi / 10,
+                    -1j * numpy.exp(2 * numpy.pi * 1j * -1) * numpy.pi / 10,
+                ],
+            ],
+            [-8, -14 / 3, 7, -19 / 3, 12],
+        ),
+    ],
+    ids=["1st Cheb", "2nd Cheb", "Trig"],
+)
+def test_set_derivative(basis_functions, answer_key, X):
+    """Test the set can compute derivative of all basis functions."""
+    domain = (-8, 12)
+    answer_key
+    f = smolyay.basis.BasisFunctionSet(basis_functions)
+    assert numpy.allclose(f.derivative(X, domain), answer_key)
+
+
+@pytest.mark.parametrize(
+    "basis_functions,answer_key,X",
+    [
+        (
+            [
+                smolyay.basis.ChebyshevFirstKind(0),
+                smolyay.basis.ChebyshevFirstKind(1),
+                smolyay.basis.ChebyshevFirstKind(2),
+                smolyay.basis.ChebyshevFirstKind(3),
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [4 / 100, 4 / 100, 4 / 100, 4 / 100, 4 / 100],
+                [12 / 100, 24 / 100, -24 / 100, -6 / 100, -12 / 100],
+            ],
+            [7, 12, -8, -0.5, -3],
+        ),
+        (
+            [
+                smolyay.basis.Trigonometric(0),
+                smolyay.basis.Trigonometric(1),
+                smolyay.basis.Trigonometric(-1),
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [
+                    -1 * (numpy.pi / 10) ** 2,
+                    -numpy.exp(numpy.pi / 3 * 1j) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(3 * numpy.pi / 2 * 1j) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(numpy.pi / 6 * 1j) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(2 * numpy.pi * 1j) * (numpy.pi / 10) ** 2,
+                ],
+                [
+                    -1 * (numpy.pi / 10) ** 2,
+                    -numpy.exp(numpy.pi / 3 * 1j * -1) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(3 * numpy.pi / 2 * 1j * -1) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(numpy.pi / 6 * 1j * -1) * (numpy.pi / 10) ** 2,
+                    -numpy.exp(2 * numpy.pi * 1j * -1) * (numpy.pi / 10) ** 2,
+                ],
+            ],
+            [-8, -14 / 3, 7, -19 / 3, 12],
+        ),
+    ],
+    ids=["1st Cheb", "Trig"],
+)
+def test_set_2nd_derivative(basis_functions, answer_key, X):
+    """Test the set can compute 2nd derivative of all basis functions."""
+    domain = (-8, 12)
+    f = smolyay.basis.BasisFunctionSet(basis_functions)
+    assert numpy.allclose(f.derivative(X, domain, 2), answer_key)
+
+
 def test_nested_set_initialize():
     """Test NestedBasisFunctionSet correctly initializes"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]

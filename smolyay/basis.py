@@ -505,6 +505,67 @@ class BasisFunctionSet(collections.abc.Sequence):
         )
         return numpy.clip(points, domain[0], domain[1])
 
+    def __call__(self, X, X_domain):
+        """Evaluate all the basis functions in the set
+
+        Calls all the basis function(s) at index and evaluates at X.
+
+        Parameters
+        ----------
+        X : array-like
+            the points to evaluate.
+
+        X_domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions."""
+
+        new_X = self._scale_to_domain(numpy.array(X), X_domain)
+        if any(bf._is_complex for bf in self):
+            y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
+        else:
+            y = numpy.zeros([len(self)] + list(new_X.shape))
+        for i in range(len(self)):
+            y[i, :] = self[i](new_X)
+        return y
+
+    def derivative(self, X, X_domain, n=1):
+        """Evaluate all the derivative of basis functions in the set
+
+        Calls the derivative for all the basis function(s) and
+        evaluates at X.
+
+        Parameters
+        ----------
+        X : array-like
+            the points to evaluate.
+
+        X_domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions."""
+        new_X = self._scale_to_domain(numpy.array(X), X_domain)
+        if any(bf._is_complex for bf in self):
+            y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
+        else:
+            y = numpy.zeros([len(self)] + list(new_X.shape))
+        for i in range(len(self)):
+            y[i, :] = self[i].derivative(new_X, n)
+        y *= (
+            (self.basis_functions[0].domain[1] - self.basis_functions[0].domain[0])
+            / (X_domain[1] - X_domain[0])
+        ) ** n
+        return y
+
 
 class NestedBasisFunctionSet(BasisFunctionSet):
     """Set of nested basis functions and sample points.
