@@ -4,6 +4,11 @@ import collections.abc
 import numpy
 import scipy.special
 
+from smolyay._growth_method import (
+    ClenshawCurtisSlowExponentialGrowthMixin,
+    ClenshawCurtisExponentialGrowthMixin,
+    TrigonometricExponentialGrowthMixin,
+)
 
 class BasisFunction(abc.ABC):
     """Basis function for interpolating data.
@@ -621,3 +626,26 @@ class NestedBasisFunctionSet(BasisFunctionSet):
     def level(self, index):
         """list of :class:BasisFunction: Functions in a level"""
         return self.basis_functions[self.start_level[index] : self.end_level[index]]
+
+class NestedClenshawCurtisBasisFunctionSet(ClenshawCurtisExponentialGrowthMixin,NestedBasisFunctionSet):
+    """Nested Clenshaw Curtis basis function set
+    
+    Parameters
+    ----------
+    num_levels : int
+        The number of levels. Must be 1 or greater.
+    
+    Raises
+    ------
+    ValueError
+        Must have at least one level.
+    """
+    
+    def __init__(self,num_levels):
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        self._create_levels(num_levels)
+        num_terms = self._end_level[-1]
+        basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+        super().__init__(basis_functions,self._num_per_level)
+

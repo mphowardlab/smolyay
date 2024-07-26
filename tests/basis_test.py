@@ -877,12 +877,14 @@ def test_set_derivative(basis_functions, answer_key, X):
                 smolyay.basis.ChebyshevFirstKind(1),
                 smolyay.basis.ChebyshevFirstKind(2),
                 smolyay.basis.ChebyshevFirstKind(3),
+                smolyay.basis.ChebyshevFirstKind(4),
             ],
             [
                 [0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0],
                 [4 / 100, 4 / 100, 4 / 100, 4 / 100, 4 / 100],
                 [12 / 100, 24 / 100, -24 / 100, -6 / 100, -12 / 100],
+                [8 / 100, 80 / 100, 80 / 100, -10 / 100, 8 / 100],
             ],
             [7, 12, -8, -0.5, -3],
         ),
@@ -928,8 +930,8 @@ def test_nested_set_initialize():
     assert f.basis_functions == bf
     assert len(f) == 5
     assert f.num_levels == 4
-    assert numpy.array_equal(f.end_level, [1, 2, 3, 5])
     assert numpy.array_equal(f.start_level, [0, 1, 2, 3])
+    assert numpy.array_equal(f.end_level, [1, 2, 3, 5])
     assert numpy.array_equal(f.level(3), bf[3:])
 
 
@@ -940,3 +942,14 @@ def test_nested_set_initialize_error():
         f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 1])
     with pytest.raises(IndexError):
         f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 2, 3])
+
+
+def test_nested_custom_sets_initialize():
+    """Test NestedClenshawCurtisBasisFunctionSet initialization"""
+    bf = smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3)
+    assert bf.num_levels == 3
+    assert len(bf) == 5
+    assert numpy.array_equal(bf.num_per_level, [1, 2, 2])
+    assert numpy.array_equal(bf.start_level, [0, 1, 3])
+    assert numpy.array_equal(bf.end_level, [1, 3, 5])
+
