@@ -246,6 +246,8 @@ class SetProductSurrogate(Surrogate):
         ------
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
+        IndexError
+            Input must be 2D array with shape (n_samples, n_features).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -254,14 +256,14 @@ class SetProductSurrogate(Surrogate):
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
             for i in range(self.num_dimensions)
         )
         if oob:
-            raise ValueError("X must lie in domain of surrogate")
+            raise ValueError("X must lie in domain of surrogate.")
         
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -313,6 +315,8 @@ class SetProductSurrogate(Surrogate):
         ------
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
+        IndexError
+            Input must be 2D array with shape (n_samples, n_features).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -321,14 +325,14 @@ class SetProductSurrogate(Surrogate):
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
             for i in range(self.num_dimensions)
         )
         if oob:
-            raise ValueError("X must lie in domain of surrogate")
+            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -389,8 +393,12 @@ class SetProductSurrogate(Surrogate):
 
         Raises
         ------
+        IndexError
+            X must be 2D array with shape (n_samples, num_dimensions).
+        IndexError
+            y must be 1D array with shape (n_samples,).
         ValueError
-            Input must lie in domain of surrogate.
+            X must lie in domain of surrogate.
         """
         # reset constant
         self._integration_constant = 0
@@ -410,10 +418,10 @@ class SetProductSurrogate(Surrogate):
         # validate data inputs
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
         y = numpy.array(y, ndmin=1)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            raise IndexError("Must be 1D array with shape (n_samples,)")
+            raise IndexError("Must be 1D array with shape (n_samples,).")
 
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
@@ -421,7 +429,7 @@ class SetProductSurrogate(Surrogate):
             for i in range(self.num_dimensions)
         )
         if oob:
-            raise ValueError("X must lie in domain of surrogate")
+            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = [self.basis_sets[dim](X[:,dim],self.domain[dim]) for dim in range(self.num_dimensions)]
@@ -469,17 +477,17 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, n_features)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
             points that are sampled
 
-        y : array-like of shape (n_samples, n_features)
+        y : array-like of shape (n_samples, num_dimensions)
             gradient function at grid points.
 
-        X0 : array-like of shape (n_features)
+        X0 : array-like of shape (num_dimensions) or None, optional
             a point where the function has a specified value to solve
             the integration constant. If None, assumed to be the lower domain.
 
-        y0 : numeric or None
+        y0 : numeric or None, optional
             the value at X0
 
         Returns
@@ -490,9 +498,11 @@ class SetProductSurrogate(Surrogate):
         Raises
         ------
         IndexError
-            y must be 2D array with shape (n_samples, n_features).
+            X must be 2D array with shape (n_samples, num_dimensions).
+        IndexError
+            y must be 1D array with shape (n_samples,).
         ValueError
-            Input must lie in domain of surrogate.
+            X must lie in domain of surrogate.
         """
         # reset constant
         self._integration_constant = 0
@@ -512,7 +522,7 @@ class SetProductSurrogate(Surrogate):
         # validate data inputs
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features)")
+            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
         y = numpy.array(y, ndmin=2)
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, n_features).")
@@ -523,7 +533,7 @@ class SetProductSurrogate(Surrogate):
             for i in range(self.num_dimensions)
         )
         if oob:
-            raise ValueError("X must lie in domain of surrogate")
+            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
