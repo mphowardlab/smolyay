@@ -173,11 +173,6 @@ class SetProductSurrogate(Surrogate):
         """list of BasisFunctionSet: the set of basis functions for the terms."""
         return self._basis_sets
 
-    @property
-    def coefficients(self):
-        """numpy.ndarray: the coefficients of the terms"""
-        return self._coefficients
-
     def predict(self, X):
         """Evaluate surrogate at a given input.
 
@@ -240,7 +235,7 @@ class SetProductSurrogate(Surrogate):
 
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
-        for ic, coeff in zip(self._index_combinations, self.coefficients):
+        for ic, coeff in zip(self._index_combinations, self._coefficients):
             answer = answer + numpy.real(
                 coeff
                 * numpy.prod(
@@ -322,7 +317,7 @@ class SetProductSurrogate(Surrogate):
         # use lookup table to combine terms
         answer = numpy.zeros((len(X), self.num_dimensions))
         for d in range(self.num_dimensions):
-            for ic, coeff in zip(self._index_combinations, self.coefficients):
+            for ic, coeff in zip(self._index_combinations, self._coefficients):
                 answer[:, d] = answer[:, d] + numpy.real(
                     coeff
                     * numpy.prod(
@@ -428,7 +423,7 @@ class SetProductSurrogate(Surrogate):
         answer = numpy.zeros((len(X), self.num_dimensions, self.num_dimensions))
         for dx in range(self.num_dimensions):
             for dy in range(dx, self.num_dimensions):
-                for ic, coeff in zip(self._index_combinations, self.coefficients):
+                for ic, coeff in zip(self._index_combinations, self._coefficients):
                     answer[:, dx, dy] = answer[:, dy, dx] = answer[
                         :, dx, dy
                     ] + numpy.real(
