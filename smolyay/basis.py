@@ -523,7 +523,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         scalar or ndarray
             the values of the basis functions."""
 
-        new_X = self._scale_to_domain(numpy.array(X), X_domain)
+        new_X = self._scale_to_domain(numpy.asarray(X), X_domain)
         if any(bf._is_complex for bf in self):
             y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
         else:
@@ -553,7 +553,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         -------
         scalar or ndarray
             the values of the basis functions."""
-        new_X = self._scale_to_domain(numpy.array(X), X_domain)
+        new_X = self._scale_to_domain(numpy.asarray(X), X_domain)
         if any(bf._is_complex for bf in self):
             y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
         else:
