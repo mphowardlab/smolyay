@@ -196,11 +196,11 @@ class SetProductSurrogate(Surrogate):
             Predict after fitting to gradient not supported.
         """
         # validate inputs
+        if not self._valid_cache:
+            raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
-        if not self._valid_cache:
-            raise RuntimeError("Model must be fit!")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -270,11 +270,11 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
+        if not self._valid_cache:
+            raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
-        if not self._valid_cache:
-            raise RuntimeError("Model must be fit!")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -361,11 +361,11 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
+        if not self._valid_cache:
+            raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
-        if not self._valid_cache:
-            raise RuntimeError("Model must be fit!")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
