@@ -163,7 +163,7 @@ class SetProductSurrogate(Surrogate):
     @regularization.setter
     def regularization(self, value):
         if value is not None and not isinstance(value, RegularizationMethod):
-                raise ValueError("Regression must be a RegularizationHelper")
+            raise ValueError("Regression must be a RegularizationHelper")
         if self.regularization != value:
             self._regularization = value
             self._valid_cache = False
@@ -218,9 +218,7 @@ class SetProductSurrogate(Surrogate):
                 (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
             )
         else:
-            lookup_table = numpy.zeros(
-                (self.num_dimensions, num_basis_max, len(X)), dtype="complex_"
-            )
+            lookup_table = numpy.zeros((self.num_dimensions, num_basis_max, len(X)))
         # solve for the inputs at all the basis functions
         for dim in range(self.num_dimensions):
             for i, basis_fun in enumerate(self.basis_sets[dim]):
