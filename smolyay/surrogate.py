@@ -498,7 +498,6 @@ class SetProductSurrogate(Surrogate):
             raise IndexError("Must be 2D array with shape (n_samples, n_features)")
         y = numpy.array(y, ndmin=1)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            print(y.shape)
             raise IndexError("Must be 2D array with shape (n_samples,)")
 
         oob = any(
