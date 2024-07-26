@@ -537,7 +537,7 @@ class SetProductSurrogate(Surrogate):
             if basis_matrix.shape[0] == basis_matrix.shape[1]:
                 try:
                     self._coefficients = numpy.linalg.solve(basis_matrix, y)
-                except:
+                except (numpy.linalg.LinAlgError):
                     self._coefficients = numpy.linalg.lstsq(
                         basis_matrix, y, rcond=None
                     )[0]
