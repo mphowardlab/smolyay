@@ -503,6 +503,8 @@ class SetProductSurrogate(Surrogate):
             y must be 1D array with shape (n_samples,).
         ValueError
             X must lie in domain of surrogate.
+        IndexError
+            X0 must be 1D array with shape (n_samples,) if not None.
         """
         # reset constant
         self._integration_constant = 0
@@ -596,7 +598,7 @@ class SetProductSurrogate(Surrogate):
             else:
                 X0 = numpy.array(X0, ndmin=2)
             if X0.shape != (1, self.num_dimensions):
-                raise IndexError("Must be 2D array with shape (1, n_features)")
+                raise IndexError("Must be 2D array with shape (1, num_dimensions) if not None.")
             y0 = numpy.array(y0).item(0)
             predicted_y = self.predict(X0)
             integration_constant = y0 - predicted_y
