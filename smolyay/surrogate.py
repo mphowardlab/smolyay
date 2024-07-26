@@ -162,8 +162,7 @@ class SetProductSurrogate(Surrogate):
 
     @regularization.setter
     def regularization(self, value):
-        if not value is None:
-            if not isinstance(value, RegularizationHelper):
+        if value is not None and not isinstance(value, RegularizationHelper):
                 raise ValueError("Regression must be a RegularizationHelper")
         if self.regularization != value:
             self._regularization = value
