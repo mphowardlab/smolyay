@@ -82,6 +82,30 @@ class BasisFunction(abc.ABC):
         return numpy.logical_and(
             numpy.greater_equal(x, self.domain[0]), numpy.less_equal(x, self.domain[1])
         )
+    
+    def _scale_to_domain(self, points, old_domain):
+        """Scale points from a domain to BasisFunction domain
+        
+        Parameters
+        ----------
+        points: numeric or array-like
+            points to be shifted to new domain.
+        
+        old_domain: ndarray of shape (2,)
+            upper and lower bounds of points.
+        
+        Returns
+        -------
+        numeric or array-like
+            points shifted to BasisFunction domain"""
+        points = numpy.array(points)
+        new_points = self.domain[0] + (self.domain[1] - self.domain[0]) * (
+            (points - old_domain[0]) / (old_domain[1] - old_domain[0])
+        )
+        numpy.clip(new_points, self.domain[0], self.domain[1],out=new_points)
+        if new_points.ndim == 0:
+            new_points = new_points.item()
+        return new_points
 
     @abc.abstractmethod
     def _function(self, x):

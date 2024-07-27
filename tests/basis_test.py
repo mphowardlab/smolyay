@@ -638,6 +638,26 @@ def test_is_complex():
     assert smolyay.basis.ChebyshevSecondKind(0)._is_complex == False
     assert smolyay.basis.Trigonometric(0)._is_complex == True
 
+@pytest.mark.parametrize(
+    "basis_fun,answer_single,answer_multi",
+    [
+        (smolyay.basis.ChebyshevFirstKind(0), -0.2, [-0.2, -0.1, 0, 0.1]),
+        (smolyay.basis.ChebyshevSecondKind(0), -0.2, [-0.2, -0.1, 0, 0.1]),
+        (
+            smolyay.basis.Trigonometric(0),
+            4 * numpy.pi / 5,
+            [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
+        ),
+    ],
+    ids=["1st Cheb", "2nd Cheb", "Trig"],
+)
+def test_set_scale_domain(basis_fun, answer_single, answer_multi):
+    """Test the set can scale points to basis function domain"""
+    domain = (-8, 12)
+    assert basis_fun._scale_to_domain(0, domain) == pytest.approx(answer_single)
+    assert numpy.allclose(
+        basis_fun._scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
+    )
 
 # Test a set of basis functions
 def test_set_initialize():
