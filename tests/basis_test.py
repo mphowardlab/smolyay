@@ -638,6 +638,7 @@ def test_is_complex():
     assert smolyay.basis.ChebyshevSecondKind(0)._is_complex == False
     assert smolyay.basis.Trigonometric(0)._is_complex == True
 
+
 @pytest.mark.parametrize(
     "basis_fun,answer_single,answer_multi",
     [
@@ -658,6 +659,7 @@ def test_set_scale_domain(basis_fun, answer_single, answer_multi):
     assert numpy.allclose(
         basis_fun._scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
     )
+
 
 # Test a set of basis functions
 def test_set_initialize():
@@ -972,4 +974,3 @@ def test_nested_custom_sets_initialize():
     assert numpy.array_equal(bf.num_per_level, [1, 2, 2])
     assert numpy.array_equal(bf.start_level, [0, 1, 3])
     assert numpy.array_equal(bf.end_level, [1, 3, 5])
-

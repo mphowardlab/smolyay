@@ -377,6 +377,7 @@ class SetProductSurrogate(Surrogate):
                             axis=0,
                         )
                     )
+
         # return results
         answer.reshape(list(X.shape) + [self.num_dimensions])
         if all(x == 1 for x in X.shape):
@@ -414,6 +415,7 @@ class SetProductSurrogate(Surrogate):
         if not self._terms_constructed_cache:
             self._create_terms()
             self._terms_constructed_cache = True
+
         # get points
         if isinstance(
             X,
@@ -455,6 +457,7 @@ class SetProductSurrogate(Surrogate):
             )
         else:
             basis_matrix = numpy.zeros((len(X), len(self._index_combinations)))
+
         # use lookup table to solve for each term
         for term, ic in enumerate(self._index_combinations):
             basis_matrix[:, term] = numpy.prod(
@@ -523,6 +526,7 @@ class SetProductSurrogate(Surrogate):
         if not self._terms_constructed_cache:
             self._create_terms()
             self._terms_constructed_cache = True
+
         # validate inputs
         if isinstance(
             X,
@@ -570,6 +574,7 @@ class SetProductSurrogate(Surrogate):
             basis_matrix = numpy.zeros(
                 (len(X) * self.num_dimensions, len(self._index_combinations)),
             )
+
         # use lookup table to solve for each term
         for d in range(self.num_dimensions):
             for term, ic in enumerate(self._index_combinations):
@@ -605,6 +610,8 @@ class SetProductSurrogate(Surrogate):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         self._valid_cache = True
         self._fit_gradient_flag = True
+
+        # determine integration constant if possible
         if not y0 is None:
             # validate data inputs
             if X0 is None:

@@ -10,6 +10,7 @@ from smolyay._growth_method import (
     TrigonometricExponentialGrowthMixin,
 )
 
+
 class BasisFunction(abc.ABC):
     """Basis function for interpolating data.
 
@@ -82,18 +83,18 @@ class BasisFunction(abc.ABC):
         return numpy.logical_and(
             numpy.greater_equal(x, self.domain[0]), numpy.less_equal(x, self.domain[1])
         )
-    
+
     def _scale_to_domain(self, points, old_domain):
         """Scale points from a domain to BasisFunction domain
-        
+
         Parameters
         ----------
         points: numeric or array-like
             points to be shifted to new domain.
-        
+
         old_domain: ndarray of shape (2,)
             upper and lower bounds of points.
-        
+
         Returns
         -------
         numeric or array-like
@@ -102,7 +103,7 @@ class BasisFunction(abc.ABC):
         new_points = self.domain[0] + (self.domain[1] - self.domain[0]) * (
             (points - old_domain[0]) / (old_domain[1] - old_domain[0])
         )
-        numpy.clip(new_points, self.domain[0], self.domain[1],out=new_points)
+        numpy.clip(new_points, self.domain[0], self.domain[1], out=new_points)
         if new_points.ndim == 0:
             new_points = new_points.item()
         return new_points
@@ -651,25 +652,27 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         """list of :class:BasisFunction: Functions in a level"""
         return self.basis_functions[self.start_level[index] : self.end_level[index]]
 
-class NestedClenshawCurtisBasisFunctionSet(ClenshawCurtisExponentialGrowthMixin,NestedBasisFunctionSet):
+
+class NestedClenshawCurtisBasisFunctionSet(
+    ClenshawCurtisExponentialGrowthMixin, NestedBasisFunctionSet
+):
     """Nested Clenshaw Curtis basis function set
-    
+
     Parameters
     ----------
     num_levels : int
         The number of levels. Must be 1 or greater.
-    
+
     Raises
     ------
     ValueError
         Must have at least one level.
     """
-    
-    def __init__(self,num_levels):
+
+    def __init__(self, num_levels):
         if num_levels <= 0:
             raise ValueError("Must have at least one level.")
         self._create_levels(num_levels)
         num_terms = self._end_level[-1]
         basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
-        super().__init__(basis_functions,self._num_per_level)
-
+        super().__init__(basis_functions, self._num_per_level)
