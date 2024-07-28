@@ -974,3 +974,8 @@ def test_nested_custom_sets_initialize():
     assert numpy.array_equal(bf.num_per_level, [1, 2, 2])
     assert numpy.array_equal(bf.start_level, [0, 1, 3])
     assert numpy.array_equal(bf.end_level, [1, 3, 5])
+    bf.num_levels = 4
+    assert len(bf) == 9
+    assert numpy.array_equal(bf.num_per_level, [1, 2, 2, 4])
+    assert numpy.array_equal(bf.start_level, [0, 1, 3, 5])
+    assert numpy.array_equal(bf.end_level, [1, 3, 5, 9])

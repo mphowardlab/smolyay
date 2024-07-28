@@ -676,3 +676,20 @@ class NestedClenshawCurtisBasisFunctionSet(
         num_terms = self._end_level[-1]
         basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
         super().__init__(basis_functions, self._num_per_level)
+        self._num_levels = num_levels
+
+    @property
+    def num_levels(self):
+        """int: number of levels."""
+        return self._num_levels
+
+    @num_levels.setter
+    def num_levels(self, value):
+        num_levels = int(value)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        if num_levels != self._num_levels:
+            self._create_levels(num_levels)
+            num_terms = self._end_level[-1]
+            self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+            self._num_levels = num_levels
