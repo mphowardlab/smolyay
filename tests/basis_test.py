@@ -872,10 +872,16 @@ def test_nested_sets_initialize(nested_sets, domain, length_2, length_3):
     assert numpy.array_equal(bf.domain, domain)
     assert bf.num_levels == 2
     assert len(bf) == length_2
+    assert len(bf.num_per_level) == 2
+    assert len(bf.start_level) == 2
+    assert len(bf.end_level) == 2
     bf.num_levels = float(4)
     assert bf.num_levels == 4
     assert isinstance(bf.num_levels, int)
     assert len(bf) == length_3
+    assert len(bf.num_per_level) == 4
+    assert len(bf.start_level) == 4
+    assert len(bf.end_level) == 4
 
 
 @pytest.mark.parametrize(

@@ -509,7 +509,7 @@ class BasisFunctionSet(collections.abc.Sequence):
     @property
     def domain(self):
         """numpy.ndarray: Domain of the `basis_functions`"""
-        return self._basis_functions[0].domain
+        return self.basis_functions[0].domain
 
     def __len__(self):
         return len(self.basis_functions)
@@ -609,7 +609,49 @@ class CustomBasisFunctionSet(BasisFunctionSet):
         self._basis_functions = basis_functions
 
 
-class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
+class MutableBasisFunctionSet(BasisFunctionSet):
+    """Set of basis functions where number of functions is mutable.
+
+    Parameters
+    ----------
+    num_terms : int
+        the number of terms in the set.
+    """
+
+    def __init__(self, num_terms):
+        self._num_terms = None
+        self._basis_functions = None
+
+        self.num_terms = num_terms
+
+    @property
+    def basis_functions(self):
+        """list: Basis functions."""
+        if self._basis_functions is None:
+            self._create()
+        return self._basis_functions
+
+    @property
+    def num_terms(self):
+        """int: the number of terms in the set."""
+        return self._num_terms
+
+    @num_terms.setter
+    def num_terms(self, value):
+        num_terms = int(value)
+        if num_terms <= 0:
+            raise ValueError("Must have at least one term.")
+        if num_terms != self._num_terms:
+            self._num_terms = num_terms
+            self._basis_functions = None
+
+    @abc.abstractmethod
+    def _create(self):
+        """Create the basis functions in the set."""
+        pass
+
+
+class ChebyshevFirstKindBasisFunctionSet(MutableBasisFunctionSet):
     """Set of Chebyshev polynomials of the first kind.
 
     Parameters
@@ -618,27 +660,12 @@ class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
         the number of terms in the set.
     """
 
-    def __init__(self, num_terms):
-        self._num_terms = None
-
-        self.num_terms = num_terms
-
-    @property
-    def num_terms(self):
-        """int: the number of terms in the set."""
-        return self._num_terms
-
-    @num_terms.setter
-    def num_terms(self, value):
-        num_terms = int(value)
-        if num_terms <= 0:
-            raise ValueError("Must have at least one term.")
-        if num_terms != self._num_terms:
-            self._basis_functions = [ChebyshevFirstKind(f) for f in range(num_terms)]
-            self._num_terms = num_terms
+    def _create(self):
+        """Create the basis functions in the set."""
+        self._basis_functions = [ChebyshevFirstKind(f) for f in range(self._num_terms)]
 
 
-class ChebyshevSecondKindBasisFunctionSet(BasisFunctionSet):
+class ChebyshevSecondKindBasisFunctionSet(MutableBasisFunctionSet):
     """Set of Chebyshev polynomials of the second kind.
 
     Parameters
@@ -647,27 +674,12 @@ class ChebyshevSecondKindBasisFunctionSet(BasisFunctionSet):
         the number of terms in the set.
     """
 
-    def __init__(self, num_terms):
-        self._num_terms = None
-
-        self.num_terms = num_terms
-
-    @property
-    def num_terms(self):
-        """int: the number of terms in the set."""
-        return self._num_terms
-
-    @num_terms.setter
-    def num_terms(self, value):
-        num_terms = int(value)
-        if num_terms <= 0:
-            raise ValueError("Must have at least one term.")
-        if num_terms != self._num_terms:
-            self._basis_functions = [ChebyshevSecondKind(f) for f in range(num_terms)]
-            self._num_terms = num_terms
+    def _create(self):
+        """Create the basis functions in the set."""
+        self._basis_functions = [ChebyshevSecondKind(f) for f in range(self._num_terms)]
 
 
-class TrigonometricBasisFunctionSet(BasisFunctionSet):
+class TrigonometricBasisFunctionSet(MutableBasisFunctionSet):
     """Set of Trigonmetric equations.
 
     Parameters
@@ -676,28 +688,13 @@ class TrigonometricBasisFunctionSet(BasisFunctionSet):
         the number of terms in the set.
     """
 
-    def __init__(self, num_terms):
-        self._num_terms = None
-
-        self.num_terms = num_terms
-
-    @property
-    def num_terms(self):
-        """int: the number of terms in the set."""
-        return self._num_terms
-
-    @num_terms.setter
-    def num_terms(self, value):
-        num_terms = int(value)
-        if num_terms <= 0:
-            raise ValueError("Must have at least one term.")
-        if num_terms != self._num_terms:
-            index_trig = numpy.arange(num_terms, dtype=int)
-            frequencies = numpy.where(
-                index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
-            )
-            self._basis_functions = [Trigonometric(f) for f in frequencies]
-            self._num_terms = num_terms
+    def _create(self):
+        """Create the basis functions in the set."""
+        index_trig = numpy.arange(self.num_terms, dtype=int)
+        frequencies = numpy.where(
+            index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
+        )
+        self._basis_functions = [Trigonometric(f) for f in frequencies]
 
 
 class NestedBasisFunctionSet(BasisFunctionSet):
@@ -768,8 +765,47 @@ class NestedCustomBasisFunctionSet(NestedBasisFunctionSet):
         self._start_level = self._end_level - self._num_per_level
 
 
+class MutableNestedBasisFunctionSet(NestedBasisFunctionSet):
+    """Set of basis functions where number of functions is mutable.
+
+    Parameters
+    ----------
+    num_terms : int
+        the number of terms in the set.
+    """
+
+    def __init__(self, num_levels):
+        self._num_levels = None
+        self._basis_functions = None
+        self._start_level = None
+        self._end_level = None
+        self._num_per_level = None
+
+        self.num_levels = num_levels
+
+    @property
+    def num_levels(self):
+        """int: number of levels."""
+        return self._num_levels
+
+    @num_levels.setter
+    def num_levels(self, value):
+        num_levels = int(value)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        if num_levels != self._num_levels:
+            self._create_levels(num_levels)
+            self._create()
+            self._num_levels = num_levels
+
+    @abc.abstractmethod
+    def _create(self):
+        """Create the basis functions in the set."""
+        pass
+
+
 class NestedClenshawCurtisBasisFunctionSet(
-    ClenshawCurtisExponentialGrowthMixin, NestedBasisFunctionSet
+    ClenshawCurtisExponentialGrowthMixin, MutableNestedBasisFunctionSet
 ):
     """Nested Clenshaw Curtis basis function set
 
@@ -784,33 +820,14 @@ class NestedClenshawCurtisBasisFunctionSet(
         Must have at least one level.
     """
 
-    def __init__(self, num_levels):
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        self._create_levels(num_levels)
+    def _create(self):
+        """Create the basis functions in the set."""
         num_terms = self._end_level[-1]
         self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
-        self._num_levels = num_levels
-
-    @property
-    def num_levels(self):
-        """int: number of levels."""
-        return self._num_levels
-
-    @num_levels.setter
-    def num_levels(self, value):
-        num_levels = int(value)
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        if num_levels != self._num_levels:
-            self._create_levels(num_levels)
-            num_terms = self._end_level[-1]
-            self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
-            self._num_levels = num_levels
 
 
 class SlowNestedClenshawCurtisBasisFunctionSet(
-    ClenshawCurtisSlowExponentialGrowthMixin, NestedBasisFunctionSet
+    ClenshawCurtisSlowExponentialGrowthMixin, MutableNestedBasisFunctionSet
 ):
     """Nested Clenshaw Curtis basis function set using slow exponential growth.
 
@@ -825,33 +842,14 @@ class SlowNestedClenshawCurtisBasisFunctionSet(
         Must have at least one level.
     """
 
-    def __init__(self, num_levels):
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        self._create_levels(num_levels)
+    def _create(self):
+        """Create the basis functions in the set."""
         num_terms = self._end_level[-1]
         self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
-        self._num_levels = num_levels
-
-    @property
-    def num_levels(self):
-        """int: number of levels."""
-        return self._num_levels
-
-    @num_levels.setter
-    def num_levels(self, value):
-        num_levels = int(value)
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        if num_levels != self._num_levels:
-            self._create_levels(num_levels)
-            num_terms = self._end_level[-1]
-            self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
-            self._num_levels = num_levels
 
 
 class NestedTrigonometricBasisFunctionSet(
-    TrigonometricExponentialGrowthMixin, NestedBasisFunctionSet
+    TrigonometricExponentialGrowthMixin, MutableNestedBasisFunctionSet
 ):
     """Nested Trigonometric basis function set.
 
@@ -866,34 +864,11 @@ class NestedTrigonometricBasisFunctionSet(
         Must have at least one level.
     """
 
-    def __init__(self, num_levels):
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        self._create_levels(num_levels)
+    def _create(self):
+        """Create the basis functions in the set."""
         num_terms = self._end_level[-1]
         index_trig = numpy.arange(num_terms, dtype=int)
         frequencies = numpy.where(
-            index_trig % 2 == 1, (1 + index_trig) / 2, -index_trig / 2
+            index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
         )
         self._basis_functions = [Trigonometric(f) for f in frequencies]
-        self._num_levels = num_levels
-
-    @property
-    def num_levels(self):
-        """int: number of levels."""
-        return self._num_levels
-
-    @num_levels.setter
-    def num_levels(self, value):
-        num_levels = int(value)
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        if num_levels != self._num_levels:
-            self._create_levels(num_levels)
-            num_terms = self._end_level[-1]
-            index_trig = numpy.arange(num_terms, dtype=int)
-            frequencies = numpy.where(
-                index_trig % 2 == 1, (1 + index_trig) / 2, -index_trig / 2
-            )
-            self._basis_functions = [Trigonometric(f) for f in frequencies]
-            self._num_levels = num_levels
