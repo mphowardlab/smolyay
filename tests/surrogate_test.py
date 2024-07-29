@@ -16,24 +16,12 @@ def create_surrogate(
     point_sets = [nested_point_class(dom, num_level) for dom in domain]
     if basis_function_class == smolyay.basis.ChebyshevFirstKind:
         bs = [
-            smolyay.basis.NestedBasisFunctionSet(
-                [basis_function_class(n) for n in range(len(point_sets[0]))],
-                point_sets[0].num_per_level,
-            )
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
             for _ in range(len(point_sets))
         ]
     elif basis_function_class == smolyay.basis.Trigonometric:
-        frequencies = []
-        for i in range(len(point_sets[0])):
-            if i % 2 == 1:
-                frequencies.append((1 + i) / 2)
-            else:
-                frequencies.append(-i / 2)
         bs = [
-            smolyay.basis.NestedBasisFunctionSet(
-                [basis_function_class(f) for f in frequencies],
-                point_sets[0].num_per_level,
-            )
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)
             for _ in range(len(point_sets))
         ]
     else:
@@ -199,10 +187,8 @@ def branin_hessian(x):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
-                )
-                for _ in range(2)
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
             ],
             numpy.array(numpy.meshgrid(list(range(10)), list(range(10)))).T.reshape(
                 -1, 2
@@ -211,12 +197,8 @@ def branin_hessian(x):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)]
-                ),
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.Trigonometric(n) for n in [0, 1, -1, 2, -2]]
-                ),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(3),
+                smolyay.basis.TrigonometricBasisFunctionSet(5),
             ],
             numpy.array(numpy.meshgrid(list(range(3)), list(range(5)))).T.reshape(
                 -1, 2
@@ -225,10 +207,8 @@ def branin_hessian(x):
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-                )
-                for _ in range(2)
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
             ],
             [
                 [0, 0],
@@ -249,16 +229,8 @@ def branin_hessian(x):
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)], [1, 2]
-                ),
-                smolyay.basis.NestedBasisFunctionSet(
-                    [
-                        smolyay.basis.Trigonometric(n)
-                        for n in [0, 1, -1, 2, -2, 3, -3, 4, -4]
-                    ],
-                    [1, 2, 6],
-                ),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
+                smolyay.basis.NestedTrigonometricBasisFunctionSet(3),
             ],
             [
                 [0, 0],
@@ -313,19 +285,15 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
-                )
-                for _ in range(2)
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
             ],
         ),
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-                )
-                for _ in range(2)
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
             ],
         ),
     ],
@@ -500,17 +468,9 @@ def test_fit_2D_mixed_basis(surrogate_class, grid_obj):
         smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
     ]
-    num_trig = numpy.arange(len(point_sets[0]), dtype=int)
-    frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
     basis_sets = [
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.Trigonometric(n) for n in frequencies],
-            point_sets[0].num_per_level,
-        ),
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[1]))],
-            point_sets[1].num_per_level,
-        ),
+        smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
     ]
     surrogate = surrogate_class(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
@@ -686,11 +646,8 @@ def test_fit_error(surrogate_class):
     """Test if fit raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)],
-            [1, 2, 2],
-        )
-        for _ in range(2)
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
     ]
     surrogate = surrogate_class(domain, bs)
 
@@ -846,14 +803,8 @@ def test_fit_gradient_2D_mixed_basis(surrogate_class, grid_obj):
     num_trig = numpy.arange(len(point_sets[0]), dtype=int)
     frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
     basis_sets = [
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.Trigonometric(n) for n in frequencies],
-            point_sets[0].num_per_level,
-        ),
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(len(point_sets[1]))],
-            point_sets[1].num_per_level,
-        ),
+        smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
     ]
     surrogate = surrogate_class(domain, basis_sets)
     grid = grid_obj(point_sets=point_sets)
@@ -1059,11 +1010,8 @@ def test_fit_gradient_error(surrogate_class):
     """Test if fit_gradient raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
-        smolyay.basis.NestedBasisFunctionSet(
-            [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)],
-            [1, 2, 2],
-        )
-        for _ in range(2)
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
     ]
     surrogate = surrogate_class(domain, bs)
     with pytest.raises(IndexError):
@@ -1207,19 +1155,15 @@ def test_predict_size_1D(surrogate_class):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
-                )
-                for _ in range(2)
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
             ],
         ),
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-                )
-                for _ in range(2)
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
             ],
         ),
     ],
@@ -1316,19 +1260,15 @@ def test_predict_gradient_size_1D(surrogate_class):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
-                )
-                for _ in range(2)
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
             ],
         ),
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-                )
-                for _ in range(2)
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
             ],
         ),
     ],
@@ -1426,19 +1366,15 @@ def test_predict_hessian_size_1D(surrogate_class):
         (
             smolyay.surrogate.TensorProductSurrogate,
             [
-                smolyay.basis.BasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(10)]
-                )
-                for _ in range(2)
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
             ],
         ),
         (
             smolyay.surrogate.SmolyakSparseProductSurrogate,
             [
-                smolyay.basis.NestedBasisFunctionSet(
-                    [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-                )
-                for _ in range(2)
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
             ],
         ),
     ],
