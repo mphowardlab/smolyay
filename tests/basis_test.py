@@ -238,6 +238,136 @@ basis_id_nth_derivative = [
     "n3-Trig [1]",
     "n3-Trig [-1]",
 ]
+basis_set_call_answer_key = {
+    "ChebyshevFirstKind": (
+        [[1, 1, 1, 1, 1], [0.5, 1, -1, -0.25, -0.5], [-0.5, 1, 1, -0.875, -0.5]],
+        [7, 12, -8, -0.5, -3],
+    ),
+    "ChebyshevSecondKind": (
+        [[1, 1, 1, 1, 1], [1, 2, -2, -0.5, -1], [0, 3, 3, -0.75, 0]],
+        [7, 12, -8, -0.5, -3],
+    ),
+    "Trigonometric": (
+        [
+            [1, 1, 1, 1, 1],
+            [
+                1,
+                numpy.exp(numpy.pi / 3 * 1j),
+                numpy.exp(3 * numpy.pi / 2 * 1j),
+                numpy.exp(numpy.pi / 6 * 1j),
+                numpy.exp(2 * numpy.pi * 1j),
+            ],
+            [
+                1,
+                numpy.exp(numpy.pi / 3 * 1j * -1),
+                numpy.exp(3 * numpy.pi / 2 * 1j * -1),
+                numpy.exp(numpy.pi / 6 * 1j * -1),
+                numpy.exp(2 * numpy.pi * 1j * -1),
+            ],
+        ],
+        [-8, -14 / 3, 7, -19 / 3, 12],
+    ),
+    "Custom": (
+        [
+            [1, 1, 1, 1, 1],
+            [1, 2, -2, -0.5, -1],
+            [0, 3, 3, -0.75, 0],
+            [-0.5, 1, 1, -0.875, -0.5],
+        ],
+        [7, 12, -8, -0.5, -3],
+    ),
+}
+
+basis_set_derivative_answer_key = {
+    "ChebyshevFirstKind": (
+        [
+            [0, 0, 0, 0, 0],
+            [1 / 10, 1 / 10, 1 / 10, 1 / 10, 1 / 10],
+            [2 / 10, 4 / 10, -4 / 10, -1 / 10, -2 / 10],
+        ],
+        [7, 12, -8, -0.5, -3],
+    ),
+    "ChebyshevSecondKind": (
+        [
+            [0, 0, 0, 0, 0],
+            [2 / 10, 2 / 10, 2 / 10, 2 / 10, 2 / 10],
+            [4 / 10, 8 / 10, -8 / 10, -2 / 10, -4 / 10],
+        ],
+        [7, 12, -8, -0.5, -3],
+    ),
+    "Trigonometric": (
+        [
+            [0, 0, 0, 0, 0],
+            [
+                1j * numpy.pi / 10,
+                1j * numpy.exp(numpy.pi / 3 * 1j) * numpy.pi / 10,
+                1j * numpy.exp(3 * numpy.pi / 2 * 1j) * numpy.pi / 10,
+                1j * numpy.exp(numpy.pi / 6 * 1j) * numpy.pi / 10,
+                1j * numpy.exp(2 * numpy.pi * 1j) * numpy.pi / 10,
+            ],
+            [
+                -1j * numpy.pi / 10,
+                -1j * numpy.exp(numpy.pi / 3 * 1j * -1) * numpy.pi / 10,
+                -1j * numpy.exp(3 * numpy.pi / 2 * 1j * -1) * numpy.pi / 10,
+                -1j * numpy.exp(numpy.pi / 6 * 1j * -1) * numpy.pi / 10,
+                -1j * numpy.exp(2 * numpy.pi * 1j * -1) * numpy.pi / 10,
+            ],
+        ],
+        [-8, -14 / 3, 7, -19 / 3, 12],
+    ),
+    "Custom": (
+        [
+            [0, 0, 0, 0, 0],
+            [2 / 10, 2 / 10, 2 / 10, 2 / 10, 2 / 10],
+            [4 / 10, 8 / 10, -8 / 10, -2 / 10, -4 / 10],
+            [2 / 10, 4 / 10, -4 / 10, -1 / 10, -2 / 10],
+        ],
+        [7, 12, -8, -0.5, -3],
+    ),
+}
+
+basis_set_2nd_derivative_answer_key = {
+    "ChebyshevFirstKind": (
+        [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [4 / 100, 4 / 100, 4 / 100, 4 / 100, 4 / 100],
+            [12 / 100, 24 / 100, -24 / 100, -6 / 100, -12 / 100],
+            [8 / 100, 80 / 100, 80 / 100, -10 / 100, 8 / 100],
+        ],
+        [7, 12, -8, -0.5, -3],
+    ),
+    "Trigonometric": (
+        [
+            [0, 0, 0, 0, 0],
+            [
+                -1 * (numpy.pi / 10) ** 2,
+                -numpy.exp(numpy.pi / 3 * 1j) * (numpy.pi / 10) ** 2,
+                -numpy.exp(3 * numpy.pi / 2 * 1j) * (numpy.pi / 10) ** 2,
+                -numpy.exp(numpy.pi / 6 * 1j) * (numpy.pi / 10) ** 2,
+                -numpy.exp(2 * numpy.pi * 1j) * (numpy.pi / 10) ** 2,
+            ],
+            [
+                -1 * (numpy.pi / 10) ** 2,
+                -numpy.exp(numpy.pi / 3 * 1j * -1) * (numpy.pi / 10) ** 2,
+                -numpy.exp(3 * numpy.pi / 2 * 1j * -1) * (numpy.pi / 10) ** 2,
+                -numpy.exp(numpy.pi / 6 * 1j * -1) * (numpy.pi / 10) ** 2,
+                -numpy.exp(2 * numpy.pi * 1j * -1) * (numpy.pi / 10) ** 2,
+            ],
+        ],
+        [-8, -14 / 3, 7, -19 / 3, 12],
+    ),
+}
+basis_set_ids = [
+    "1st Cheb",
+    "2nd Cheb",
+    "Trig",
+    "1st Cheb-nested",
+    "1st Cheb-slow nested",
+    "Trig-nested",
+    "custom",
+    "custom nested",
+]
 
 
 # initialization tests
@@ -770,201 +900,73 @@ def test_num_levels_error(nested_sets):
         f.num_levels = 0
 
 
-basis_set_domain_answer_key = {
-    "ChebyshevFirstKind": (-0.2, [-0.2, -0.1, 0, 0.1]),
-    "ChebyshevSecondKind": (-0.2, [-0.2, -0.1, 0, 0.1]),
-    "Trigonometric": (
-        4 * numpy.pi / 5,
-        [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
-    ),
-}
-basis_set_call_answer_key = {
-    "ChebyshevFirstKind": (
-        [[1, 1, 1, 1, 1], [0.5, 1, -1, -0.25, -0.5], [-0.5, 1, 1, -0.875, -0.5]],
-        [7, 12, -8, -0.5, -3],
-    ),
-    "ChebyshevSecondKind": (
-        [[1, 1, 1, 1, 1], [1, 2, -2, -0.5, -1], [0, 3, 3, -0.75, 0]],
-        [7, 12, -8, -0.5, -3],
-    ),
-    "Trigonometric": (
-        [
-            [1, 1, 1, 1, 1],
-            [
-                1,
-                numpy.exp(numpy.pi / 3 * 1j),
-                numpy.exp(3 * numpy.pi / 2 * 1j),
-                numpy.exp(numpy.pi / 6 * 1j),
-                numpy.exp(2 * numpy.pi * 1j),
-            ],
-            [
-                1,
-                numpy.exp(numpy.pi / 3 * 1j * -1),
-                numpy.exp(3 * numpy.pi / 2 * 1j * -1),
-                numpy.exp(numpy.pi / 6 * 1j * -1),
-                numpy.exp(2 * numpy.pi * 1j * -1),
-            ],
-        ],
-        [-8, -14 / 3, 7, -19 / 3, 12],
-    ),
-}
-basis_set_derivative_answer_key = {
-    "ChebyshevFirstKind": (
-        [
-            [0, 0, 0, 0, 0],
-            [1 / 10, 1 / 10, 1 / 10, 1 / 10, 1 / 10],
-            [2 / 10, 4 / 10, -4 / 10, -1 / 10, -2 / 10],
-        ],
-        [7, 12, -8, -0.5, -3],
-    ),
-    "ChebyshevSecondKind": (
-        [
-            [0, 0, 0, 0, 0],
-            [2 / 10, 2 / 10, 2 / 10, 2 / 10, 2 / 10],
-            [4 / 10, 8 / 10, -8 / 10, -2 / 10, -4 / 10],
-        ],
-        [7, 12, -8, -0.5, -3],
-    ),
-    "Trigonometric": (
-        [
-            [0, 0, 0, 0, 0],
-            [
-                1j * numpy.pi / 10,
-                1j * numpy.exp(numpy.pi / 3 * 1j) * numpy.pi / 10,
-                1j * numpy.exp(3 * numpy.pi / 2 * 1j) * numpy.pi / 10,
-                1j * numpy.exp(numpy.pi / 6 * 1j) * numpy.pi / 10,
-                1j * numpy.exp(2 * numpy.pi * 1j) * numpy.pi / 10,
-            ],
-            [
-                -1j * numpy.pi / 10,
-                -1j * numpy.exp(numpy.pi / 3 * 1j * -1) * numpy.pi / 10,
-                -1j * numpy.exp(3 * numpy.pi / 2 * 1j * -1) * numpy.pi / 10,
-                -1j * numpy.exp(numpy.pi / 6 * 1j * -1) * numpy.pi / 10,
-                -1j * numpy.exp(2 * numpy.pi * 1j * -1) * numpy.pi / 10,
-            ],
-        ],
-        [-8, -14 / 3, 7, -19 / 3, 12],
-    ),
-}
-basis_set_2nd_derivative_answer_key = {
-    "ChebyshevFirstKind": (
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [4 / 100, 4 / 100, 4 / 100, 4 / 100, 4 / 100],
-            [12 / 100, 24 / 100, -24 / 100, -6 / 100, -12 / 100],
-            [8 / 100, 80 / 100, 80 / 100, -10 / 100, 8 / 100],
-        ],
-        [7, 12, -8, -0.5, -3],
-    ),
-    "Trigonometric": (
-        [
-            [0, 0, 0, 0, 0],
-            [
-                -1 * (numpy.pi / 10) ** 2,
-                -numpy.exp(numpy.pi / 3 * 1j) * (numpy.pi / 10) ** 2,
-                -numpy.exp(3 * numpy.pi / 2 * 1j) * (numpy.pi / 10) ** 2,
-                -numpy.exp(numpy.pi / 6 * 1j) * (numpy.pi / 10) ** 2,
-                -numpy.exp(2 * numpy.pi * 1j) * (numpy.pi / 10) ** 2,
-            ],
-            [
-                -1 * (numpy.pi / 10) ** 2,
-                -numpy.exp(numpy.pi / 3 * 1j * -1) * (numpy.pi / 10) ** 2,
-                -numpy.exp(3 * numpy.pi / 2 * 1j * -1) * (numpy.pi / 10) ** 2,
-                -numpy.exp(numpy.pi / 6 * 1j * -1) * (numpy.pi / 10) ** 2,
-                -numpy.exp(2 * numpy.pi * 1j * -1) * (numpy.pi / 10) ** 2,
-            ],
-        ],
-        [-8, -14 / 3, 7, -19 / 3, 12],
-    ),
-}
-
-
 @pytest.mark.parametrize(
-    "basis_function_set,key_for_answer",
+    "basis_set,answer_single,answer_multi",
     [
         (
-            smolyay.basis.CustomBasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)]),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(0)]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet([smolyay.basis.Trigonometric(0)]),
-            "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(0)], [1]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(0)], [1]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.Trigonometric(0)], [1]
-            ),
-            "Trigonometric",
-        ),
-        (
             smolyay.basis.ChebyshevFirstKindBasisFunctionSet(1),
-            "ChebyshevFirstKind",
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
         ),
         (
             smolyay.basis.ChebyshevSecondKindBasisFunctionSet(1),
-            "ChebyshevSecondKind",
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
         ),
         (
             smolyay.basis.TrigonometricBasisFunctionSet(1),
-            "Trigonometric",
+            4 * numpy.pi / 5,
+            [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
         ),
         (
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet(1),
-            "ChebyshevFirstKind",
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
         ),
         (
             smolyay.basis.SlowNestedClenshawCurtisBasisFunctionSet(1),
-            "ChebyshevFirstKind",
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
         ),
         (
             smolyay.basis.NestedTrigonometricBasisFunctionSet(1),
-            "Trigonometric",
+            4 * numpy.pi / 5,
+            [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
+        ),
+        (
+            smolyay.basis.CustomBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ]
+            ),
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
+        ),
+        (
+            smolyay.basis.CustomNestedBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ],
+                [1, 2, 1],
+            ),
+            -0.2,
+            [-0.2, -0.1, 0, 0.1],
         ),
     ],
-    ids=[
-        "1st Cheb-custom",
-        "2nd Cheb-custom",
-        "Trig-custom",
-        "1st Cheb-custom nested",
-        "2nd Cheb-custom nested",
-        "Trig-custom nested",
-        "1st Cheb",
-        "2nd Cheb",
-        "Trig",
-        "1st Cheb-nested",
-        "1st Cheb-slow nested",
-        "Trig-nested",
-    ],
+    ids=basis_set_ids,
 )
-def test_set_scale_domain(basis_function_set, key_for_answer):
+def test_set_scale_domain(basis_set, answer_single, answer_multi):
     """Test the set can scale points to basis function domain"""
     domain = (-8, 12)
-    answer_single = basis_set_domain_answer_key[key_for_answer][0]
-    answer_multi = basis_set_domain_answer_key[key_for_answer][1]
-    assert basis_function_set._scale_to_domain(0, domain) == pytest.approx(
-        answer_single
-    )
+    assert basis_set._scale_to_domain(0, domain) == pytest.approx(answer_single)
     assert numpy.allclose(
-        basis_function_set._scale_to_domain(numpy.array([0, 1, 2, 3]), domain),
+        basis_set._scale_to_domain(numpy.array([0, 1, 2, 3]), domain),
         answer_multi,
     )
 
@@ -972,51 +974,6 @@ def test_set_scale_domain(basis_function_set, key_for_answer):
 @pytest.mark.parametrize(
     "basis_function_set,key_for_answer",
     [
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(n) for n in range(3)]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ]
-            ),
-            "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)], [1, 2]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(n) for n in range(3)], [1, 2]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ],
-                [1, 2],
-            ),
-            "Trigonometric",
-        ),
         (
             smolyay.basis.ChebyshevFirstKindBasisFunctionSet(3),
             "ChebyshevFirstKind",
@@ -1041,21 +998,31 @@ def test_set_scale_domain(basis_function_set, key_for_answer):
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
             "Trigonometric",
         ),
+        (
+            smolyay.basis.CustomBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ]
+            ),
+            "Custom",
+        ),
+        (
+            smolyay.basis.CustomNestedBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ],
+                [1, 2, 1],
+            ),
+            "Custom",
+        ),
     ],
-    ids=[
-        "1st Cheb-custom",
-        "2nd Cheb-custom",
-        "Trig-custom",
-        "1st Cheb-custom nested",
-        "2nd Cheb-custom nested",
-        "Trig-custom nested",
-        "1st Cheb",
-        "2nd Cheb",
-        "Trig",
-        "1st Cheb-nested",
-        "1st Cheb-slow nested",
-        "Trig-nested",
-    ],
+    ids=basis_set_ids,
 )
 def test_set_call(basis_function_set, key_for_answer):
     """Test the set can scale points to basis function domain"""
@@ -1069,51 +1036,6 @@ def test_set_call(basis_function_set, key_for_answer):
     "basis_function_set,key_for_answer",
     [
         (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(n) for n in range(3)]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ]
-            ),
-            "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(3)], [1, 2]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevSecondKind(n) for n in range(3)], [1, 2]
-            ),
-            "ChebyshevSecondKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ],
-                [1, 2],
-            ),
-            "Trigonometric",
-        ),
-        (
             smolyay.basis.ChebyshevFirstKindBasisFunctionSet(3),
             "ChebyshevFirstKind",
         ),
@@ -1137,21 +1059,31 @@ def test_set_call(basis_function_set, key_for_answer):
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
             "Trigonometric",
         ),
+        (
+            smolyay.basis.CustomBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ]
+            ),
+            "Custom",
+        ),
+        (
+            smolyay.basis.CustomNestedBasisFunctionSet(
+                [
+                    smolyay.basis.ChebyshevFirstKind(0),
+                    smolyay.basis.ChebyshevSecondKind(1),
+                    smolyay.basis.ChebyshevSecondKind(2),
+                    smolyay.basis.ChebyshevFirstKind(2),
+                ],
+                [1, 2, 1],
+            ),
+            "Custom",
+        ),
     ],
-    ids=[
-        "1st Cheb-custom",
-        "2nd Cheb-custom",
-        "Trig-custom",
-        "1st Cheb-custom nested",
-        "2nd Cheb-custom nested",
-        "Trig-custom nested",
-        "1st Cheb",
-        "2nd Cheb",
-        "Trig",
-        "1st Cheb-nested",
-        "1st Cheb-slow nested",
-        "Trig-nested",
-    ],
+    ids=basis_set_ids,
 )
 def test_set_derivative(basis_function_set, key_for_answer):
     """Test the set can compute derivative of all basis functions."""
@@ -1164,39 +1096,6 @@ def test_set_derivative(basis_function_set, key_for_answer):
 @pytest.mark.parametrize(
     "basis_function_set,key_for_answer",
     [
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ]
-            ),
-            "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)], [1, 2, 2]
-            ),
-            "ChebyshevFirstKind",
-        ),
-        (
-            smolyay.basis.CustomNestedBasisFunctionSet(
-                [
-                    smolyay.basis.Trigonometric(0),
-                    smolyay.basis.Trigonometric(1),
-                    smolyay.basis.Trigonometric(-1),
-                ],
-                [1, 2],
-            ),
-            "Trigonometric",
-        ),
         (
             smolyay.basis.ChebyshevFirstKindBasisFunctionSet(5),
             "ChebyshevFirstKind",
@@ -1219,10 +1118,6 @@ def test_set_derivative(basis_function_set, key_for_answer):
         ),
     ],
     ids=[
-        "1st Cheb-custom",
-        "Trig-custom",
-        "1st Cheb-custom nested",
-        "Trig-custom nested",
         "1st Cheb",
         "Trig",
         "1st Cheb-nested",
