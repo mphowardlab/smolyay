@@ -728,7 +728,7 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         return self.basis_functions[self.start_level[index] : self.end_level[index]]
 
 
-class CustomNestedBasisFunctionSet(NestedBasisFunctionSet):
+class NestedCustomBasisFunctionSet(NestedBasisFunctionSet):
     """Set of nested basis functions and sample points.
 
     Parameters

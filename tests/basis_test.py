@@ -821,9 +821,9 @@ def test_custom_set_initialize_error():
 
 
 def test_custom_nested_set_initialize():
-    """Test NestedBasisFunctionSet correctly initializes"""
+    """Test NestedCustomBasisFunctionSet correctly initializes"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-    f = smolyay.basis.CustomNestedBasisFunctionSet(bf, [1, 1, 1, 2])
+    f = smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 1, 2])
     assert f.basis_functions == bf
     assert len(f) == 5
     assert f.num_levels == 4
@@ -833,21 +833,21 @@ def test_custom_nested_set_initialize():
 
 
 def test_custom_nested_set_initialize_error():
-    """Test NestedBasisFunctionSet error for invalid constructor inputs"""
+    """Test NestedCustomBasisFunctionSet error for invalid constructor inputs"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
     with pytest.raises(IndexError):
-        smolyay.basis.CustomNestedBasisFunctionSet([], [0])
+        smolyay.basis.NestedCustomBasisFunctionSet([], [0])
     with pytest.raises(IndexError):
-        smolyay.basis.CustomNestedBasisFunctionSet(bf, [1, 1, 1, 1])
+        smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 1, 1])
     with pytest.raises(IndexError):
-        smolyay.basis.CustomNestedBasisFunctionSet(bf, [1, 1, 2, 3])
+        smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 2, 3])
     with pytest.raises(ValueError):
-        smolyay.basis.CustomNestedBasisFunctionSet(
+        smolyay.basis.NestedCustomBasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)],
             [1, 1],
         )
     with pytest.raises(ValueError):
-        smolyay.basis.CustomNestedBasisFunctionSet(
+        smolyay.basis.NestedCustomBasisFunctionSet(
             [smolyay.basis.ChebyshevSecondKind(0), smolyay.basis.Trigonometric(0)],
             [1, 1],
         )
@@ -867,7 +867,7 @@ def test_custom_nested_set_initialize_error():
     ],
 )
 def test_nested_sets_initialize(nested_sets, domain, length_2, length_3):
-    """Test NestedClenshawCurtisBasisFunctionSet initialization"""
+    """Test nested basis function sets initialization"""
     bf = nested_sets(2)
     assert numpy.array_equal(bf.domain, domain)
     assert bf.num_levels == 2
@@ -946,7 +946,7 @@ def test_num_levels_error(nested_sets):
             [-0.2, -0.1, 0, 0.1],
         ),
         (
-            smolyay.basis.CustomNestedBasisFunctionSet(
+            smolyay.basis.NestedCustomBasisFunctionSet(
                 [
                     smolyay.basis.ChebyshevFirstKind(0),
                     smolyay.basis.ChebyshevSecondKind(1),
@@ -1010,7 +1010,7 @@ def test_set_scale_domain(basis_set, answer_single, answer_multi):
             "Custom",
         ),
         (
-            smolyay.basis.CustomNestedBasisFunctionSet(
+            smolyay.basis.NestedCustomBasisFunctionSet(
                 [
                     smolyay.basis.ChebyshevFirstKind(0),
                     smolyay.basis.ChebyshevSecondKind(1),
@@ -1071,7 +1071,7 @@ def test_set_call(basis_function_set, key_for_answer):
             "Custom",
         ),
         (
-            smolyay.basis.CustomNestedBasisFunctionSet(
+            smolyay.basis.NestedCustomBasisFunctionSet(
                 [
                     smolyay.basis.ChebyshevFirstKind(0),
                     smolyay.basis.ChebyshevSecondKind(1),
