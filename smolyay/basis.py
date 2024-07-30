@@ -532,7 +532,7 @@ class BasisFunctionSet(collections.abc.Sequence):
     @property
     def domain(self):
         """numpy.ndarray: Domain of the `basis_functions`"""
-        if self._basis_functions is None or len(self._basis_functions) == 0:
+        if len(self._basis_functions) == 0:
             raise AttributeError("No basis functions to derive a domain.")
         return self._basis_functions[0].domain
 
