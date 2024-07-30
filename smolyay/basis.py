@@ -490,11 +490,38 @@ class Trigonometric(BasisFunction):
 
 
 class BasisFunctionSet(collections.abc.Sequence):
-    """Set of basis functions and sample points."""
+    """Set of basis functions and sample points.
 
-    def __init__(self, basis_functions= None):
+    Parameters
+    ----------
+    basis_functions : list of BasisFunction
+        the basis functions
+
+    Raises
+    ------
+    TypeError
+        Basis functions must have the same domain and typing.
+    """
+
+    def __init__(self, basis_functions=None):
         self._basis_functions = None
-        pass
+
+        # check validity of basis functions
+        if isinstance(basis_functions, BasisFunction):
+            basis_functions = [basis_functions]
+        if basis_functions is None:
+            basis_functions = []
+        if len(basis_functions) != 0:
+            domain = basis_functions[0].domain
+            if any(
+                not numpy.array_equal(domain, b.domain)
+                or not type(b) is type(basis_functions[0])
+                for b in basis_functions[1:]
+            ):
+                raise TypeError(
+                    "Basis functions must be be BasisFunction objects with the same domain and typing."
+                )
+        self._basis_functions = basis_functions
 
     @property
     def basis_functions(self):
@@ -504,7 +531,9 @@ class BasisFunctionSet(collections.abc.Sequence):
     @property
     def domain(self):
         """numpy.ndarray: Domain of the `basis_functions`"""
-        return self.basis_functions[0].domain
+        if self._basis_functions is None or len(self._basis_functions) == 0:
+            raise IndexError("No basis functions to derive a domain.")
+        return self._basis_functions[0].domain
 
     def __len__(self):
         return len(self._basis_functions)
@@ -534,12 +563,12 @@ class BasisFunctionSet(collections.abc.Sequence):
             the values of the basis functions.
         """
         if not domain is None:
-            new_X = self._scale_to_domain(numpy.asarray(X), domain)
+            new_X = self.scale_to_domain(numpy.asarray(X), domain)
         else:
             new_X = numpy.asarray(X)
         y = numpy.zeros(
             [len(self)] + list(new_X.shape),
-            dtype=complex if any(bf._is_complex for bf in self) else float
+            dtype=complex if any(bf._is_complex for bf in self) else float,
         )
         for i, bf in enumerate(self._basis_functions):
             y[i] = bf(new_X)
@@ -567,7 +596,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         scalar or ndarray
             the values of the basis functions.
         """
-        new_X = self._scale_to_domain(numpy.asarray(X), X_domain)
+        new_X = self.scale_to_domain(numpy.asarray(X), X_domain)
         if any(bf._is_complex for bf in self):
             y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
         else:
@@ -578,74 +607,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         return y
 
 
-class CustomBasisFunctionSet(BasisFunctionSet):
-    """Set of basis functions
-
-    Parameters
-    ----------
-    basis_functions : list
-        Basis functions in set.
-
-    Raises
-    ------
-    IndexError
-        Must have at least one basis function
-    ValueError
-        Basis functions must have the same domain.
-    """
-
-    def __init__(self, basis_functions):
-        if len(basis_functions) == 0:
-            raise IndexError("Must have at least one basis function.")
-        domain = basis_functions[0].domain
-        if any(not numpy.array_equal(domain, b.domain) for b in basis_functions[1:]):
-            raise ValueError("Basis functions must have the same domain.")
-        self._basis_functions = basis_functions
-
-
-class MutableBasisFunctionSet(BasisFunctionSet):
-    """Set of basis functions where number of functions is mutable.
-
-    Parameters
-    ----------
-    num_terms : int
-        the number of terms in the set.
-    """
-
-    def __init__(self, num_terms):
-        self._num_terms = None
-        self._basis_functions = None
-
-        self.num_terms = num_terms
-
-    @property
-    def basis_functions(self):
-        """list: Basis functions."""
-        if self._basis_functions is None:
-            self._create()
-        return self._basis_functions
-
-    @property
-    def num_terms(self):
-        """int: the number of terms in the set."""
-        return self._num_terms
-
-    @num_terms.setter
-    def num_terms(self, value):
-        num_terms = int(value)
-        if num_terms <= 0:
-            raise ValueError("Must have at least one term.")
-        if num_terms != self._num_terms:
-            self._num_terms = num_terms
-            self._basis_functions = None
-
-    @abc.abstractmethod
-    def _create(self):
-        """Create the basis functions in the set."""
-        pass
-
-
-class ChebyshevFirstKindBasisFunctionSet(MutableBasisFunctionSet):
+class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
     """Set of Chebyshev polynomials of the first kind.
 
     Parameters
@@ -654,12 +616,12 @@ class ChebyshevFirstKindBasisFunctionSet(MutableBasisFunctionSet):
         the number of terms in the set.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        self._basis_functions = [ChebyshevFirstKind(f) for f in range(self._num_terms)]
+    def __init__(self, num_terms):
+        basis_functions = [ChebyshevFirstKind(f) for f in range(num_terms)]
+        super().__init__(basis_functions)
 
 
-class ChebyshevSecondKindBasisFunctionSet(MutableBasisFunctionSet):
+class ChebyshevSecondKindBasisFunctionSet(BasisFunctionSet):
     """Set of Chebyshev polynomials of the second kind.
 
     Parameters
@@ -668,12 +630,12 @@ class ChebyshevSecondKindBasisFunctionSet(MutableBasisFunctionSet):
         the number of terms in the set.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        self._basis_functions = [ChebyshevSecondKind(f) for f in range(self._num_terms)]
+    def __init__(self, num_terms):
+        basis_functions = [ChebyshevSecondKind(f) for f in range(num_terms)]
+        super().__init__(basis_functions)
 
 
-class TrigonometricBasisFunctionSet(MutableBasisFunctionSet):
+class TrigonometricBasisFunctionSet(BasisFunctionSet):
     """Set of Trigonmetric equations.
 
     Parameters
@@ -682,17 +644,67 @@ class TrigonometricBasisFunctionSet(MutableBasisFunctionSet):
         the number of terms in the set.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        index_trig = numpy.arange(self.num_terms, dtype=int)
+    def __init__(self, num_terms):
+        index_trig = numpy.arange(num_terms, dtype=int)
         frequencies = numpy.where(
             index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
         )
-        self._basis_functions = [Trigonometric(f) for f in frequencies]
+        basis_functions = [Trigonometric(f) for f in frequencies]
+        super().__init__(basis_functions)
 
 
 class NestedBasisFunctionSet(BasisFunctionSet):
-    """Set of nested basis functions and sample points."""
+    """Set of nested basis functions and sample points.
+
+    Parameters
+    ----------
+    basis_functions : list
+        Basis functions in set.
+
+    num_per_level : list
+        number of unique functions per level.
+
+    Raises
+    ------
+    IndexError
+        number of basis function does not match functions in each level.
+    TypeError
+        Basis functions must have the same domain and typing.
+    """
+
+    def __init__(self, basis_functions, num_per_level):
+        self._num_levels = None
+        self._basis_functions = None
+        self._start_level = None
+        self._end_level = None
+        self._num_per_level = None
+
+        # ensure parameters are lists
+        if isinstance(basis_functions, BasisFunction):
+            basis_functions = [basis_functions]
+        if not hasattr(num_per_level, "__len__"):
+            num_per_level = [int(num_per_level)]
+        # check validity of basis functions
+        if sum(num_per_level) != len(basis_functions):
+            raise IndexError(
+                str(sum(num_per_level))
+                + " total functions in levels, "
+                + str(len(basis_functions))
+                + " functions given."
+            )
+        if len(basis_functions) != 0:
+            domain = basis_functions[0].domain
+            if any(
+                not numpy.array_equal(domain, b.domain)
+                or not type(b) is type(basis_functions[0])
+                for b in basis_functions[1:]
+            ):
+                raise TypeError(
+                    "Basis functions must be be BasisFunction objects with the same domain."
+                )
+        self._basis_functions = basis_functions
+        self._num_per_level = numpy.array(num_per_level, dtype=int)
+        self._start_level, self._end_level = _growth.level_indexes(num_per_level)
 
     @property
     def num_per_level(self):
@@ -719,87 +731,7 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         return self.basis_functions[self.start_level[index] : self.end_level[index]]
 
 
-class NestedCustomBasisFunctionSet(NestedBasisFunctionSet):
-    """Set of nested basis functions and sample points.
-
-    Parameters
-    ----------
-    basis_functions : list
-        Basis functions in set.
-
-    num_per_level : list
-        number of unique functions per level.
-
-    Raises
-    ------
-    IndexError
-        Must have at least one basis function
-    ValueError
-        Basis functions must have the same domain.
-    IndexError
-        number of basis function does not match functions in each level.
-    """
-
-    def __init__(self, basis_functions, num_per_level):
-        if sum(num_per_level) != len(basis_functions):
-            raise IndexError(
-                str(sum(num_per_level))
-                + " total functions in levels, "
-                + str(len(basis_functions))
-                + " functions given."
-            )
-        if len(basis_functions) == 0:
-            raise IndexError("Must have at least one term.")
-        domain = basis_functions[0].domain
-        if any(not numpy.array_equal(domain, b.domain) for b in basis_functions[1:]):
-            raise ValueError("Basis functions must have the same domain.")
-        self._basis_functions = basis_functions
-        self._num_per_level = numpy.array(num_per_level, dtype=int)
-        self._end_level = numpy.cumsum(self._num_per_level)
-        self._start_level = self._end_level - self._num_per_level
-
-
-class MutableNestedBasisFunctionSet(NestedBasisFunctionSet):
-    """Set of basis functions where number of functions is mutable.
-
-    Parameters
-    ----------
-    num_terms : int
-        the number of terms in the set.
-    """
-
-    def __init__(self, num_levels):
-        self._num_levels = None
-        self._basis_functions = None
-        self._start_level = None
-        self._end_level = None
-        self._num_per_level = None
-
-        self.num_levels = num_levels
-
-    @property
-    def num_levels(self):
-        """int: number of levels."""
-        return self._num_levels
-
-    @num_levels.setter
-    def num_levels(self, value):
-        num_levels = int(value)
-        if num_levels <= 0:
-            raise ValueError("Must have at least one level.")
-        if num_levels != self._num_levels:
-            self._create_levels(num_levels)
-            self._create()
-            self._num_levels = num_levels
-
-    @abc.abstractmethod
-    def _create(self):
-        """Create the basis functions in the set."""
-        pass
-
-
-class NestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
-):
+class NestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
     """Nested Clenshaw Curtis basis function set
 
     Parameters
@@ -813,14 +745,17 @@ class NestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
         Must have at least one level.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        num_terms = self._end_level[-1]
-        self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.clenshaw_curtis_exponential_growth(num_levels)
+        num_terms = numpy.sum(num_per_level)
+        basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+        super().__init__(basis_functions, num_per_level)
 
 
-class SlowNestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
-):
+class SlowNestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
     """Nested Clenshaw Curtis basis function set using slow exponential growth.
 
     Parameters
@@ -834,14 +769,17 @@ class SlowNestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
         Must have at least one level.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        num_terms = self._end_level[-1]
-        self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.clenshaw_curtis_slow_exponential_growth(num_levels)
+        num_terms = numpy.sum(num_per_level)
+        basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+        super().__init__(basis_functions, num_per_level)
 
 
-class NestedTrigonometricBasisFunctionSet(MutableNestedBasisFunctionSet
-):
+class NestedTrigonometricBasisFunctionSet(NestedBasisFunctionSet):
     """Nested Trigonometric basis function set.
 
     Parameters
@@ -855,11 +793,15 @@ class NestedTrigonometricBasisFunctionSet(MutableNestedBasisFunctionSet
         Must have at least one level.
     """
 
-    def _create(self):
-        """Create the basis functions in the set."""
-        num_terms = self._end_level[-1]
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.trigonometric_exponential_growth(num_levels)
+        num_terms = numpy.sum(num_per_level)
         index_trig = numpy.arange(num_terms, dtype=int)
         frequencies = numpy.where(
             index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
         )
-        self._basis_functions = [Trigonometric(f) for f in frequencies]
+        basis_functions = [Trigonometric(f) for f in frequencies]
+        super().__init__(basis_functions, num_per_level)

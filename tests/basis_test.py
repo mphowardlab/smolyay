@@ -267,15 +267,6 @@ basis_set_call_answer_key = {
         ],
         [-8, -14 / 3, 7, -19 / 3, 12],
     ),
-    "Custom": (
-        [
-            [1, 1, 1, 1, 1],
-            [1, 2, -2, -0.5, -1],
-            [0, 3, 3, -0.75, 0],
-            [-0.5, 1, 1, -0.875, -0.5],
-        ],
-        [7, 12, -8, -0.5, -3],
-    ),
 }
 
 basis_set_derivative_answer_key = {
@@ -314,15 +305,6 @@ basis_set_derivative_answer_key = {
             ],
         ],
         [-8, -14 / 3, 7, -19 / 3, 12],
-    ),
-    "Custom": (
-        [
-            [0, 0, 0, 0, 0],
-            [2 / 10, 2 / 10, 2 / 10, 2 / 10, 2 / 10],
-            [4 / 10, 8 / 10, -8 / 10, -2 / 10, -4 / 10],
-            [2 / 10, 4 / 10, -4 / 10, -1 / 10, -2 / 10],
-        ],
-        [7, 12, -8, -0.5, -3],
     ),
 }
 
@@ -365,8 +347,6 @@ basis_set_ids = [
     "1st Cheb-nested",
     "1st Cheb-slow nested",
     "Trig-nested",
-    "custom",
-    "custom nested",
 ]
 
 
@@ -463,9 +443,9 @@ def test_derivative_outside_domain_error(basis_fun, too_large, too_small, valid_
 def test_scale_domain(basis_fun, answer_single, answer_multi):
     """Test the set can scale points to basis function domain"""
     domain = (-8, 12)
-    assert basis_fun._scale_to_domain(0, domain) == pytest.approx(answer_single)
+    assert basis_fun.scale_to_domain(0, domain) == pytest.approx(answer_single)
     assert numpy.allclose(
-        basis_fun._scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
+        basis_fun.scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
     )
 
 
@@ -793,37 +773,36 @@ def test_is_complex():
 
 
 # Test a set of basis functions
-def test_custom_set_initialize():
-    """Test CustomBasisFunctionSet correctly initializes"""
-    f = smolyay.basis.CustomBasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)])
+def test_set_initialize():
+    """Test BasisFunctionSet correctly initializes"""
+    f = smolyay.basis.BasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)])
     assert f.basis_functions[0].degree == 0
     assert f[0].degree == 0
     assert len(f) == 1
 
 
-def test_custom_set_initialize_error():
-    """Test CustomBasisFunctionSet gives error if basis function have different domains"""
-    # this should not error
-    smolyay.basis.CustomBasisFunctionSet(
-        [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.ChebyshevSecondKind(0)]
-    )
-    # this should error
+def test_set_initialize_error():
+    """Test BasisFunctionSet gives error if basis function have different domains"""
     with pytest.raises(IndexError):
-        smolyay.basis.CustomBasisFunctionSet([])
-    with pytest.raises(ValueError):
-        smolyay.basis.CustomBasisFunctionSet(
+        f = smolyay.basis.BasisFunctionSet([])
+        f.domain
+    with pytest.raises(TypeError):
+        smolyay.basis.BasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)]
         )
-    with pytest.raises(ValueError):
-        smolyay.basis.CustomBasisFunctionSet(
+    with pytest.raises(TypeError):
+        smolyay.basis.BasisFunctionSet(
             [smolyay.basis.ChebyshevSecondKind(0), smolyay.basis.Trigonometric(0)]
         )
+    with pytest.raises(TypeError):
+        smolyay.basis.BasisFunctionSet(
+            [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.ChebyshevSecondKind(0)]
+        )
 
-
-def test_custom_nested_set_initialize():
-    """Test NestedCustomBasisFunctionSet correctly initializes"""
+def test_nested_set_initialize():
+    """Test NestedBasisFunctionSet correctly initializes"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-    f = smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 1, 2])
+    f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 2])
     assert f.basis_functions == bf
     assert len(f) == 5
     assert f.num_levels == 4
@@ -832,33 +811,34 @@ def test_custom_nested_set_initialize():
     assert numpy.array_equal(f.level(3), bf[3:])
 
 
-def test_custom_nested_set_initialize_error():
-    """Test NestedCustomBasisFunctionSet error for invalid constructor inputs"""
+def test_nested_set_initialize_error():
+    """Test NestedBasisFunctionSet error for invalid constructor inputs"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
     with pytest.raises(IndexError):
-        smolyay.basis.NestedCustomBasisFunctionSet([], [0])
+        f = smolyay.basis.NestedBasisFunctionSet([], [0])
+        f.domain
     with pytest.raises(IndexError):
-        smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 1, 1])
+        smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 1])
     with pytest.raises(IndexError):
-        smolyay.basis.NestedCustomBasisFunctionSet(bf, [1, 1, 2, 3])
-    with pytest.raises(ValueError):
-        smolyay.basis.NestedCustomBasisFunctionSet(
+        smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 2, 3])
+    with pytest.raises(TypeError):
+        smolyay.basis.NestedBasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)],
             [1, 1],
         )
-    with pytest.raises(ValueError):
-        smolyay.basis.NestedCustomBasisFunctionSet(
+    with pytest.raises(TypeError):
+        smolyay.basis.NestedBasisFunctionSet(
             [smolyay.basis.ChebyshevSecondKind(0), smolyay.basis.Trigonometric(0)],
             [1, 1],
         )
 
 
 @pytest.mark.parametrize(
-    "nested_sets,domain,length_2,length_3",
+    "nested_sets,domain,length_2",
     [
-        (smolyay.basis.NestedClenshawCurtisBasisFunctionSet, [-1, 1], 3, 9),
-        (smolyay.basis.SlowNestedClenshawCurtisBasisFunctionSet, [-1, 1], 3, 9),
-        (smolyay.basis.NestedTrigonometricBasisFunctionSet, [0, 2 * numpy.pi], 3, 27),
+        (smolyay.basis.NestedClenshawCurtisBasisFunctionSet, [-1, 1], 3),
+        (smolyay.basis.SlowNestedClenshawCurtisBasisFunctionSet, [-1, 1], 3),
+        (smolyay.basis.NestedTrigonometricBasisFunctionSet, [0, 2 * numpy.pi], 3),
     ],
     ids=[
         "NestedClenshawCurtis",
@@ -866,7 +846,7 @@ def test_custom_nested_set_initialize_error():
         "NestedTrigonometric",
     ],
 )
-def test_nested_sets_initialize(nested_sets, domain, length_2, length_3):
+def test_nested_sets_initialize(nested_sets, domain, length_2):
     """Test nested basis function sets initialization"""
     bf = nested_sets(2)
     assert numpy.array_equal(bf.domain, domain)
@@ -875,13 +855,6 @@ def test_nested_sets_initialize(nested_sets, domain, length_2, length_3):
     assert len(bf.num_per_level) == 2
     assert len(bf.start_level) == 2
     assert len(bf.end_level) == 2
-    bf.num_levels = float(4)
-    assert bf.num_levels == 4
-    assert isinstance(bf.num_levels, int)
-    assert len(bf) == length_3
-    assert len(bf.num_per_level) == 4
-    assert len(bf.start_level) == 4
-    assert len(bf.end_level) == 4
 
 
 @pytest.mark.parametrize(
@@ -900,10 +873,7 @@ def test_nested_sets_initialize(nested_sets, domain, length_2, length_3):
 def test_num_levels_error(nested_sets):
     """test error given invalid num_levels"""
     with pytest.raises(ValueError):
-        f = nested_sets(0)
-    f = nested_sets(2)
-    with pytest.raises(ValueError):
-        f.num_levels = 0
+        nested_sets(0)
 
 
 @pytest.mark.parametrize(
@@ -939,40 +909,15 @@ def test_num_levels_error(nested_sets):
             4 * numpy.pi / 5,
             [0.8 * numpy.pi, 0.9 * numpy.pi, numpy.pi, 1.1 * numpy.pi],
         ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ]
-            ),
-            -0.2,
-            [-0.2, -0.1, 0, 0.1],
-        ),
-        (
-            smolyay.basis.NestedCustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ],
-                [1, 2, 1],
-            ),
-            -0.2,
-            [-0.2, -0.1, 0, 0.1],
-        ),
     ],
     ids=basis_set_ids,
 )
 def test_set_scale_domain(basis_set, answer_single, answer_multi):
     """Test the set can scale points to basis function domain"""
     domain = (-8, 12)
-    assert basis_set._scale_to_domain(0, domain) == pytest.approx(answer_single)
+    assert basis_set.scale_to_domain(0, domain) == pytest.approx(answer_single)
     assert numpy.allclose(
-        basis_set._scale_to_domain(numpy.array([0, 1, 2, 3]), domain),
+        basis_set.scale_to_domain(numpy.array([0, 1, 2, 3]), domain),
         answer_multi,
     )
 
@@ -1003,29 +948,6 @@ def test_set_scale_domain(basis_set, answer_single, answer_multi):
         (
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
             "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ]
-            ),
-            "Custom",
-        ),
-        (
-            smolyay.basis.NestedCustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ],
-                [1, 2, 1],
-            ),
-            "Custom",
         ),
     ],
     ids=basis_set_ids,
@@ -1064,29 +986,6 @@ def test_set_call(basis_function_set, key_for_answer):
         (
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
             "Trigonometric",
-        ),
-        (
-            smolyay.basis.CustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ]
-            ),
-            "Custom",
-        ),
-        (
-            smolyay.basis.NestedCustomBasisFunctionSet(
-                [
-                    smolyay.basis.ChebyshevFirstKind(0),
-                    smolyay.basis.ChebyshevSecondKind(1),
-                    smolyay.basis.ChebyshevSecondKind(2),
-                    smolyay.basis.ChebyshevFirstKind(2),
-                ],
-                [1, 2, 1],
-            ),
-            "Custom",
         ),
     ],
     ids=basis_set_ids,
