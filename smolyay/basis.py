@@ -679,8 +679,6 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         # ensure parameters are lists
         if isinstance(basis_functions, BasisFunction):
             basis_functions = [basis_functions]
-        if not hasattr(num_per_level, "__len__"):
-            num_per_level = [int(num_per_level)]
         # check validity of basis functions
         if sum(num_per_level) != len(basis_functions):
             raise IndexError(
