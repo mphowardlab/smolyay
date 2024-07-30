@@ -4,11 +4,7 @@ import collections.abc
 import numpy
 import scipy.special
 
-from smolyay._growth_method import (
-    ClenshawCurtisSlowExponentialGrowthMixin,
-    ClenshawCurtisExponentialGrowthMixin,
-    TrigonometricExponentialGrowthMixin,
-)
+from smolyay import _growth
 
 
 class BasisFunction(abc.ABC):
