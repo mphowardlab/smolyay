@@ -463,10 +463,10 @@ class SetProductSurrogate(Surrogate):
             else:
                 self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
-            regressor = sklearn.linear_model.Ridge(**self.regularization.__dict__)
+            regressor = sklearn.linear_model.Ridge(fit_intercept = False,**self.regularization.__dict__)
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         elif isinstance(self.regularization, L1Regularization):
-            regressor = sklearn.linear_model.Lasso(**self.regularization.__dict__)
+            regressor = sklearn.linear_model.Lasso(fit_intercept = False,**self.regularization.__dict__)
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
@@ -578,10 +578,10 @@ class SetProductSurrogate(Surrogate):
         if self.regularization is None or numpy.any(numpy.iscomplex(basis_matrix)):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
-            regressor = sklearn.linear_model.Ridge(**self.regularization.__dict__)
+            regressor = sklearn.linear_model.Ridge(fit_intercept = False,**self.regularization.__dict__)
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         elif isinstance(self.regularization, L1Regularization):
-            regressor = sklearn.linear_model.Lasso(**self.regularization.__dict__)
+            regressor = sklearn.linear_model.Lasso(fit_intercept = False,**self.regularization.__dict__)
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
@@ -703,9 +703,7 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
 
 
 class RegularizationMethod:
-    def __init__(self):
-        self.fit_intercept = False
-
+    pass
 
 class L2Regularization(RegularizationMethod):
     def __init__(self, alpha):
