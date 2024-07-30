@@ -806,11 +806,18 @@ def test_set_base_class_initialize_error():
 
 def test_nested_set_base_class_initialize():
     """Test NestedBasisFunctionSet correctly initializes"""
+    f = smolyay.basis.NestedBasisFunctionSet([],[])
+    assert len(f) == 0
+    assert f.num_levels == 0
+    assert numpy.array_equal(f.num_per_level, [])
+    assert numpy.array_equal(f.start_level, [])
+    assert numpy.array_equal(f.end_level, [])
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
     f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 2])
     assert f.basis_functions == bf
     assert len(f) == 5
     assert f.num_levels == 4
+    assert numpy.array_equal(f.num_per_level, [1, 1, 1, 2])
     assert numpy.array_equal(f.start_level, [0, 1, 2, 3])
     assert numpy.array_equal(f.end_level, [1, 2, 3, 5])
     assert numpy.array_equal(f.level(3), bf[3:])
