@@ -680,7 +680,7 @@ class NestedBasisFunctionSet(BasisFunctionSet):
         if isinstance(basis_functions, BasisFunction):
             basis_functions = [basis_functions]
         # check validity of basis functions
-        if sum(num_per_level) != len(basis_functions):
+        if numpy.sum(num_per_level) != len(basis_functions):
             raise IndexError(
                 str(sum(num_per_level))
                 + " total functions in levels, "
