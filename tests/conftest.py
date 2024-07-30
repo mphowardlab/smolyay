@@ -1,5 +1,3 @@
-# content of conftest.py
-
 from typing import Dict, Tuple
 
 import pytest
