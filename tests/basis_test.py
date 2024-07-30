@@ -779,7 +779,12 @@ def test_set_base_class_initialize():
     assert f.basis_functions[0].degree == 0
     assert f[0].degree == 0
     assert len(f) == 1
-
+    assert numpy.array_equal(f.domain,[-1, 1])
+    f = smolyay.basis.BasisFunctionSet([smolyay.basis.Trigonometric(0)])
+    assert f.basis_functions[0].frequency == 0
+    assert f[0].frequency == 0
+    assert len(f) == 1
+    assert numpy.array_equal(f.domain,[0, 2*numpy.pi])
 
 def test_set_base_class_initialize_error():
     """Test BasisFunctionSet gives error if basis function have different domains"""
