@@ -219,7 +219,7 @@ class SetProductSurrogate(Surrogate):
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
         for ic, coeff in zip(self._index_combinations, self._coefficients):
-            answer = answer + numpy.real(
+            answer += numpy.real(
                 coeff
                 * numpy.prod(
                     [lookup_table[dim][ic[dim], :] for dim in range(len(ic))], axis=0
