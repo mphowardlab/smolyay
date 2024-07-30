@@ -513,11 +513,8 @@ class BasisFunctionSet(collections.abc.Sequence):
     def __getitem__(self, key):
         return self.basis_functions[key]
 
-    def _scale_to_domain(self, points, old_domain):
-        points = self.domain[0] + (self.domain[1] - self.domain[0]) * (
-            (points - old_domain[0]) / (old_domain[1] - old_domain[0])
-        )
-        return numpy.clip(points, self.domain[0], self.domain[1])
+    def scale_to_domain(self, points, old_domain):
+        return self.basis_functions[0].scale_to_domain(points, old_domain)
 
     def __call__(self, X, X_domain):
         """Evaluate all the basis functions in the set
