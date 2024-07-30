@@ -1015,7 +1015,7 @@ def test_fit_gradient_error(surrogate_class):
     ]
     surrogate = surrogate_class(domain, bs)
     with pytest.raises(IndexError):
-        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
         surrogate.fit_gradient(test_points, branin(test_points))
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
@@ -1147,6 +1147,7 @@ def test_predict_size_1D(surrogate_class):
     surrogate.fit(grid_points, sample_output)
     assert numpy.array_equal(numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,))
     assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), ())
+    assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), ())
 
 
 @pytest.mark.parametrize(
