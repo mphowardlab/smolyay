@@ -540,8 +540,8 @@ class BasisFunctionSet(collections.abc.Sequence):
             [len(self)] + list(new_X.shape),
             dtype=complex if any(bf._is_complex for bf in self) else float
         )
-        for i in range(len(self)):
-            y[i, :] = self[i](new_X)
+        for i, bf in enumerate(self._basis_functions):
+            y[i] = bf(new_X)
         return y
 
     def derivative(self, X, X_domain, n=1):
