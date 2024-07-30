@@ -516,7 +516,7 @@ class BasisFunctionSet(collections.abc.Sequence):
     def scale_to_domain(self, points, old_domain):
         return self.basis_functions[0].scale_to_domain(points, old_domain)
 
-    def __call__(self, X, X_domain):
+    def __call__(self, X, domain=None):
         """Evaluate all the basis functions in the set
 
         Calls all the basis function(s) at index and evaluates at X.
