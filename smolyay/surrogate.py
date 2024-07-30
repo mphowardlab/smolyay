@@ -219,7 +219,7 @@ class SetProductSurrogate(Surrogate):
         # use lookup table to combine terms
         answer = numpy.ones(len(X)) * self._integration_constant
         for ic, coeff in zip(self._index_combinations, self._coefficients):
-            answer = answer + numpy.real(
+            answer += numpy.real(
                 coeff
                 * numpy.prod(
                     [lookup_table[dim][ic[dim], :] for dim in range(len(ic))], axis=0
@@ -484,7 +484,6 @@ class SetProductSurrogate(Surrogate):
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         self._valid_cache = True
-        self._fit_gradient_flag = False
         return self
 
     def fit_gradient(self, X, y, X0=None, y0=None):
