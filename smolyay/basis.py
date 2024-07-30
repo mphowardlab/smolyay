@@ -95,7 +95,6 @@ class BasisFunction(abc.ABC):
         -------
         numeric or array-like
             points shifted to BasisFunction domain"""
-        points = numpy.array(points)
         new_points = numpy.asarray(
             self.domain[0]
             + (self.domain[1] - self.domain[0])
@@ -493,8 +492,8 @@ class Trigonometric(BasisFunction):
 class BasisFunctionSet(collections.abc.Sequence):
     """Set of basis functions and sample points."""
 
-    @abc.abstractmethod
-    def __init__(self):
+    def __init__(self, basis_functions= None):
+        self._basis_functions = None
         pass
 
     @property
@@ -534,8 +533,10 @@ class BasisFunctionSet(collections.abc.Sequence):
         scalar or ndarray
             the values of the basis functions.
         """
-
-        new_X = self._scale_to_domain(numpy.asarray(X), X_domain)
+        if not domain is None:
+            new_X = self._scale_to_domain(numpy.asarray(X), domain)
+        else:
+            new_X = numpy.asarray(X)
         y = numpy.zeros(
             [len(self)] + list(new_X.shape),
             dtype=complex if any(bf._is_complex for bf in self) else float
@@ -797,8 +798,7 @@ class MutableNestedBasisFunctionSet(NestedBasisFunctionSet):
         pass
 
 
-class NestedClenshawCurtisBasisFunctionSet(
-    ClenshawCurtisExponentialGrowthMixin, MutableNestedBasisFunctionSet
+class NestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
 ):
     """Nested Clenshaw Curtis basis function set
 
@@ -819,8 +819,7 @@ class NestedClenshawCurtisBasisFunctionSet(
         self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
 
 
-class SlowNestedClenshawCurtisBasisFunctionSet(
-    ClenshawCurtisSlowExponentialGrowthMixin, MutableNestedBasisFunctionSet
+class SlowNestedClenshawCurtisBasisFunctionSet(MutableNestedBasisFunctionSet
 ):
     """Nested Clenshaw Curtis basis function set using slow exponential growth.
 
@@ -841,8 +840,7 @@ class SlowNestedClenshawCurtisBasisFunctionSet(
         self._basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
 
 
-class NestedTrigonometricBasisFunctionSet(
-    TrigonometricExponentialGrowthMixin, MutableNestedBasisFunctionSet
+class NestedTrigonometricBasisFunctionSet(MutableNestedBasisFunctionSet
 ):
     """Nested Trigonometric basis function set.
 

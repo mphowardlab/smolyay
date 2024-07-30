@@ -5,11 +5,7 @@ import itertools
 import numpy
 import scipy.stats.qmc
 
-from smolyay._growth_method import (
-    ClenshawCurtisSlowExponentialGrowthMixin,
-    ClenshawCurtisExponentialGrowthMixin,
-    TrigonometricExponentialGrowthMixin,
-)
+from smolyay import _growth
 
 
 class UnidimensionalPointSet(collections.abc.Sequence):
@@ -198,7 +194,7 @@ class ClenshawCurtisPointSet(UnidimensionalPointSet):
         self._points = self._scale_to_domain(points, [-1, 1])
 
 
-class NestedClenshawCurtisPointSet(ClenshawCurtisExponentialGrowthMixin,NestedUnidimensionalPointSet):
+class NestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
     r"""Generate nested Clenshaw Curtis points
 
     The :attr:`points` for this interpolation scheme are the nested Clenshaw
@@ -259,8 +255,7 @@ class NestedClenshawCurtisPointSet(ClenshawCurtisExponentialGrowthMixin,NestedUn
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.clenshaw_curtis_exponential_growth(self.num_levels)
-        self._end_level = numpy.cumsum(self._num_per_level)
-        self._start_level = self._end_level - self._num_per_level
+        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -282,7 +277,7 @@ class NestedClenshawCurtisPointSet(ClenshawCurtisExponentialGrowthMixin,NestedUn
         self._points = self._scale_to_domain(points, [-1, 1])
 
 
-class SlowNestedClenshawCurtisPointSet(ClenshawCurtisSlowExponentialGrowthMixin,NestedUnidimensionalPointSet):
+class SlowNestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
     r"""Set for Clenshaw Curtis slow exponential growth.
 
     The :attr:`points` for this interpolation scheme are the nested Clenshaw
@@ -341,7 +336,8 @@ class SlowNestedClenshawCurtisPointSet(ClenshawCurtisSlowExponentialGrowthMixin,
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._create_levels(self.num_levels)
+        self._num_per_level = _growth.clenshaw_curtis_slow_exponential_growth(self.num_levels)
+        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -435,7 +431,7 @@ class TrigonometricPointSet(UnidimensionalPointSet):
         self._points = self._scale_to_domain(points, [0, 2 * numpy.pi])
 
 
-class NestedTrigonometricPointSet(TrigonometricExponentialGrowthMixin,NestedUnidimensionalPointSet):
+class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
     r"""Set of unidimensional points for Trigonometric sampling
 
     The :attr:`points` for this interpolation scheme are nested
@@ -482,7 +478,8 @@ class NestedTrigonometricPointSet(TrigonometricExponentialGrowthMixin,NestedUnid
         :math:1, 3, 9, ..., 3^{i} where i is an integer.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._create_levels(self.num_levels)
+        self._num_per_level = _growth.trigonometric_exponential_growth(self.num_levels)
+        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
