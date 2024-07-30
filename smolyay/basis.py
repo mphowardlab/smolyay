@@ -675,11 +675,6 @@ class NestedBasisFunctionSet(BasisFunctionSet):
     """
 
     def __init__(self, basis_functions, num_per_level):
-        self._num_levels = None
-        self._basis_functions = None
-        self._start_level = None
-        self._end_level = None
-        self._num_per_level = None
 
         # ensure parameters are lists
         if isinstance(basis_functions, BasisFunction):
