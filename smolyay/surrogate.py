@@ -51,7 +51,26 @@ class Surrogate:
     def num_dimensions(self):
         """int: number of independent variables."""
         return self.domain.shape[0]
+    
+    def _in_domain(self, X):
+        """Check if input is in surrogate's domain.
+        
+        Parameters
+        ----------
+        X : numpy.ndarray with shape (n_samples, num_dimensions)
+            input 
+        """
+        if X.shape[1] != self.num_dimensions:
+            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
 
+        oob = any(
+            numpy.any(X[:, i] < self.domain[i][0])
+            or numpy.any(X[:, i] > self.domain[i][1])
+            for i in range(self.num_dimensions)
+        )
+        if oob:
+            raise ValueError("X must lie in domain of surrogate.")
+        
     @abc.abstractmethod
     def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
@@ -183,7 +202,7 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, n_features)
+        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
             Surrogate output at x.
 
         Raises
@@ -199,16 +218,8 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
-        X = numpy.array(X, ndmin=2)
-        if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
-        oob = any(
-            numpy.any(X[:, i] < self.domain[i][0])
-            or numpy.any(X[:, i] > self.domain[i][1])
-            for i in range(self.num_dimensions)
-        )
-        if oob:
-            raise ValueError("X must lie in domain of surrogate.")
+        X = numpy.array(X,ndmin=2,copy=None)
+        self._in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
@@ -257,16 +268,8 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
-        X = numpy.array(X, ndmin=2)
-        if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
-        oob = any(
-            numpy.any(X[:, i] < self.domain[i][0])
-            or numpy.any(X[:, i] > self.domain[i][1])
-            for i in range(self.num_dimensions)
-        )
-        if oob:
-            raise ValueError("X must lie in domain of surrogate.")
+        X = numpy.array(X,ndmin=2,copy=None)
+        self._in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -328,16 +331,8 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
-        X = numpy.array(X, ndmin=2)
-        if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
-        oob = any(
-            numpy.any(X[:, i] < self.domain[i][0])
-            or numpy.any(X[:, i] > self.domain[i][1])
-            for i in range(self.num_dimensions)
-        )
-        if oob:
-            raise ValueError("X must lie in domain of surrogate.")
+        X = numpy.array(X,ndmin=2,copy=None)
+        self._in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -427,20 +422,12 @@ class SetProductSurrogate(Surrogate):
             X = X.points
 
         # validate data inputs
-        X = numpy.array(X, ndmin=2)
-        if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
-        y = numpy.array(y, ndmin=1)
+        X = numpy.array(X,ndmin=2,copy=None)
+        self._in_domain(X)
+
+        y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
             raise IndexError("Must be 1D array with shape (n_samples,).")
-
-        oob = any(
-            numpy.any(X[:, i] < self.domain[i][0])
-            or numpy.any(X[:, i] > self.domain[i][1])
-            for i in range(self.num_dimensions)
-        )
-        if oob:
-            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
@@ -453,7 +440,7 @@ class SetProductSurrogate(Surrogate):
             any(bf._is_complex for bf in basis_set) for basis_set in self.basis_sets
         ):
             basis_matrix = numpy.zeros(
-                (len(X), len(self._index_combinations)), dtype="complex_"
+                (len(X), len(self._index_combinations)), dtype=complex
             )
         else:
             basis_matrix = numpy.zeros((len(X), len(self._index_combinations)))
@@ -537,20 +524,11 @@ class SetProductSurrogate(Surrogate):
             X = X.points
 
         # validate data inputs
-        X = numpy.array(X, ndmin=2)
-        if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
-        y = numpy.array(y, ndmin=2)
+        X = numpy.array(X,ndmin=2,copy=None)
+        self._in_domain(X)
+        y = numpy.array(y,ndmin=2,copy=None)
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, num_dimensions).")
-
-        oob = any(
-            numpy.any(X[:, i] < self.domain[i][0])
-            or numpy.any(X[:, i] > self.domain[i][1])
-            for i in range(self.num_dimensions)
-        )
-        if oob:
-            raise ValueError("X must lie in domain of surrogate.")
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -567,7 +545,7 @@ class SetProductSurrogate(Surrogate):
         ):
             basis_matrix = numpy.zeros(
                 (len(X) * self.num_dimensions, len(self._index_combinations)),
-                dtype="complex_",
+                dtype=complex,
             )
         else:
             basis_matrix = numpy.zeros(
