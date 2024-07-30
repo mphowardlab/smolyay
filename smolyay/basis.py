@@ -508,7 +508,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         return self.basis_functions[0].domain
 
     def __len__(self):
-        return len(self.basis_functions)
+        return len(self._basis_functions)
 
     def __getitem__(self, key):
         return self.basis_functions[key]
