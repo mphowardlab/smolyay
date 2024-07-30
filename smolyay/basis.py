@@ -522,7 +522,7 @@ class BasisFunctionSet(collections.abc.Sequence):
                 raise TypeError(
                     "Basis functions must be be BasisFunction objects with the same domain and typing."
                 )
-        self._basis_functions = basis_functions
+        self._basis_functions = list(basis_functions)
 
     @property
     def basis_functions(self):
