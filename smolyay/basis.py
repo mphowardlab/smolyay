@@ -536,10 +536,10 @@ class BasisFunctionSet(collections.abc.Sequence):
         """
 
         new_X = self._scale_to_domain(numpy.asarray(X), X_domain)
-        if any(bf._is_complex for bf in self):
-            y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
-        else:
-            y = numpy.zeros([len(self)] + list(new_X.shape))
+        y = numpy.zeros(
+            [len(self)] + list(new_X.shape),
+            dtype=complex if any(bf._is_complex for bf in self) else float
+        )
         for i in range(len(self)):
             y[i, :] = self[i](new_X)
         return y
