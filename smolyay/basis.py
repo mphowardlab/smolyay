@@ -513,10 +513,11 @@ class BasisFunctionSet(collections.abc.Sequence):
             basis_functions = []
 
         if len(basis_functions) > 1:
-            domain = basis_functions[0].domain
+            ref_domain = basis_functions[0].domain
+            ref_type = type(basis_functions[0])
             if any(
-                not numpy.array_equal(domain, b.domain)
-                or not type(b) is type(basis_functions[0])
+                not numpy.array_equal(b.domain, ref_domain)
+                or type(b) is not ref_type
                 for b in basis_functions[1:]
             ):
                 raise TypeError(
