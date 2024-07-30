@@ -445,7 +445,7 @@ def test_scale_domain(basis_fun, answer_single, answer_multi):
     domain = (-8, 12)
     assert basis_fun.scale_to_domain(0, domain) == pytest.approx(answer_single)
     assert numpy.allclose(
-        basis_fun.scale_to_domain(numpy.array([0, 1, 2, 3]), domain), answer_multi
+        basis_fun.scale_to_domain([0, 1, 2, 3], domain), answer_multi
     )
 
 

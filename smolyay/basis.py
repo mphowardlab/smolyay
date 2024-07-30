@@ -95,7 +95,8 @@ class BasisFunction(abc.ABC):
         -------
         numeric or array-like
             points shifted to BasisFunction domain"""
-        new_points = numpy.asarray(
+        points = numpy.array(points, ndmin=1)
+        new_points = (
             self.domain[0]
             + (self.domain[1] - self.domain[0])
             * ((points - old_domain[0]) / (old_domain[1] - old_domain[0]))
