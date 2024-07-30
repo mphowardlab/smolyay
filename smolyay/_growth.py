@@ -119,7 +119,7 @@ def trigonometric_exponential_growth(num_levels):
     ]
     return num_per_level
 
-def level_indexes(num_per_level):
+def get_level_start_and_end(num_per_level):
     """Computes the start and end indexes for each level.
     
     For a list of elements that are divided into levels,
