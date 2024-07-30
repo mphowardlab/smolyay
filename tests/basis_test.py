@@ -788,7 +788,7 @@ def test_set_base_class_initialize():
 
 def test_set_base_class_initialize_error():
     """Test BasisFunctionSet gives error if basis function have different domains"""
-    with pytest.raises(IndexError):
+    with pytest.raises(AttributeError):
         f = smolyay.basis.BasisFunctionSet([])
         f.domain
     with pytest.raises(TypeError):
@@ -857,7 +857,7 @@ def test_set_initialize_empty(basis_set):
     f = basis_set(0)
     assert len(f) == 0
     assert numpy.array_equal(f.basis_functions,[])
-    with pytest.raises(IndexError):
+    with pytest.raises(AttributeError):
         f.domain
 
 
@@ -883,7 +883,7 @@ def test_nested_set_base_class_initialize():
 def test_nested_set_base_class_initialize_error():
     """Test NestedBasisFunctionSet error for invalid constructor inputs"""
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
-    with pytest.raises(IndexError):
+    with pytest.raises(AttributeError):
         f = smolyay.basis.NestedBasisFunctionSet([], [0])
         f.domain
     with pytest.raises(IndexError):
