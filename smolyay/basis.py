@@ -556,7 +556,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         X : array-like
             the points to evaluate.
 
-        X_domain : numpy array of shape (2,)
+        domain : numpy array of shape (2,)
             the lower and upper bounds of X.
 
         Returns
@@ -587,7 +587,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         X : array-like
             the points to evaluate.
 
-        X_domain : numpy array of shape (2,)
+        domain : numpy array of shape (2,)
             the lower and upper bounds of X.
 
         n : int, optional
