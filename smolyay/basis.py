@@ -509,9 +509,10 @@ class BasisFunctionSet(collections.abc.Sequence):
         # check validity of basis functions
         if isinstance(basis_functions, BasisFunction):
             basis_functions = [basis_functions]
-        if basis_functions is None:
+        elif basis_functions is None:
             basis_functions = []
-        if len(basis_functions) != 0:
+
+        if len(basis_functions) > 1:
             domain = basis_functions[0].domain
             if any(
                 not numpy.array_equal(domain, b.domain)
