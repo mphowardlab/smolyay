@@ -791,6 +791,9 @@ def test_set_base_class_initialize_error():
     with pytest.raises(AttributeError):
         f = smolyay.basis.BasisFunctionSet([])
         f.domain
+    with pytest.raises(AttributeError):
+        f = smolyay.basis.BasisFunctionSet([])
+        f.scale_to_domain([1,2,3,4],[0,5])
     with pytest.raises(TypeError):
         smolyay.basis.BasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)]
@@ -859,6 +862,8 @@ def test_set_initialize_empty(basis_set):
     assert numpy.array_equal(f.basis_functions,[])
     with pytest.raises(AttributeError):
         f.domain
+    with pytest.raises(AttributeError):
+        f.scale_to_domain([1,2,3,4],[0,5])
 
 
 def test_nested_set_base_class_initialize():
@@ -886,9 +891,12 @@ def test_nested_set_base_class_initialize_error():
     with pytest.raises(AttributeError):
         f = smolyay.basis.NestedBasisFunctionSet([], [0])
         f.domain
-    with pytest.raises(IndexError):
+    with pytest.raises(AttributeError):
+        f = smolyay.basis.NestedBasisFunctionSet([], [0])
+        f.scale_to_domain([1,2,3,4],[0, 5])
+    with pytest.raises(ValueError):
         smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 1])
-    with pytest.raises(IndexError):
+    with pytest.raises(ValueError):
         smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 2, 3])
     with pytest.raises(TypeError):
         smolyay.basis.NestedBasisFunctionSet(

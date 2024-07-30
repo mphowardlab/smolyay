@@ -544,6 +544,8 @@ class BasisFunctionSet(collections.abc.Sequence):
         return self.basis_functions[key]
 
     def scale_to_domain(self, points, old_domain):
+        if len(self._basis_functions) == 0:
+            raise AttributeError("No basis functions to derive a domain.")
         return self.basis_functions[0].scale_to_domain(points, old_domain)
 
     def __call__(self, X, domain=None):
