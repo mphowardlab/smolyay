@@ -258,7 +258,9 @@ class NestedClenshawCurtisPointSet(ClenshawCurtisExponentialGrowthMixin,NestedUn
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._create_levels(self.num_levels)
+        self._num_per_level = _growth.clenshaw_curtis_exponential_growth(self.num_levels)
+        self._end_level = numpy.cumsum(self._num_per_level)
+        self._start_level = self._end_level - self._num_per_level
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
