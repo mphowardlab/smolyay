@@ -681,12 +681,7 @@ class NestedBasisFunctionSet(BasisFunctionSet):
             basis_functions = [basis_functions]
         # check validity of basis functions
         if numpy.sum(num_per_level) != len(basis_functions):
-            raise IndexError(
-                str(sum(num_per_level))
-                + " total functions in levels, "
-                + str(len(basis_functions))
-                + " functions given."
-            )
+            raise ValueError("Number of basis functions does not match level specification.")
         if len(basis_functions) != 0:
             domain = basis_functions[0].domain
             if any(
