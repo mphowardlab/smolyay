@@ -84,7 +84,7 @@ class BasisFunction(abc.ABC):
             numpy.greater_equal(x, self.domain[0]), numpy.less_equal(x, self.domain[1])
         )
 
-    def _scale_to_domain(self, points, old_domain):
+    def scale_to_domain(self, points, old_domain):
         """Scale points from a domain to BasisFunction domain
 
         Parameters
