@@ -484,7 +484,6 @@ class SetProductSurrogate(Surrogate):
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         self._valid_cache = True
-        self._fit_gradient_flag = False
         return self
 
     def fit_gradient(self, X, y, X0=None, y0=None):
