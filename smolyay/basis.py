@@ -504,7 +504,6 @@ class BasisFunctionSet(collections.abc.Sequence):
     """
 
     def __init__(self, basis_functions=None):
-        self._basis_functions = None
 
         # check validity of basis functions
         if isinstance(basis_functions, BasisFunction):
