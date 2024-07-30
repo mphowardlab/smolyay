@@ -255,7 +255,7 @@ class NestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.clenshaw_curtis_exponential_growth(self.num_levels)
-        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -337,7 +337,7 @@ class SlowNestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.clenshaw_curtis_slow_exponential_growth(self.num_levels)
-        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -479,7 +479,7 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.trigonometric_exponential_growth(self.num_levels)
-        self._start_level,self._end_level = _growth.level_indexes(self._num_per_level)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
