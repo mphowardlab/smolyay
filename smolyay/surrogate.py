@@ -191,7 +191,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be trained.
         IndexError
-            Input must be 2D array with shape (n_samples, n_features).
+            Input must be 2D array with shape (n_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
 
@@ -250,7 +250,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
         IndexError
-            Input must be 2D array with shape (n_samples, n_features).
+            Input must be 2D array with shape (n_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -259,7 +259,7 @@ class SetProductSurrogate(Surrogate):
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
+            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -321,7 +321,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
         IndexError
-            Input must be 2D array with shape (n_samples, n_features).
+            Input must be 2D array with shape (n_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -330,7 +330,7 @@ class SetProductSurrogate(Surrogate):
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
+            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
             or numpy.any(X[:, i] > self.domain[i][1])
@@ -539,10 +539,10 @@ class SetProductSurrogate(Surrogate):
         # validate data inputs
         X = numpy.array(X, ndmin=2)
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, n_features).")
+            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
         y = numpy.array(y, ndmin=2)
         if y.shape != X.shape:
-            raise IndexError("y must be 2D array with shape (n_samples, n_features).")
+            raise IndexError("y must be 2D array with shape (n_samples, num_dimensions).")
 
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
