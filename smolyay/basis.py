@@ -599,10 +599,10 @@ class BasisFunctionSet(collections.abc.Sequence):
             the values of the basis functions.
         """
         new_X = self.scale_to_domain(numpy.asarray(X), domain)
-        if any(bf._is_complex for bf in self):
-            y = numpy.zeros([len(self)] + list(new_X.shape), dtype="complex_")
-        else:
-            y = numpy.zeros([len(self)] + list(new_X.shape))
+        y = numpy.zeros(
+            [len(self)] + list(new_X.shape),
+            dtype=complex if any(bf._is_complex for bf in self) else float,
+        )
         for i in range(len(self)):
             y[i, :] = self[i].derivative(new_X, n)
         y *= ((self.domain[1] - self.domain[0]) / (domain[1] - domain[0])) ** n
