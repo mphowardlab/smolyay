@@ -671,7 +671,7 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
                     )
                 )
             )
-        level_combinations = numpy.array(level_combinations)
+        level_combinations = numpy.array(level_combinations, dtype=int)
 
         # remove combinations where a dimension exceeds its number of levels
         # only check if basis sets have different numbers of levels
