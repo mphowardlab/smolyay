@@ -453,7 +453,7 @@ class SetProductSurrogate(Surrogate):
             )
 
         # solve for coefficients
-        if self.regularization is None or numpy.any(numpy.iscomplex(basis_matrix)):
+        if self.regularization is None or numpy.iscomplexobj(basis_matrix):
             if basis_matrix.shape[0] == basis_matrix.shape[1]:
                 try:
                     self._coefficients = numpy.linalg.solve(basis_matrix, y)
