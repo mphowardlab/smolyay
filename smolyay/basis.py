@@ -686,7 +686,7 @@ class NestedBasisFunctionSet(BasisFunctionSet):
             raise ValueError("Number of basis functions does not match level specification.")
         super().__init__(basis_functions)
         self._num_per_level = numpy.array(num_per_level, dtype=int)
-        self._start_level, self._end_level = _growth.get_level_start_and_end(num_per_level)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(self._num_per_level)
 
     @property
     def num_per_level(self):
