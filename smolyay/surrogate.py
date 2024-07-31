@@ -3,7 +3,6 @@ import itertools
 import warnings
 
 import numpy
-import sklearn
 import sklearn.linear_model
 
 import smolyay
