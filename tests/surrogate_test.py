@@ -80,35 +80,35 @@ def function_3_hessian(x):
 
 
 def function_4(x):
-    """Test function 5."""
+    """Test function 4."""
     x1, x2 = x
     return numpy.cos(x1) + numpy.sin(x2)
 
 
 def function_4_gradient(x):
-    """Test function 5 (gradient)."""
+    """Test function 4 (gradient)."""
     x1, x2 = x
     return -numpy.sin(x1), numpy.cos(x2)
 
 
 def function_4_hessian(x):
-    """Test function 5 (hessian)."""
+    """Test function 4 (hessian)."""
     x1, x2 = x
     return [[-numpy.cos(x1), 0], [0, -numpy.sin(x2)]]
 
 
 def function_5(x):
-    """Test function 6."""
+    """Test function 5."""
     return numpy.cos(x)
 
 
 def function_5_gradient(x):
-    """Test function 6 (gradient)."""
+    """Test function 5 (gradient)."""
     return -numpy.sin(x)
 
 
 def function_5_hessian(x):
-    """Test function 6 (hessian)."""
+    """Test function 5 (hessian)."""
     return -numpy.cos(x)
 
 
@@ -305,6 +305,7 @@ def test_regularization_error(surrogate_class, basis_sets):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestFit2D:
 
     def test_fit_2D(self, surrogate_class, grid_obj):
@@ -367,7 +368,7 @@ class TestFit2D:
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-3
         )
 
-    def test_fit_2D_Trigonometric(self, surrogate_class, grid_obj):
+    def test_fit_2D_complex(self, surrogate_class, grid_obj):
         """Test if class is fit to 2D function using periodic basis function with complex outputs."""
         domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
         num_level = 2
@@ -422,23 +423,101 @@ class TestFit2D:
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
-
-    @pytest.mark.parametrize(
-        "regularization,points",
-        [
-            (smolyay.surrogate.L2Regularization(alpha=1e-10), 1000),
-            (smolyay.surrogate.L1Regularization(alpha=1e-10), 2400),
-            (None, 1000),
-        ],
-        ids=["Ridge", "Lasso", "Least Squares"],
-    )
-    def test_fit_regularization_2D(self, surrogate_class, grid_obj, regularization, points):
+    def test_fit_regularization_2D(self, surrogate_class, grid_obj):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[-5, 5], [0, 10]]
         num_level = 4
-        basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)for d in domain]
-        surrogate = surrogate_class(domain, basis_sets,regularization)
-        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        sample_output = branin(grid.points)
+        surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
+        predict_answer = branin(test_points)
+        gradient_answer = branin_gradient(test_points)
+        hessian_answer = branin_hessian(test_points)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
+        )
+
+    def test_fit_regularization_complex_2D(self, surrogate_class, grid_obj):
+        """Test if class is fit when number of terms doesn't match samples for 2D function."""
+        domain = [[0, 2*numpy.pi], [0, 2*numpy.pi]]
+        num_level = 4
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level) for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 800, 1234)
+        sample_output = [function_4(x) for x in grid.points]
+        surrogate.fit(grid, sample_output)
+        print(len(surrogate._index_combinations))
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [function_4(x) for x in test_points]
+        gradient_answer = [function_4_gradient(x) for x in test_points]
+        hessian_answer = [function_4_hessian(x) for x in test_points]
+        print(surrogate.predict(test_points))
+        print(predict_answer)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
+        )
+
+    def test_fit_regularization_ridge_2D(self, surrogate_class, grid_obj):
+        """Test if class is fit when number of terms doesn't match samples for 2D function."""
+        domain = [[-5, 5], [0, 10]]
+        num_level = 4
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
+        surrogate = surrogate_class(
+            domain, basis_sets, smolyay.surrogate.L2Regularization(alpha=1e-10)
+        )
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        sample_output = branin(grid.points)
+        surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
+        predict_answer = branin(test_points)
+        gradient_answer = branin_gradient(test_points)
+        hessian_answer = branin_hessian(test_points)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
+        )
+
+    def test_fit_regularization_lasso_2D(self, surrogate_class, grid_obj):
+        """Test if class is fit when number of terms doesn't match samples for 2D function."""
+        domain = [[-5, 5], [0, 10]]
+        num_level = 4
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
+        surrogate = surrogate_class(
+            domain, basis_sets, (smolyay.surrogate.L1Regularization(alpha=1e-10))
+        )
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 2400, 1234)
         sample_output = branin(grid.points)
         surrogate.fit(grid, sample_output)
 
@@ -464,6 +543,7 @@ class TestFit2D:
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestFit1D:
 
     def test_fit_1D(self, surrogate_class):
@@ -524,7 +604,7 @@ class TestFit1D:
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
-    def test_fit_1D_Trigonometric(self, surrogate_class):
+    def test_fit_1D_complex(self, surrogate_class):
         """Test if class is fit to 1D function using periodic basis function with complex outputs."""
         domain = [0, 2 * numpy.pi]
         num_level = 2
@@ -636,6 +716,7 @@ def test_fit_error(surrogate_class):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestFitGradient2D:
 
     def test_fit_gradient_2D(self, surrogate_class, grid_obj):
@@ -716,7 +797,7 @@ class TestFitGradient2D:
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
-    def test_fit_gradient_2D_Trigonometric(self, surrogate_class, grid_obj):
+    def test_fit_gradient_2D_complex(self, surrogate_class, grid_obj):
         """Test if class is fit to gradient using periodic basis function with complex outputs."""
         domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
         num_level = 2
@@ -798,11 +879,16 @@ class TestFitGradient2D:
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
-    def test_fit_gradient_regularization_2D(self, surrogate_class, grid_obj, regularization):
+    def test_fit_gradient_regularization_2D(
+        self, surrogate_class, grid_obj, regularization
+    ):
         """Test if class is fit using gradient when n_terms != n_points for 2D function."""
         domain = numpy.array([[-5, 5], [-1, 1]])
         num_level = 3
-        basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level) for d in domain]
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
         surrogate = surrogate_class(domain, basis_sets, regularization)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
         sample_output = [function_3_gradient(x) for x in grid.points]
@@ -845,6 +931,7 @@ class TestFitGradient2D:
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestFitGradient1D:
 
     def test_fit_gradient_1D(self, surrogate_class):
@@ -923,7 +1010,7 @@ class TestFitGradient1D:
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
-    def test_fit_gradient_1D_Trigonometric(self, surrogate_class):
+    def test_fit_gradient_1D_complex(self, surrogate_class):
         """Test if class is fit to gradient using periodic basis function with complex outputs."""
         domain = numpy.array([0, 2 * numpy.pi])
         num_level = 2
@@ -1107,6 +1194,7 @@ def test_successive_fits(surrogate_class, grid_obj):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestPredictSize:
     def test_predict_size_2D(self, surrogate_class, grid_obj):
         """Test predict returns answer of the appropriate shape"""
@@ -1202,6 +1290,7 @@ def test_predict_error(surrogate_class, basis_sets):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestGradientSize:
 
     def test_predict_gradient_size_2D(self, surrogate_class, grid_obj):
@@ -1267,6 +1356,7 @@ class TestGradientSize:
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 def test_predict_gradient_error(surrogate_class, basis_sets):
     """Test that predict_gradient raises correct errors"""
     surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
@@ -1301,6 +1391,7 @@ def test_predict_gradient_error(surrogate_class, basis_sets):
     ],
     ids=["Tensor", "Smolyak"],
 )
+@pytest.mark.incremental
 class TestHessianSize:
 
     def test_predict_hessian_size_2D(self, surrogate_class, grid_obj):
