@@ -218,7 +218,7 @@ class SetProductSurrogate(Surrogate):
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X,ndmin=2,copy=None)
-        self._in_domain(X)
+        self._assert_in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
@@ -268,7 +268,7 @@ class SetProductSurrogate(Surrogate):
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X,ndmin=2,copy=None)
-        self._in_domain(X)
+        self._assert_in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -331,7 +331,7 @@ class SetProductSurrogate(Surrogate):
         if not self._valid_cache:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X,ndmin=2,copy=None)
-        self._in_domain(X)
+        self._assert_in_domain(X)
 
         # create lookup table and solve for all the basis functions
         lookup_table = []
@@ -422,7 +422,7 @@ class SetProductSurrogate(Surrogate):
 
         # validate data inputs
         X = numpy.array(X,ndmin=2,copy=None)
-        self._in_domain(X)
+        self._assert_in_domain(X)
 
         y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
@@ -524,7 +524,7 @@ class SetProductSurrogate(Surrogate):
 
         # validate data inputs
         X = numpy.array(X,ndmin=2,copy=None)
-        self._in_domain(X)
+        self._assert_in_domain(X)
         y = numpy.array(y,ndmin=2,copy=None)
         if y.shape != X.shape:
             raise IndexError("y must be 2D array with shape (n_samples, num_dimensions).")
