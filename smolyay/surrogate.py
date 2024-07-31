@@ -170,7 +170,6 @@ class SetProductSurrogate(Surrogate):
         self._integration_constant = 0
         self._needs_terms_constructed = True
 
-        self._basis_sets = basis_sets
         self.regularization = regularization
 
     @property
