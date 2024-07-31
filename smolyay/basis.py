@@ -578,7 +578,7 @@ class BasisFunctionSet(collections.abc.Sequence):
             y[i] = bf(new_X)
         return y
 
-    def derivative(self, X, domain, n=1):
+    def derivative(self, X, n=1, domain=None):
         """Evaluate all the derivative of basis functions in the set
 
         Calls the derivative for all the basis function(s) and
