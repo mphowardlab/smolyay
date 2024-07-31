@@ -369,7 +369,7 @@ class TestFit2D:
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-3
         )
 
-    def test_fit_2D_Trignometric(self, surrogate_class, grid_obj):
+    def test_fit_2D_Trigonometric(self, surrogate_class, grid_obj):
         """Test if class is fit to 2D function using periodic basis function with complex outputs."""
         domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
         num_level = 2
@@ -515,7 +515,7 @@ class TestFit1D:
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
-    def test_fit_1D_Trignometric(self, surrogate_class):
+    def test_fit_1D_Trigonometric(self, surrogate_class):
         """Test if class is fit to 1D function using periodic basis function with complex outputs."""
         domain = [0, 2 * numpy.pi]
         num_level = 2
@@ -690,7 +690,7 @@ class TestFitGradient2D:
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
-    def test_fit_gradient_2D_Trignometric(self, surrogate_class, grid_obj):
+    def test_fit_gradient_2D_Trigonometric(self, surrogate_class, grid_obj):
         """Test if class is fit to gradient using periodic basis function with complex outputs."""
         domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
         num_level = 2
@@ -876,6 +876,44 @@ class TestFitGradient1D:
         assert numpy.allclose(difference_predict, difference_predict[0])
         surrogate = surrogate.fit_gradient(
             grid_points, sample_output, [[domain[0]]], [function_4(domain[0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+
+    def test_fit_gradient_1D_Trigonometric(self, surrogate_class):
+        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        domain = numpy.array([0, 2 * numpy.pi])
+        num_level = 2
+
+        surrogate, point_sets = create_surrogate(
+            surrogate_class,
+            smolyay.basis.Trigonometric,
+            smolyay.samples.NestedTrigonometricPointSet,
+            num_level,
+            domain,
+        )
+        grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
+        sample_output = function_6_gradient(grid_points)
+        surrogate = surrogate.fit_gradient(grid_points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(function_6(test_points))
+        gradient_answer = function_6_gradient(test_points)
+        hessian_answer = numpy.array(function_6_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid_points, sample_output, [[domain[0]]], [function_6(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
