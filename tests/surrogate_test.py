@@ -926,7 +926,6 @@ class TestFitGradient1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
 
 
-
 @pytest.mark.parametrize(
     "surrogate_class",
     [
@@ -1052,7 +1051,6 @@ class TestPredictSize:
         )
         assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), ())
 
-
     def test_predict_size_1D(self, surrogate_class, grid_obj):
         num_level = 4
         domain = [-5, 5]
@@ -1067,7 +1065,9 @@ class TestPredictSize:
         grid_points = numpy.array(point_sets[0].points, ndmin=2).reshape((-1, 1))
         sample_output = function_2(grid_points)
         surrogate.fit(grid_points, sample_output)
-        assert numpy.array_equal(numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,))
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,)
+        )
         assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), ())
         assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), ())
 
@@ -1144,13 +1144,12 @@ class TestGradientSize:
         # fit with same number of points as terms
         surrogate.fit(grid, branin(grid.points))
         assert numpy.array_equal(
-            numpy.shape(surrogate.predict_gradient([[-0.5, 0.8], [0, 0], [0.7, 0]])), (3, 2)
+            numpy.shape(surrogate.predict_gradient([[-0.5, 0.8], [0, 0], [0.7, 0]])),
+            (3, 2),
         )
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_gradient([[0.7, 0]])), (1, 2)
         )
-
-
 
     def test_predict_gradient_size_1D(self, surrogate_class, grid_obj):
         num_level = 4
@@ -1250,7 +1249,6 @@ class TestHessianSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_hessian([[0.7, 0]])), (1, 2, 2)
         )
-
 
     def test_predict_hessian_size_1D(self, surrogate_class, grid_obj):
         num_level = 4
