@@ -582,7 +582,7 @@ class SetProductSurrogate(Surrogate):
         data = numpy.reshape(y, (self.num_dimensions * len(X),))
 
         # solve for coefficients
-        if self.regularization is None or numpy.any(numpy.iscomplex(basis_matrix)):
+        if self.regularization is None or numpy.iscomplexobj(basis_matrix):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
             regressor = sklearn.linear_model.Ridge(
