@@ -410,7 +410,7 @@ class TestFit2D:
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
-    def test_fit_regularization_2D(self, surrogate_class):
+    def test_fit_2D_regularization(self, surrogate_class):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[-5, 5], [0, 10]]
         num_level = 4
@@ -436,7 +436,7 @@ class TestFit2D:
             hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
         )
 
-    def test_fit_regularization_complex_2D(self, surrogate_class):
+    def test_fit_2D_regularization_complex(self, surrogate_class):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
         num_level = 4
@@ -465,7 +465,7 @@ class TestFit2D:
             hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
         )
 
-    def test_fit_regularization_ridge_2D(self, surrogate_class):
+    def test_fit_2D_regularization_ridge(self, surrogate_class):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[-5, 5], [0, 10]]
         num_level = 4
@@ -493,7 +493,7 @@ class TestFit2D:
             hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
         )
 
-    def test_fit_regularization_lasso_2D(self, surrogate_class):
+    def test_fit_2D_regularization_lasso(self, surrogate_class):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[-5, 5], [0, 10]]
         num_level = 4
@@ -646,7 +646,7 @@ class TestFit1D:
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
-    def test_fit_regularization_1D(self, surrogate_class, regularization):
+    def test_fit_1D_regularization(self, surrogate_class, regularization):
         """Test if class is fit when number of terms doesn't match samples for 1D function."""
         domain = [-5, 10]
         num_level = 4
@@ -879,7 +879,7 @@ class TestFitGradient2D:
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
-    def test_fit_gradient_regularization_2D(self, surrogate_class, regularization):
+    def test_fit_gradient_2D_regularization(self, surrogate_class, regularization):
         """Test if class is fit using gradient when n_terms != n_points for 2D function."""
         domain = numpy.array([[-5, 5], [-1, 1]])
         num_level = 3
@@ -919,6 +919,38 @@ class TestFitGradient2D:
         assert numpy.allclose(
             predict_answer, surrogate.predict(test_points), rtol=0.01, atol=1e-3
         )
+
+    def test_fit_gradient_2D_regularization_complex(self, surrogate_class):
+        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
+        num_level = 2
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level) for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        sample_output = [function_4_gradient(x) for x in grid.points]
+        surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [function_4(x) for x in test_points]
+        gradient_answer = [function_4_gradient(x) for x in test_points]
+        hessian_answer = [function_4_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid, sample_output, [domain[:, 0]], [function_4(domain[:, 0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
@@ -1052,7 +1084,7 @@ class TestFitGradient1D:
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
-    def test_fit_gradient_regularization_1D(self, surrogate_class, regularization):
+    def test_fit_gradient_1D_regularization(self, surrogate_class, regularization):
         """Test if class is fit using gradient when n_terms != n_points for 1D function."""
         num_level = 3
         domain = [-5, 6]
@@ -1082,6 +1114,39 @@ class TestFitGradient1D:
             grid, sample_output, [[domain[0]]], [function_2(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+
+    def test_fit_gradient_1D_regularization_complex(self, surrogate_class):
+        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        domain = numpy.array([0, 2 * numpy.pi])
+        num_level = 2
+
+        basis_sets = [smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
+        sample_output = function_5_gradient(grid.points)
+        surrogate = surrogate.fit_gradient(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(function_5(test_points))
+        gradient_answer = function_5_gradient(test_points)
+        hessian_answer = numpy.array(function_5_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid.points, sample_output, [[domain[0]]], [function_5(domain[0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
