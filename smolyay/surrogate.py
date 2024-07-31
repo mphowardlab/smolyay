@@ -163,7 +163,7 @@ class SetProductSurrogate(Surrogate):
 
     def __init__(self, domain, basis_sets, regularization=None):
         super().__init__(domain)
-        self._basis_sets = None
+        self._basis_sets = list(basis_sets)
         self._regularization = None
         self._index_combinations = None
         self._coefficients = None
