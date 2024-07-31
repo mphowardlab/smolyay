@@ -464,10 +464,14 @@ class SetProductSurrogate(Surrogate):
             else:
                 self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
-            regressor = regressor = sklearn.linear_model.Ridge(alpha=self.regularization.alpha, fit_intercept=False)
+            regressor = regressor = sklearn.linear_model.Ridge(
+                alpha=self.regularization.alpha, fit_intercept=False
+            )
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         elif isinstance(self.regularization, L1Regularization):
-            regressor = regressor = sklearn.linear_model.Lasso(alpha=self.regularization.alpha, fit_intercept=False)
+            regressor = regressor = sklearn.linear_model.Lasso(
+                alpha=self.regularization.alpha, fit_intercept=False
+            )
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
@@ -581,10 +585,14 @@ class SetProductSurrogate(Surrogate):
         if self.regularization is None or numpy.iscomplexobj(basis_matrix):
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
         elif isinstance(self.regularization, L2Regularization):
-            regressor = sklearn.linear_model.Ridge(alpha=self.regularization.alpha, fit_intercept=False)
+            regressor = sklearn.linear_model.Ridge(
+                alpha=self.regularization.alpha, fit_intercept=False
+            )
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         elif isinstance(self.regularization, L1Regularization):
-            regressor = sklearn.linear_model.Lasso(alpha=self.regularization.alpha, fit_intercept=False)
+            regressor = sklearn.linear_model.Lasso(
+                alpha=self.regularization.alpha, fit_intercept=False
+            )
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]

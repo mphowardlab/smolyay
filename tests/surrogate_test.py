@@ -879,9 +879,7 @@ class TestFitGradient2D:
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
-    def test_fit_gradient_regularization_2D(
-        self, surrogate_class, regularization
-    ):
+    def test_fit_gradient_regularization_2D(self, surrogate_class, regularization):
         """Test if class is fit using gradient when n_terms != n_points for 2D function."""
         domain = numpy.array([[-5, 5], [-1, 1]])
         num_level = 3

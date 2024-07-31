@@ -444,9 +444,7 @@ def test_scale_domain(basis_fun, answer_single, answer_multi):
     """Test the set can scale points to basis function domain"""
     domain = (-8, 12)
     assert basis_fun.scale_to_domain(0, domain) == pytest.approx(answer_single)
-    assert numpy.allclose(
-        basis_fun.scale_to_domain([0, 1, 2, 3], domain), answer_multi
-    )
+    assert numpy.allclose(basis_fun.scale_to_domain([0, 1, 2, 3], domain), answer_multi)
 
 
 # Test call function correctness
@@ -779,12 +777,13 @@ def test_set_base_class_initialize():
     assert f.basis_functions[0].degree == 0
     assert f[0].degree == 0
     assert len(f) == 1
-    assert numpy.array_equal(f.domain,[-1, 1])
+    assert numpy.array_equal(f.domain, [-1, 1])
     f = smolyay.basis.BasisFunctionSet([smolyay.basis.Trigonometric(0)])
     assert f.basis_functions[0].frequency == 0
     assert f[0].frequency == 0
     assert len(f) == 1
-    assert numpy.array_equal(f.domain,[0, 2*numpy.pi])
+    assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
+
 
 def test_set_base_class_initialize_error():
     """Test BasisFunctionSet gives error if basis function have different domains"""
@@ -793,7 +792,7 @@ def test_set_base_class_initialize_error():
         f.domain
     with pytest.raises(AttributeError):
         f = smolyay.basis.BasisFunctionSet([])
-        f.scale_to_domain([1,2,3,4],[0,5])
+        f.scale_to_domain([1, 2, 3, 4], [0, 5])
     with pytest.raises(TypeError):
         smolyay.basis.BasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.Trigonometric(0)]
@@ -806,6 +805,7 @@ def test_set_base_class_initialize_error():
         smolyay.basis.BasisFunctionSet(
             [smolyay.basis.ChebyshevFirstKind(0), smolyay.basis.ChebyshevSecondKind(0)]
         )
+
 
 @pytest.mark.parametrize(
     "basis_set",
@@ -828,7 +828,8 @@ def test_set_cheb_initialize(basis_set):
     assert f.basis_functions[2].degree == 2
     assert f[2].degree == 2
     assert len(f) == 3
-    assert numpy.array_equal(f.domain,[-1, 1])
+    assert numpy.array_equal(f.domain, [-1, 1])
+
 
 def test_set_trig_initialize():
     """Test TrigonometricBasisFunctionSet correctly initializes"""
@@ -840,7 +841,8 @@ def test_set_trig_initialize():
     assert f.basis_functions[2].frequency == -1
     assert f[2].frequency == -1
     assert len(f) == 3
-    assert numpy.array_equal(f.domain,[0, 2 * numpy.pi])
+    assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
+
 
 @pytest.mark.parametrize(
     "basis_set",
@@ -859,16 +861,16 @@ def test_set_initialize_empty(basis_set):
     """Test basis function sets initialize when empty"""
     f = basis_set(0)
     assert len(f) == 0
-    assert numpy.array_equal(f.basis_functions,[])
+    assert numpy.array_equal(f.basis_functions, [])
     with pytest.raises(AttributeError):
         f.domain
     with pytest.raises(AttributeError):
-        f.scale_to_domain([1,2,3,4],[0,5])
+        f.scale_to_domain([1, 2, 3, 4], [0, 5])
 
 
 def test_nested_set_base_class_initialize():
     """Test NestedBasisFunctionSet correctly initializes"""
-    f = smolyay.basis.NestedBasisFunctionSet([],[])
+    f = smolyay.basis.NestedBasisFunctionSet([], [])
     assert len(f) == 0
     assert f.num_levels == 0
     assert numpy.array_equal(f.num_per_level, [])
@@ -893,7 +895,7 @@ def test_nested_set_base_class_initialize_error():
         f.domain
     with pytest.raises(AttributeError):
         f = smolyay.basis.NestedBasisFunctionSet([], [0])
-        f.scale_to_domain([1,2,3,4],[0, 5])
+        f.scale_to_domain([1, 2, 3, 4], [0, 5])
     with pytest.raises(ValueError):
         smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 1])
     with pytest.raises(ValueError):
@@ -1112,7 +1114,9 @@ def test_set_2nd_derivative(basis_function_set, key_for_answer):
     domain = (-8, 12)
     answer_key = basis_set_2nd_derivative_answer_key[key_for_answer][0]
     X = basis_set_2nd_derivative_answer_key[key_for_answer][1]
-    assert numpy.allclose(basis_function_set.derivative(X, n=2, domain=domain), answer_key)
+    assert numpy.allclose(
+        basis_function_set.derivative(X, n=2, domain=domain), answer_key
+    )
 
 
 @pytest.mark.parametrize(

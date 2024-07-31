@@ -96,10 +96,8 @@ class BasisFunction(abc.ABC):
         numeric or array-like
             points shifted to BasisFunction domain"""
         points = numpy.array(points, ndmin=1, copy=None)
-        new_points = (
-            self.domain[0]
-            + (self.domain[1] - self.domain[0])
-            * ((points - old_domain[0]) / (old_domain[1] - old_domain[0]))
+        new_points = self.domain[0] + (self.domain[1] - self.domain[0]) * (
+            (points - old_domain[0]) / (old_domain[1] - old_domain[0])
         )
         numpy.clip(new_points, self.domain[0], self.domain[1], out=new_points)
         if new_points.ndim == 0:
@@ -516,8 +514,7 @@ class BasisFunctionSet(collections.abc.Sequence):
             ref_domain = basis_functions[0].domain
             ref_type = type(basis_functions[0])
             if any(
-                not numpy.array_equal(b.domain, ref_domain)
-                or type(b) is not ref_type
+                not numpy.array_equal(b.domain, ref_domain) or type(b) is not ref_type
                 for b in basis_functions[1:]
             ):
                 raise TypeError(
@@ -593,7 +590,7 @@ class BasisFunctionSet(collections.abc.Sequence):
             order of derivative. Default is 1.
 
         domain : numpy array of shape (2,)
-            the lower and upper bounds of X.            
+            the lower and upper bounds of X.
 
         Returns
         -------
@@ -683,10 +680,14 @@ class NestedBasisFunctionSet(BasisFunctionSet):
             basis_functions = [basis_functions]
         # check validity of basis functions
         if numpy.sum(num_per_level) != len(basis_functions):
-            raise ValueError("Number of basis functions does not match level specification.")
+            raise ValueError(
+                "Number of basis functions does not match level specification."
+            )
         super().__init__(basis_functions)
         self._num_per_level = numpy.array(num_per_level, dtype=int)
-        self._start_level, self._end_level = _growth.get_level_start_and_end(self._num_per_level)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
 
     @property
     def num_per_level(self):
