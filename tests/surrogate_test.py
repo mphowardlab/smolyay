@@ -409,13 +409,13 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-    
+
     @pytest.mark.parametrize(
         "regularization,points",
         [
-            (smolyay.surrogate.L2Regularization(alpha=1e-10),1000),
-            (smolyay.surrogate.L1Regularization(alpha=1e-10),2400),
-            (None,1000),
+            (smolyay.surrogate.L2Regularization(alpha=1e-10), 1000),
+            (smolyay.surrogate.L1Regularization(alpha=1e-10), 2400),
+            (None, 1000),
         ],
         ids=["Ridge", "Lasso", "Least Squares"],
     )
