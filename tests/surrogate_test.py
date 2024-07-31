@@ -719,8 +719,6 @@ class TestFitGradient2D:
             smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
             smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
         ]
-        num_trig = numpy.arange(len(point_sets[0]), dtype=int)
-        frequencies = numpy.where(num_trig % 2 == 1, (1 + num_trig) / 2, -num_trig / 2)
         basis_sets = [
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
