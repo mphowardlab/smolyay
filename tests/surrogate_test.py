@@ -409,8 +409,17 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-
-    def test_fit_2D_regularization(self, surrogate_class):
+    
+    @pytest.mark.parametrize(
+        "regularization,points",
+        [
+            (smolyay.surrogate.L2Regularization(alpha=1e-10),1000),
+            (smolyay.surrogate.L1Regularization(alpha=1e-10),2400),
+            (None,1000),
+        ],
+        ids=["Ridge", "Lasso", "Least Squares"],
+    )
+    def test_fit_2D_regularization(self, surrogate_class, regularization, points):
         """Test if class is fit when number of terms doesn't match samples for 2D function."""
         domain = [[-5, 5], [0, 10]]
         num_level = 4
@@ -418,8 +427,8 @@ class TestFit2D:
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
             for d in domain
         ]
-        surrogate = surrogate_class(domain, basis_sets, None)
-        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        surrogate = surrogate_class(domain, basis_sets, regularization)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
         sample_output = branin(grid.points)
         surrogate.fit(grid, sample_output)
 
@@ -455,64 +464,6 @@ class TestFit2D:
         predict_answer = [function_4(x) for x in test_points]
         gradient_answer = [function_4_gradient(x) for x in test_points]
         hessian_answer = [function_4_hessian(x) for x in test_points]
-        print(surrogate.predict(test_points))
-        print(predict_answer)
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
-        assert numpy.allclose(
-            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
-        )
-        assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
-        )
-
-    def test_fit_2D_regularization_ridge(self, surrogate_class):
-        """Test if class is fit when number of terms doesn't match samples for 2D function."""
-        domain = [[-5, 5], [0, 10]]
-        num_level = 4
-        basis_sets = [
-            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
-            for d in domain
-        ]
-        surrogate = surrogate_class(
-            domain, basis_sets, smolyay.surrogate.L2Regularization(alpha=1e-10)
-        )
-        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
-        sample_output = branin(grid.points)
-        surrogate.fit(grid, sample_output)
-
-        # test surrogate matches at some points
-        test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
-        predict_answer = branin(test_points)
-        gradient_answer = branin_gradient(test_points)
-        hessian_answer = branin_hessian(test_points)
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
-        assert numpy.allclose(
-            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
-        )
-        assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
-        )
-
-    def test_fit_2D_regularization_lasso(self, surrogate_class):
-        """Test if class is fit when number of terms doesn't match samples for 2D function."""
-        domain = [[-5, 5], [0, 10]]
-        num_level = 4
-        basis_sets = [
-            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
-            for d in domain
-        ]
-        surrogate = surrogate_class(
-            domain, basis_sets, (smolyay.surrogate.L1Regularization(alpha=1e-10))
-        )
-        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 2400, 1234)
-        sample_output = branin(grid.points)
-        surrogate.fit(grid, sample_output)
-
-        # test surrogate matches at some points
-        test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
-        predict_answer = branin(test_points)
-        gradient_answer = branin_gradient(test_points)
-        hessian_answer = branin_hessian(test_points)
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
         assert numpy.allclose(
             gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
