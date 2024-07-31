@@ -305,7 +305,6 @@ def test_regularization_error(surrogate_class, basis_sets):
     ],
     ids=["Tensor", "Smolyak"],
 )
-@pytest.mark.incremental
 class TestFit2D:
 
     @pytest.mark.dependency()
@@ -338,8 +337,6 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-3
         )
-        if isinstance(surrogate, smolyay.surrogate.TensorProductSurrogate):
-            assert False
 
     def test_fit_2D_domain_shift(self, surrogate_class, grid_obj):
         """Test if class is fit to 2D function with different domain as basis."""
@@ -458,7 +455,6 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
         )
-        assert False
 
 
 @pytest.mark.parametrize(
