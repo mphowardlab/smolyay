@@ -180,7 +180,7 @@ class SetProductSurrogate(Surrogate):
     @regularization.setter
     def regularization(self, value):
         if value is not None and not isinstance(value, RegularizationMethod):
-            raise ValueError("Regression must be a RegularizationMethod")
+            raise ValueError("Regularization must be a RegularizationMethod")
         if self.regularization != value:
             self._regularization = value
             self._needs_fit = False
