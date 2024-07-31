@@ -174,7 +174,7 @@ class SetProductSurrogate(Surrogate):
 
     @property
     def regularization(self):
-        """:class:RegularizationHelper: constant of the L2 and L1 term"""
+        """:class:RegularizationMethod: constant of the L2 and L1 term"""
         return self._regularization
 
     @regularization.setter
