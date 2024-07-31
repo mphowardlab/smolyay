@@ -636,7 +636,7 @@ class TensorProductSurrogate(SetProductSurrogate):
             (num_points, len(self._basis_sets)), dtype=int
         )
         for i, point in enumerate(
-            itertools.product(*[numpy.arange(len(bs)) for bs in self._basis_sets])
+            itertools.product(*[range(len(bs)) for bs in self._basis_sets])
         ):
             self._index_combinations[i] = point
 
