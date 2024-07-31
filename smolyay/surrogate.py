@@ -386,7 +386,7 @@ class SetProductSurrogate(Surrogate):
         X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
             points that are sampled
 
-        y : array-like of shape (n_samples,)
+        y : array-like of shape (n_samples,) or (n_samples, 1)
             function at grid points.
 
         Returns
@@ -399,7 +399,7 @@ class SetProductSurrogate(Surrogate):
         IndexError
             X must be 2D array with shape (n_samples, num_dimensions).
         IndexError
-            y must be 1D array with shape (n_samples,).
+            y must be 1D array with shape (n_samples,) or (n_samples, 1).
         ValueError
             X must lie in domain of surrogate.
         """
@@ -425,7 +425,7 @@ class SetProductSurrogate(Surrogate):
 
         y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            raise IndexError("Must be 1D array with shape (n_samples,).")
+            raise IndexError("Must be 1D array with shape (n_samples,) or (n_samples, 1).")
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
