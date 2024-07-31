@@ -5,7 +5,7 @@ import warnings
 import numpy
 import sklearn.linear_model
 
-import smolyay
+from . import samples
 
 
 class Surrogate:
@@ -414,8 +414,8 @@ class SetProductSurrogate(Surrogate):
         if isinstance(
             X,
             (
-                smolyay.samples.UnidimensionalPointSet,
-                smolyay.samples.MultidimensionalPointSet,
+                samples.UnidimensionalPointSet,
+                samples.MultidimensionalPointSet,
             ),
         ):
             X = X.points
@@ -516,8 +516,8 @@ class SetProductSurrogate(Surrogate):
         if isinstance(
             X,
             (
-                smolyay.samples.UnidimensionalPointSet,
-                smolyay.samples.MultidimensionalPointSet,
+                samples.UnidimensionalPointSet,
+                samples.MultidimensionalPointSet,
             ),
         ):
             X = X.points
@@ -662,7 +662,7 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
         for sum_of_levels in range(max_num_levels):
             level_combinations.extend(
                 list(
-                    smolyay.samples._generate_compositions(
+                    samples._generate_compositions(
                         sum_of_levels, self.num_dimensions, include_zero=True
                     )
                 )
