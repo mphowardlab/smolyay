@@ -589,11 +589,11 @@ class BasisFunctionSet(collections.abc.Sequence):
         X : array-like
             the points to evaluate.
 
-        domain : numpy array of shape (2,)
-            the lower and upper bounds of X.
-
         n : int, optional
             order of derivative. Default is 1.
+
+        domain : numpy array of shape (2,)
+            the lower and upper bounds of X.            
 
         Returns
         -------

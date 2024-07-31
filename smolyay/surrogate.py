@@ -277,7 +277,7 @@ class SetProductSurrogate(Surrogate):
         for dim in range(self.num_dimensions):
             lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
             lookup_table_derivative.append(
-                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+                self.basis_sets[dim].derivative(X[:, dim], domain=self.domain[dim])
             )
 
         # use lookup table to combine terms
@@ -341,10 +341,10 @@ class SetProductSurrogate(Surrogate):
         for dim in range(self.num_dimensions):
             lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
             lookup_table_derivative.append(
-                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+                self.basis_sets[dim].derivative(X[:, dim], domain=self.domain[dim])
             )
             lookup_table_2nd_derivative.append(
-                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim], 2)
+                self.basis_sets[dim].derivative(X[:, dim], n=2, domain=self.domain[dim])
             )
 
         # use lookup table to combine terms
@@ -536,7 +536,7 @@ class SetProductSurrogate(Surrogate):
         for dim in range(self.num_dimensions):
             lookup_table.append(self.basis_sets[dim](X[:, dim], self.domain[dim]))
             lookup_table_derivative.append(
-                self.basis_sets[dim].derivative(X[:, dim], self.domain[dim])
+                self.basis_sets[dim].derivative(X[:, dim], domain=self.domain[dim])
             )
 
         # create basis matrix

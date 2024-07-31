@@ -307,7 +307,6 @@ def test_regularization_error(surrogate_class, basis_sets):
 )
 class TestFit2D:
 
-    @pytest.mark.dependency()
     def test_fit_2D(self, surrogate_class, grid_obj):
         """Test if class is fit to 2D function."""
         num_level = 5
