@@ -566,7 +566,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         scalar or ndarray
             the values of the basis functions.
         """
-        if not domain is None:
+        if domain is not None:
             new_X = self.scale_to_domain(X, domain)
         else:
             new_X = numpy.asarray(X)
