@@ -51,7 +51,7 @@ class Surrogate:
         """int: number of independent variables."""
         return self.domain.shape[0]
     
-    def _in_domain(self, X):
+    def _assert_in_domain(self, X):
         """Check if input is in surrogate's domain.
         
         Parameters
