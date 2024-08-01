@@ -62,6 +62,172 @@ class Normalizer(abc.ABC):
         self._valid_cache = True
         return self
 
+    def gradient_transform(self, y, gradient):
+        r"""Derivative of input after transformation.
+
+        In accordance with the chain rule, the derivative of a
+        function h(x) = f(g(x)) where f(y) and y = g(x) is
+
+        :math..
+            h'(x) = f'(g(x)) g'(x)
+
+        or put another way
+
+        :math..
+            \frac{\partial f}{\partial x} = \frac{\partial f}{\partial y}\frac{\partial y}{\partial x}
+
+        If f(y) is the transform defined by a normalizer, and y
+        is the output of some function g(x), the derivative of
+        f(y) can be calculated given y and the derivative of y
+        if y is univariate or the gradient of y if y is multivariate.
+
+        Parameters
+        ----------
+        y : array-like of shape (n_samples,) or (n_samples, 1)
+            the output of some function g(x)
+
+        gradient : array-like of shape (n_samples,) or (n_samples, num_dimensions)
+            the gradient matrix of some function g(x)
+
+        Returns
+        -------
+        array-like of shape (n_samples, 1) or (n_samples, num_dimensions)
+            the gradient matrix of f(g(x))
+        """
+        y = numpy.array(y, ndmin=2, copy=None)
+        if y.shape[-1] > 1 and y.shape[0] == 1:
+            y = y.reshape((-1, 1))
+        gradient = numpy.array(gradient, ndmin=2, copy=None)
+        return self.derivative(y) * gradient
+
+    def gradient_inverse(self, y, gradient):
+        r"""Inverse normalization of a gradient
+
+        In accordance with the chain rule, the derivative of a
+        function h(x) = k(g(x)) where k(y) and y = g(x) is
+
+        :math..
+            h'(x) = k'(g(x)) g'(x)
+
+        or put another way
+
+        :math..
+            \frac{\partial k}{\partial x} = \frac{\partial k}{\partial y}\frac{\partial y}{\partial x}
+
+        If k(y) is the inverse transform defined by a normalizer, and y
+        is the output of some function g(x), the derivative of
+        k(y) can be calculated given y and the derivative of y
+        if y is univariate or the gradient of y if y is multivariate.
+
+        Parameters
+        ----------
+        y : array-like of shape (n_samples,) or (n_samples, 1)
+            the output of some function g(x)
+
+        gradient : array-like of shape (n_samples,) or (n_samples, num_dimensions)
+            the gradient matrix of some function g(x)
+
+        Returns
+        -------
+        array-like of shape (n_samples, 1) or (n_samples, num_dimensions)
+            the gradient matrix of k(g(x))
+        """
+        y = numpy.array(y, ndmin=2, copy=None)
+        if y.shape[-1] > 1 and y.shape[0] == 1:
+            y = y.reshape((-1, 1))
+        gradient = numpy.array(gradient, ndmin=2, copy=None)
+        return self.inverse_derivative(y) * gradient
+
+    def hessian_transform(self, y, gradient, hessian):
+        r"""2nd derivative of input after transformation.
+
+        In accordance with the chain rule, the 2nd derivative of a
+        function h(x) = f(g(x)) where f(y) and y = g(x) is
+
+        :math..
+            h''(x) = f''(g(x)) (g'(x))^{2} + f'(g(x))g''(x)
+
+        where g'(x) is the gradient of y and g''(x) is the hessian
+        matrix of y.
+
+        If f(y) is the transform defined by a normalizer, and y
+        is the output of some function g(x), the 2nd derivative of
+        h(x) can be calculated given output at g(x), the gradient of g
+        at x, and the hessian matrix of g at x.
+
+        Parameters
+        ----------
+        y : array-like of shape (n_samples,) or (n_samples, 1)
+            the output of some function g(x)
+
+        gradient : array-like of shape (n_samples,) or (n_samples, num_dimensions)
+            the gradient matrix of some function g(x)
+
+        hessian : array-like of shape (n_samples,) or (n_samples, num_dimensions, num_dimensions)
+            the hessian matrix of some function g(x)
+
+        Returns
+        -------
+        array-like of shape (n_samples, 1, 1) or (n_samples, num_dimensions, num_dimensions)
+            the hessian matrix of f(g(x))
+        """
+        hessian = numpy.array(hessian, ndmin=3, copy=None)
+        if hessian.shape[-1] != hessian.shape[1]:
+            hessian = hessian.reshape((-1, 1, 1))
+        y = numpy.array(y, ndmin=3, copy=None).reshape((hessian.shape[0], 1, 1))
+        gradient = numpy.array(gradient, ndmin=3, copy=None).reshape(
+            (hessian.shape[0], hessian.shape[1], 1)
+        )
+        gradient2 = gradient.reshape((hessian.shape[0], 1, hessian.shape[1]))
+        return (
+            self.derivative(y, 2) * (gradient * gradient2)
+            + self.derivative(y) * hessian
+        )
+
+    def hessian_inverse(self, y, gradient, hessian):
+        r"""2nd derivative of input after inverse transformation.
+
+        In accordance with the chain rule, the 2nd derivative of a
+        function h(x) = k(g(x)) where k(y) and y = g(x) is
+
+        :math..
+            h''(x) = k''(g(x)) (g'(x))^{2} + k'(g(x))g''(x)
+
+        where g'(x) is the gradient of y and g''(x) is the hessian
+        matrix of y.
+
+        If k(y) is the inverse transform defined by a normalizer, and y
+        is the output of some function g(x), the 2nd derivative of
+        h(x) can be calculated given output at g(x), the gradient of g
+        at x, and the hessian matrix of g at x.
+
+        Parameters
+        ----------
+        y : array-like of shape (n_samples,) or (n_samples, 1)
+            the output of some function g(x)
+
+        gradient : array-like of shape (n_samples,) or (n_samples, num_dimensions)
+            the gradient matrix of some function g(x)
+
+        hessian : array-like of shape (n_samples,) or (n_samples, num_dimensions, num_dimensions)
+            the hessian matrix of some function g(x)
+
+        Returns
+        -------
+        array-like of shape (n_samples, 1, 1) or (n_samples, num_dimensions, num_dimensions)
+            the hessian matrix of f(g(x))
+        """
+        hessian = numpy.array(hessian, ndmin=3, copy=None)
+        if hessian.shape[-1] != hessian.shape[1]:
+            hessian = hessian.reshape((-1, 1, 1))
+        y = numpy.array(y, ndmin=3, copy=None).reshape((hessian.shape[0], 1, 1))
+        gradient = numpy.atleast_3d(gradient)
+        gradient2 = gradient.reshape((hessian.shape[0], 1, hessian.shape[1]))
+        return (
+            self.inverse_derivative(y, 2) * (gradient * gradient2)
+            + self.inverse_derivative(y) * hessian
+        )
+
     @abc.abstractmethod
     def transform(self, x):
         """Normalization function
@@ -658,17 +824,18 @@ class SymmetricalLogNormalizer(Normalizer):
             * numpy.power(10, numpy.abs(x))
         )
 
+
 class AsinhNormalizer(Normalizer):
     r"""Transforms data using the inverse hyperbolic sine
-    
+
     A nonlinear transformation that on small values close to
     zero causes little change but is asymptotically logarithmic
     on large absolute magnitudes, thus having a similar effect
     of a logarithmic scale on large values while also able to
     support negative values.
-    
-    The inverse hyperbolic sine (asinh or sinh^-1) is 
-    
+
+    The inverse hyperbolic sine (asinh or sinh^-1) is
+
     :math::
         \sinh^{-1}(x) = \ln(x + \sqrt{x^{2} + 1})
 
@@ -677,11 +844,11 @@ class AsinhNormalizer(Normalizer):
     :math::
         \sinh(x) = \frac{e^{x} - e^{-x}}{2}
 
-    Its derivative is 
+    Its derivative is
 
     :math::
         \frac{\mathrm{d} }{\mathrm{d} x} \sinh^{-1}(x) = \frac{1}{\sqrt{x^{2} + 1}}
-    
+
     and contains no discontinuities.
 
     The parameter `linthresh` designates the range about 0 that
@@ -724,7 +891,7 @@ class AsinhNormalizer(Normalizer):
         normalized data
         """
         x = numpy.array(x)
-        return self.linthresh*numpy.arcsinh(x/self.linthresh)
+        return self.linthresh * numpy.arcsinh(x / self.linthresh)
 
     def inverse_transform(self, x):
         """Inverse normalization function
@@ -739,7 +906,7 @@ class AsinhNormalizer(Normalizer):
         unnormalized data
         """
         x = numpy.array(x)
-        return self.linthresh*numpy.sinh(x/self.linthresh)
+        return self.linthresh * numpy.sinh(x / self.linthresh)
 
     def derivative(self, x, n=1):
         """The derivative of the transformation.
@@ -766,13 +933,20 @@ class AsinhNormalizer(Normalizer):
         """
         x = numpy.array(x)
         if n == 1:
-            return 1/numpy.sqrt((x**2)/(self.linthresh**2) + 1)
+            return 1 / numpy.sqrt((x**2) / (self.linthresh**2) + 1)
         elif n == 2:
-            return - x/((self.linthresh**2)*numpy.power((x**2)/(self.linthresh**2) + 1,3/2))
+            return -x / (
+                (self.linthresh**2)
+                * numpy.power((x**2) / (self.linthresh**2) + 1, 3 / 2)
+            )
         elif n == 3:
-            return (2 * x**2 - self.linthresh**2) / (self.linthresh**4 * (x**2 / self.linthresh**2 + 1)**(5 / 2))
+            return (2 * x**2 - self.linthresh**2) / (
+                self.linthresh**4 * (x**2 / self.linthresh**2 + 1) ** (5 / 2)
+            )
         else:
-            raise NotImplementedError("Derivative order " + str(n) + " is not supported.")
+            raise NotImplementedError(
+                "Derivative order " + str(n) + " is not supported."
+            )
 
     def inverse_derivative(self, x, n=1):
         """The derivative of the inverse transformation.
@@ -799,8 +973,116 @@ class AsinhNormalizer(Normalizer):
         """
         x = numpy.array(x)
         if n % 2 == 1:
-            return numpy.cosh(x/self.linthresh)/(self.linthresh**(n - 1))
+            return numpy.cosh(x / self.linthresh) / (self.linthresh ** (n - 1))
         elif n % 2 == 0:
-            return numpy.sinh(x/self.linthresh)/(self.linthresh**(n - 1))
+            return numpy.sinh(x / self.linthresh) / (self.linthresh ** (n - 1))
         else:
-            raise NotImplementedError("Derivative order " + str(n) + " is not supported.")
+            raise NotImplementedError(
+                "Derivative order " + str(n) + " is not supported."
+            )
+
+
+class BugTestNormalizer(Normalizer):
+    r"""Test normalizer"""
+
+    def __init__(self):
+        super().__init__()
+        self._valid_cache = True
+
+    def transform(self, x):
+        """Normalization function
+
+        Parameters
+        ----------
+        x : numerical data
+            data to be transformed
+
+        Return
+        ------
+        normalized data
+        """
+        x = numpy.array(x)
+        return x**3
+
+    def inverse_transform(self, x):
+        """Inverse normalization function
+
+        Parameters
+        ----------
+        x : numerical data
+            normalized data to be transformed
+
+        Return
+        ------
+        unnormalized data
+        """
+        x = numpy.array(x)
+        return numpy.sign(x) * numpy.power(numpy.abs(x), 1 / 3)
+
+    def derivative(self, x, n=1):
+        """The derivative of the transformation.
+
+        Evaluates the 1st and 2nd derivative of the inverse hypobolic sin.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        NotImplementedError
+            Only 1st and 2nd derivative are supported.
+        """
+        x = numpy.array(x)
+        if n == 1:
+            return 3 * x**2
+        elif n == 2:
+            return 6 * x
+        elif n == 3:
+            return 6 * numpy.ones(x.shape)
+        else:
+            return numpy.zeros(x.shape)
+
+    def inverse_derivative(self, x, n=1):
+        """The derivative of the inverse transformation.
+
+        Evaluates the 1st and 2nd derivative of the hypobolic sin.
+
+        Parameters
+        ----------
+        x : array-like
+            the input data
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        Returns
+        -------
+        array-like
+            derivative at x
+
+        Raises
+        ------
+        NotImplementedError
+            Only 1st and 2nd derivative are supported.
+        """
+        x = numpy.array(x)
+        if n == 1:
+            return 1 / (3 * (numpy.power(numpy.abs(x), 2 / 3)))
+        elif n == 2:
+            return -2 / (9 * (numpy.sign(x) * numpy.power(numpy.abs(x), 5 / 3)))
+        elif n == 3:
+            return 10 / (27 * (numpy.sign(x) * numpy.power(numpy.abs(x), 8 / 3)))
+        else:
+            raise NotImplementedError(
+                "Derivative order " + str(n) + " is not supported."
+            )

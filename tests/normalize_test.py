@@ -10,7 +10,9 @@ from smolyay.normalize import (
     IntervalNormalizer,
     ZScoreNormalizer,
     AsinhNormalizer,
+    BugTestNormalizer,
 )
+import smolyay
 
 
 @pytest.mark.parametrize(
@@ -359,3 +361,247 @@ def test_zscore_refit():
     normal.fit(x2)
     assert normal.mean_val == mean2
     assert normal.std_val == std2
+
+
+def create_surrogate(
+    surrogate_class,
+    nested_basis_set_class,
+    num_level,
+    domain,
+    nested_point_class=None,
+    **kwargs
+):
+    domain = numpy.array(domain, ndmin=2)
+    basis_sets = [nested_basis_set_class(num_level) for dom in domain]
+    point_sets = [nested_point_class(dom, num_level) for dom in domain]
+    if surrogate_class is smolyay.surrogate.TensorProductSurrogate:
+        grid = smolyay.samples.TensorProductPointSet(point_sets)
+    else:
+        grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+    return surrogate_class(domain, basis_sets, **kwargs), grid
+
+
+def function_1(x):
+    """Test function 1."""
+    x1, x2 = x
+    return numpy.cos(x1) + (2 * x2**2 - 1)
+
+
+def function_1_gradient(x):
+    """Test function 1 (gradient)."""
+    x1, x2 = x
+    return -numpy.sin(x1), 4 * x2
+
+
+def function_1_hessian(x):
+    """Test function 1 (hessian)."""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0], [0, 4]]
+
+
+def function_2(x):
+    """Test function 2."""
+    return x**3 - 3 * (2 + x) - x
+
+
+def function_2_gradient(x):
+    """Test function 2 (gradient)."""
+    return 3 * x**2 - 4
+
+
+def function_2_hessian(x):
+    """Test function 2 (hessian)."""
+    return 6 * x
+
+
+def function_3(x):
+    """Test function 3"""
+    return x[:, 0] * x[:, 1] - 2 * x[:, 1]
+
+
+def function_3_gradient(x):
+    """Test function 3 (gradient)."""
+    answer = numpy.zeros(numpy.shape(x))
+    answer[:, 0] = x[:, 1]
+    answer[:, 1] = x[:, 0] - 2
+    return answer
+
+
+def function_3_hessian(x):
+    """Test function 3 (hessian)."""
+    answer = numpy.zeros(list(numpy.shape(x)) + [numpy.shape(x)[-1]])
+    answer[:, 0, 1] = 1
+    answer[:, 1, 0] = 1
+    return answer
+
+
+def function_4(x):
+    """Test function 4."""
+    x1, x2 = x
+    return numpy.cos(x1) + numpy.sin(x2)
+
+
+def function_4_gradient(x):
+    """Test function 4 (gradient)."""
+    x1, x2 = x
+    return -numpy.sin(x1), numpy.cos(x2)
+
+
+def function_4_hessian(x):
+    """Test function 4 (hessian)."""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0], [0, -numpy.sin(x2)]]
+
+
+def function_5(x):
+    """Test function 5."""
+    return numpy.cos(x)
+
+
+def function_5_gradient(x):
+    """Test function 5 (gradient)."""
+    return -numpy.sin(x)
+
+
+def function_5_hessian(x):
+    """Test function 5 (hessian)."""
+    return -numpy.cos(x)
+
+
+def branin(x):
+    """Branin function."""
+    branin1 = (
+        x[..., 1]
+        - 5.1 * x[..., 0] ** (2) / (4 * numpy.pi**2)
+        + 5 * x[..., 0] / (numpy.pi)
+        - 6
+    ) ** 2
+    branin2 = 10 * (1 - 1 / (8 * numpy.pi)) * numpy.cos(x[..., 0])
+    branin3 = 10
+    branin_function = branin1 + branin2 + branin3
+    return branin_function
+
+
+def branin_gradient(x):
+    """Gradient of the branin function."""
+    answer = numpy.zeros(numpy.shape(x))
+    answer[..., 0] = -10 * (1 - 1 / (8 * numpy.pi)) * numpy.sin(x[..., 0]) + 2 * (
+        5 / numpy.pi - 51 * x[..., 0] / (20 * numpy.pi**2)
+    ) * (
+        -51 * (x[..., 0] ** 2) / (40 * (numpy.pi**2))
+        + 5 * x[..., 0] / numpy.pi
+        + x[..., 1]
+        - 6
+    )
+    answer[..., 1] = 2 * (
+        x[..., 1]
+        - 51 * (x[..., 0] ** 2) / (40 * (numpy.pi**2))
+        + 5 * x[..., 0] / numpy.pi
+        - 6
+    )
+    return answer
+
+
+def branin_hessian(x):
+    """Hessian matrix of the branin function."""
+    answer = numpy.zeros(list(numpy.shape(x)) + [numpy.shape(x)[-1]])
+    # d2f/dx2
+    answer[:, 0, 0] = -(
+        (4000 * (numpy.pi**4) - 500 * (numpy.pi**3)) * numpy.cos(x[:, 0])
+        - 7803 * (x[:, 0] ** 2)
+        + 30600 * numpy.pi * x[:, 0]
+        + 2040 * (numpy.pi**2) * x[:, 1]
+        - 32240 * (numpy.pi**2)
+    ) / (400 * numpy.pi**4)
+    # d2f/dy2
+    answer[:, 1, 1] = 2
+    # d2f/dxdy
+    answer[:, 0, 1] = answer[:, 1, 0] = 2 * (
+        -51 * (x[:, 0]) / (20 * (numpy.pi**2)) + 5 / numpy.pi
+    )
+    return answer
+
+
+@pytest.mark.parametrize(
+    "normal,rtol",
+    [
+        (SymmetricalLogNormalizer(),1e-02),
+        (AsinhNormalizer(),1e-02),
+        (BugTestNormalizer(), 1e-5),
+        (ZScoreNormalizer(), 1e-05),
+        (IntervalNormalizer(), 1e-05),
+    ],
+    ids=[
+        "SymmetricalLogNormalizer",
+        "AsinhNormalizer",
+        "BugTestNormalizer",
+        "ZScoreNormalizer",
+        "IntervalNormalizer",
+    ],
+)
+@pytest.mark.parametrize(
+    "predict_method",
+    ["predict", "gradient", "hessian"],
+    ids=["predict", "gradient", "hessian"],
+)
+@pytest.mark.parametrize(
+    "function,function_gradient,function_hessian,domain",
+    [
+        (branin, branin_gradient, branin_hessian, [[-1, 1], [-1, 1]]),
+        (function_2, function_2_gradient, function_2_hessian, [-1, 1]),
+    ],
+    ids=[
+        "branin",
+        "function_2",
+    ],
+)
+def test_fit_2D(
+    normal, rtol, predict_method, function, function_gradient, function_hessian, domain
+):
+    """Test if class is fit to 2D function."""
+    surrogate_class = smolyay.surrogate.SmolyakSparseProductSurrogate
+    num_level = 6
+
+    surrogate, grid = create_surrogate(
+        surrogate_class,
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+        num_level,
+        domain,
+        nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+    )
+    sample_output = function(grid.points)
+    normal = normal.fit(sample_output)
+    sample_output = normal.transform(sample_output)
+    surrogate = surrogate.fit(grid, sample_output)
+
+    # test surrogate matches at some points
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer = numpy.squeeze(function(test_points))
+    gradient_answer = function_gradient(test_points)
+    hessian_answer = numpy.atleast_3d(function_hessian(test_points))
+    predict_estimate = surrogate.predict(test_points)
+    gradient_estimate = surrogate.predict_gradient(test_points)
+    hessian_estimate = surrogate.predict_hessian(test_points)
+    if predict_method == "predict":
+        predict_transform = numpy.squeeze(normal.transform(predict_answer))
+        predict_inverse_estimate = normal.inverse_transform(predict_estimate)
+        assert numpy.allclose(predict_estimate, predict_transform, rtol=rtol)
+        assert numpy.allclose(predict_inverse_estimate, predict_answer, rtol=rtol)
+    elif predict_method == "gradient":
+        gradient_transform = normal.gradient_transform(predict_answer, gradient_answer)
+        gradient_inverse_estimate = normal.gradient_inverse(
+            predict_estimate, gradient_estimate
+        )
+        assert numpy.allclose(gradient_estimate, gradient_transform, rtol=rtol)
+        assert numpy.allclose(gradient_inverse_estimate, gradient_answer, rtol=rtol)
+    elif predict_method == "hessian":
+        hessian_transform = normal.hessian_transform(
+            predict_answer, gradient_answer, hessian_answer
+        )
+        hessian_inverse_estimate = normal.hessian_inverse(
+            predict_estimate, gradient_estimate, hessian_estimate
+        )
+        assert numpy.allclose(hessian_estimate, hessian_transform, rtol=rtol, atol=rtol)
+        assert numpy.allclose(
+            hessian_inverse_estimate, hessian_answer, rtol=rtol, atol=rtol
+        )
