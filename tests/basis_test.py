@@ -1115,7 +1115,7 @@ def test_set_2nd_derivative(basis_function_set, key_for_answer):
     answer_key = basis_set_2nd_derivative_answer_key[key_for_answer][0]
     X = basis_set_2nd_derivative_answer_key[key_for_answer][1]
     assert numpy.allclose(
-        basis_function_set.derivative(X, n=2, domain=domain), answer_key
+        basis_function_set.derivative(X, domain=domain, n=2), answer_key
     )
 
 

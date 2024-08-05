@@ -341,7 +341,7 @@ class SetProductSurrogate(Surrogate):
                 self.basis_sets[dim].derivative(X[:, dim], domain=self.domain[dim])
             )
             lookup_table_2nd_derivative.append(
-                self.basis_sets[dim].derivative(X[:, dim], n=2, domain=self.domain[dim])
+                self.basis_sets[dim].derivative(X[:, dim], domain=self.domain[dim], n=2)
             )
 
         # use lookup table to combine terms
