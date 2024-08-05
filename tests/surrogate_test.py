@@ -23,7 +23,7 @@ def create_surrogate(
 
 
 def function_1(x):
-    """Test function 1."""
+    """Test function 1. For 2D mixed basis tests"""
     x1, x2 = x
     return numpy.cos(x1) + (2 * x2**2 - 1)
 
@@ -41,7 +41,7 @@ def function_1_hessian(x):
 
 
 def function_2(x):
-    """Test function 2."""
+    """Test function 2. For 1D tests with chebyshev polynomials."""
     return x**3 - 3 * (2 + x) - x
 
 
@@ -56,7 +56,7 @@ def function_2_hessian(x):
 
 
 def function_3(x):
-    """Test function 3"""
+    """Test function 3. For 2D tests with chebyshev polynomials."""
     x1, x2 = x
     return x1 * x2 - 2 * x2 + 10
 
@@ -73,7 +73,7 @@ def function_3_hessian(x):
 
 
 def function_4(x):
-    """Test function 4."""
+    """Test function 4. For 2D tests with Trigonometric functions."""
     x1, x2 = x
     return numpy.cos(x1) + numpy.sin(x2)
 
@@ -91,7 +91,7 @@ def function_4_hessian(x):
 
 
 def function_5(x):
-    """Test function 5."""
+    """Test function 5. For 1D tests with Trigonometric functions."""
     return numpy.cos(x)
 
 
