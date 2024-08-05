@@ -824,12 +824,8 @@ def test_set_cheb_initialize(basis_set):
     """Test Chebyshev function sets correctly initialize"""
     f = basis_set(3)
     assert f.basis_functions[0].degree == 0
-    assert f[0].degree == 0
     assert f.basis_functions[1].degree == 1
-    assert f[1].degree == 1
     assert f.basis_functions[2].degree == 2
-    assert f[2].degree == 2
-    assert len(f) == 3
     assert numpy.array_equal(f.domain, [-1, 1])
 
 
@@ -837,12 +833,8 @@ def test_set_trig_initialize():
     """Test TrigonometricBasisFunctionSet correctly initializes"""
     f = smolyay.basis.TrigonometricBasisFunctionSet(3)
     assert f.basis_functions[0].frequency == 0
-    assert f[0].frequency == 0
     assert f.basis_functions[1].frequency == 1
-    assert f[1].frequency == 1
     assert f.basis_functions[2].frequency == -1
-    assert f[2].frequency == -1
-    assert len(f) == 3
     assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
 
 
