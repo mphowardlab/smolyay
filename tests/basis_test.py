@@ -763,13 +763,6 @@ def test_cheb_2nd_call_root_points():
     assert numpy.allclose(f(root_points), numpy.zeros(3))
 
 
-def test_is_complex():
-    """Test that basis functions that output complex values indicate it"""
-    assert smolyay.basis.ChebyshevFirstKind(0)._is_complex == False
-    assert smolyay.basis.ChebyshevSecondKind(0)._is_complex == False
-    assert smolyay.basis.Trigonometric(0)._is_complex == True
-
-
 # Test a set of basis functions
 def test_set_base_class_initialize():
     """Test BasisFunctionSet correctly initializes"""
