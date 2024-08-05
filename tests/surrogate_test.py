@@ -1210,7 +1210,7 @@ class TestPredictSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict([[-0.5, 0.8], [0, 0], [0.7, 0]])), (3,)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), ())
+        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), (1,))
 
     def test_predict_size_1D(self, surrogate_class):
         num_level = 4
@@ -1228,8 +1228,8 @@ class TestPredictSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), ())
-        assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), ())
+        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), (1, ))
+        assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), (1, ))
 
 
 @pytest.mark.parametrize(
@@ -1321,7 +1321,7 @@ class TestGradientSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_gradient([[-0.5], [0], [0.7]])), (3, 1)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict_gradient([[0.7]])), ())
+        assert numpy.array_equal(numpy.shape(surrogate.predict_gradient([[0.7]])), (1, 1))
 
 
 @pytest.mark.parametrize(
@@ -1414,7 +1414,7 @@ class TestHessianSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_hessian([[-0.5], [0], [0.7]])), (3, 1, 1)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict_hessian([[0.7]])), ())
+        assert numpy.array_equal(numpy.shape(surrogate.predict_hessian([[0.7]])), (1, 1, 1))
 
 
 @pytest.mark.parametrize(

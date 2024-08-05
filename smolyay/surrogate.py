@@ -103,7 +103,7 @@ class Surrogate:
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
+        ndarray of shape (n_samples,)
             Surrogate output at x.
 
         Raises
@@ -199,7 +199,7 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
+        ndarray of shape (n_samples,)
             Surrogate output at x.
 
         Raises
@@ -235,10 +235,7 @@ class SetProductSurrogate(Surrogate):
             )
 
         # return results
-        if len(X) == 1:
-            return answer[0]
-        else:
-            return answer
+        return answer
 
     def predict_gradient(self, X):
         """Evaluate gradient or Jacobian of the surrogate at a given input.
@@ -250,7 +247,7 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, num_dimensions)
+        ndarray of shape (n_samples, num_dimensions)
             Gradient output at x.
 
         Raises
@@ -298,10 +295,7 @@ class SetProductSurrogate(Surrogate):
 
         # return results
         answer.reshape(X.shape)
-        if all(x == 1 for x in X.shape):
-            return answer.item(0)
-        else:
-            return answer
+        return answer
 
     def predict_hessian(self, X):
         """Evaluate the Hessian matrix, or 2nd order derivatives, of the surrogate.
@@ -313,7 +307,7 @@ class SetProductSurrogate(Surrogate):
 
         Returns
         -------
-        ndarray of shape (n_samples,) or (n_samples, num_dimensions, num_dimensions)
+        ndarray of shape (n_samples, num_dimensions, num_dimensions)
             Surrogate output at x.
 
         Raises
@@ -372,10 +366,7 @@ class SetProductSurrogate(Surrogate):
 
         # return results
         answer.reshape(list(X.shape) + [self.num_dimensions])
-        if all(x == 1 for x in X.shape):
-            return answer.item(0)
-        else:
-            return answer
+        return answer
 
     def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
