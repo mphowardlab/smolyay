@@ -213,7 +213,7 @@ class SetProductSurrogate(Surrogate):
 
         """
         # validate inputs
-        if not self._needs_fit:
+        if self._needs_fit:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
