@@ -29,7 +29,7 @@ class Surrogate:
 
     def __init__(self, domain):
         self._domain = None
-        self._needs_fit = False
+        self._needs_fit = True
 
         self.domain = domain
 
