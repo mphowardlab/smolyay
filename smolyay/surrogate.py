@@ -600,6 +600,7 @@ class SetProductSurrogate(Surrogate):
                 raise IndexError(
                     "Must be 2D array with shape (1, num_dimensions) if not None."
                 )
+            self._assert_in_domain(X0)
             y0 = numpy.array(y0).item(0)
             predicted_y = self.predict(X0)
             integration_constant = y0 - predicted_y

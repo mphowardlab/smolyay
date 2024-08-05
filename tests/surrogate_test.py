@@ -1089,6 +1089,30 @@ def test_fit_gradient_error():
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
         fun3_gradient_output = [function_3_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
+    with pytest.raises(IndexError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 5, 6], 8)
+    with pytest.raises(IndexError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, test_points, 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 20], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, -5], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [-10, 5], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [30, 5], 8)
 
 
 def test_successive_fits():
