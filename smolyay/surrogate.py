@@ -43,7 +43,7 @@ class Surrogate:
         domain = numpy.sort(numpy.array(value, ndmin=2), axis=1)
         if not numpy.array_equal(self._domain, domain):
             self._domain = domain
-            self._needs_fit = False
+            self._needs_fit = True
 
     @property
     def num_dimensions(self):
@@ -182,7 +182,7 @@ class SetProductSurrogate(Surrogate):
             raise ValueError("Regularization must be a RegularizationMethod")
         if self.regularization != value:
             self._regularization = value
-            self._needs_fit = False
+            self._needs_fit = True
 
     @property
     def basis_sets(self):
@@ -263,7 +263,7 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
-        if not self._needs_fit:
+        if self._needs_fit:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
@@ -326,7 +326,7 @@ class SetProductSurrogate(Surrogate):
             Input must lie in domain of surrogate.
         """
         # validate inputs
-        if not self._needs_fit:
+        if self._needs_fit:
             raise RuntimeError("Model must be fit!")
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
@@ -474,7 +474,7 @@ class SetProductSurrogate(Surrogate):
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, y).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, y, rcond=None)[0]
-        self._needs_fit = True
+        self._needs_fit = False
         return self
 
     def fit_gradient(self, X, y, X0=None, y0=None):
@@ -595,7 +595,7 @@ class SetProductSurrogate(Surrogate):
             self._coefficients = numpy.squeeze(regressor.fit(basis_matrix, data).coef_)
         else:
             self._coefficients = numpy.linalg.lstsq(basis_matrix, data, rcond=None)[0]
-        self._needs_fit = True
+        self._needs_fit = False
         self._fit_gradient_flag = True
 
         # determine integration constant if possible
