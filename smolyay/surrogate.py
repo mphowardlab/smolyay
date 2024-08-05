@@ -1,6 +1,5 @@
 import abc
 import itertools
-import warnings
 
 import numpy
 import sklearn.linear_model
