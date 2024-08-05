@@ -732,7 +732,7 @@ class NestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
         num_levels = int(num_levels)
         if num_levels <= 0:
             raise ValueError("Must have at least one level.")
-        num_per_level = _growth.clenshaw_curtis_exponential_growth(num_levels)
+        num_per_level = _growth.make_clenshaw_curtis_exponential_level_sizes(num_levels)
         num_terms = numpy.sum(num_per_level)
         basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
         super().__init__(basis_functions, num_per_level)
@@ -756,7 +756,7 @@ class SlowNestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
         num_levels = int(num_levels)
         if num_levels <= 0:
             raise ValueError("Must have at least one level.")
-        num_per_level = _growth.clenshaw_curtis_slow_exponential_growth(num_levels)
+        num_per_level = _growth.make_clenshaw_curtis_slow_exponential_level_sizes(num_levels)
         num_terms = numpy.sum(num_per_level)
         basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
         super().__init__(basis_functions, num_per_level)
@@ -780,7 +780,7 @@ class NestedTrigonometricBasisFunctionSet(NestedBasisFunctionSet):
         num_levels = int(num_levels)
         if num_levels <= 0:
             raise ValueError("Must have at least one level.")
-        num_per_level = _growth.trigonometric_exponential_growth(num_levels)
+        num_per_level = _growth.make_trigonometric_exponential_level_sizes(num_levels)
         num_terms = numpy.sum(num_per_level)
         index_trig = numpy.arange(num_terms, dtype=int)
         frequencies = numpy.where(
