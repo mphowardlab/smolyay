@@ -746,6 +746,7 @@ def test_generate_smolyak_points_different_levels():
     assert len(f) == 11
     assert numpy.allclose(f.points, answer)
 
+
 def test_generate_compositions_include_zero_true():
     """Test the generate compositions function if include_zero is true."""
     composition_expected = [[6, 0], [5, 1], [4, 2], [3, 3], [2, 4], [1, 5], [0, 6]]
