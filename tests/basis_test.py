@@ -773,14 +773,16 @@ def test_is_complex():
 # Test a set of basis functions
 def test_set_base_class_initialize():
     """Test BasisFunctionSet correctly initializes"""
-    f = smolyay.basis.BasisFunctionSet([smolyay.basis.ChebyshevFirstKind(0)])
-    assert f.basis_functions[0].degree == 0
-    assert f[0].degree == 0
+    bf = smolyay.basis.ChebyshevFirstKind(0)
+    f = smolyay.basis.BasisFunctionSet([bf])
+    assert f.basis_functions[0] is bf
+    assert f[0] is bf
     assert len(f) == 1
     assert numpy.array_equal(f.domain, [-1, 1])
-    f = smolyay.basis.BasisFunctionSet([smolyay.basis.Trigonometric(0)])
-    assert f.basis_functions[0].frequency == 0
-    assert f[0].frequency == 0
+    bf = smolyay.basis.Trigonometric(0)
+    f = smolyay.basis.BasisFunctionSet([bf])
+    assert f.basis_functions[0] is bf
+    assert f[0] is bf
     assert len(f) == 1
     assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
 
