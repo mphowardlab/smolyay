@@ -254,7 +254,7 @@ class NestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._num_per_level = _growth.make_clenshaw_curtis_exponential_level_sizes(self.num_levels)
+        self._num_per_level = _growth.make_clenshaw_curtis_level_sizes(self.num_levels)
         self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
@@ -336,7 +336,7 @@ class SlowNestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._num_per_level = _growth.make_clenshaw_curtis_slow_exponential_level_sizes(self.num_levels)
+        self._num_per_level = _growth.make_slow_clenshaw_curtis_level_sizes(self.num_levels)
         self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
@@ -478,7 +478,7 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
         :math:1, 3, 9, ..., 3^{i} where i is an integer.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._num_per_level = _growth.make_trigonometric_exponential_level_sizes(self.num_levels)
+        self._num_per_level = _growth.make_trigonometric_level_sizes(self.num_levels)
         self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point

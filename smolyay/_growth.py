@@ -1,7 +1,7 @@
 import numpy
 
 
-def make_clenshaw_curtis_exponential_level_sizes(num_levels):
+def make_clenshaw_curtis_level_sizes(num_levels):
     r"""Nested levels for Clenshaw Curtis Exponential Growth
     
     Describes a nested set of levels in which the cumulative
@@ -40,7 +40,7 @@ def make_clenshaw_curtis_exponential_level_sizes(num_levels):
     return num_per_level
     
 
-def make_clenshaw_curtis_slow_exponential_level_sizes(num_levels):
+def make_slow_clenshaw_curtis_level_sizes(num_levels):
     r"""Nested levels for Clenshaw Curtis Slow Exponential Growth
     
     Describes a nested set of levels in which the cumulative
@@ -83,7 +83,7 @@ def make_clenshaw_curtis_slow_exponential_level_sizes(num_levels):
     ]
     return num_per_level
     
-def make_trigonometric_exponential_level_sizes(num_levels):
+def make_trigonometric_level_sizes(num_levels):
     r"""Nested levels for Trigonometric Exponential Growth
     
     Describes a nested set of levels in which the cumulative
