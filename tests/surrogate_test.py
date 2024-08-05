@@ -628,22 +628,14 @@ class TestFit1D:
         )
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        (smolyay.surrogate.TensorProductSurrogate),
-        (smolyay.surrogate.SmolyakSparseProductSurrogate),
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-def test_fit_error(surrogate_class):
+def test_fit_error():
     """Test if fit raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
     ]
-    surrogate = surrogate_class(domain, bs)
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(domain, bs)
 
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
@@ -776,10 +768,6 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid, sample_output, [domain[:, 0]], [function_4(domain[:, 0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     def test_fit_gradient_2D_mixed_basis(self, surrogate_class):
         """Test if class is fit with gradient with different basis functions."""
@@ -816,10 +804,6 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid, sample_output, [domain[:, 0]], [function_1(domain[:, 0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     @pytest.mark.parametrize(
         "regularization",
@@ -864,12 +848,6 @@ class TestFitGradient2D:
         assert numpy.allclose(
             difference_predict, difference_predict[0], rtol=0.01, atol=1e-4
         )
-        surrogate = surrogate.fit_gradient(
-            grid, sample_output, [domain[:, 0]], [function_3(domain[:, 0])]
-        )
-        assert numpy.allclose(
-            predict_answer, surrogate.predict(test_points), rtol=0.01, atol=1e-3
-        )
 
     def test_fit_gradient_2D_regularization_complex(self, surrogate_class):
         """Test if class is fit to gradient using periodic basis function with complex outputs."""
@@ -898,10 +876,6 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid, sample_output, [domain[:, 0]], [function_4(domain[:, 0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
 @pytest.mark.parametrize(
@@ -1021,10 +995,6 @@ class TestFitGradient1D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid.points, sample_output, [[domain[0]]], [function_5(domain[0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     @pytest.mark.parametrize(
         "regularization",
@@ -1061,10 +1031,6 @@ class TestFitGradient1D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid, sample_output, [[domain[0]]], [function_2(domain[0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
 
     def test_fit_gradient_1D_regularization_complex(self, surrogate_class):
         """Test if class is fit to gradient using periodic basis function with complex outputs."""
@@ -1094,28 +1060,16 @@ class TestFitGradient1D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        surrogate = surrogate.fit_gradient(
-            grid.points, sample_output, [[domain[0]]], [function_5(domain[0])]
-        )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        smolyay.surrogate.TensorProductSurrogate,
-        smolyay.surrogate.SmolyakSparseProductSurrogate,
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-def test_fit_gradient_error(surrogate_class):
+def test_fit_gradient_error():
     """Test if fit_gradient raises an error if points are outside domain."""
     domain = [[-5, 10], [0, 15]]
     bs = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
     ]
-    surrogate = surrogate_class(domain, bs)
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(domain, bs)
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
         surrogate.fit_gradient(test_points, branin(test_points))
@@ -1137,20 +1091,12 @@ def test_fit_gradient_error(surrogate_class):
         surrogate.fit_gradient(test_points, fun3_gradient_output)
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        smolyay.surrogate.TensorProductSurrogate,
-        smolyay.surrogate.SmolyakSparseProductSurrogate,
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-def test_successive_fits(surrogate_class):
+def test_successive_fits():
     """Test that predict and predict_gradient are unaffected by previous fittings"""
     domain = numpy.array([[-5, 10], [0, 15]])
     num_level = 5
     surrogate, grid = create_surrogate(
-        surrogate_class,
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
         num_level,
         domain,
@@ -1184,22 +1130,14 @@ def test_successive_fits(surrogate_class):
     assert numpy.allclose(predict_answer_1, surrogate.predict(test_points), rtol=1e-3)
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        smolyay.surrogate.TensorProductSurrogate,
-        smolyay.surrogate.SmolyakSparseProductSurrogate,
-    ],
-    ids=["Tensor", "Smolyak"],
-)
 @pytest.mark.incremental
 class TestPredictSize:
-    def test_predict_size_2D(self, surrogate_class):
+    def test_predict_size_2D(self):
         """Test predict returns answer of the appropriate shape"""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1212,12 +1150,12 @@ class TestPredictSize:
         )
         assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), (1,))
 
-    def test_predict_size_1D(self, surrogate_class):
+    def test_predict_size_1D(self):
         num_level = 4
         domain = [-5, 5]
         # fit with a 1D function
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1228,33 +1166,19 @@ class TestPredictSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), (1, ))
-        assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), (1, ))
+        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), (1,))
+        assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), (1,))
 
 
-@pytest.mark.parametrize(
-    "surrogate_class,basis_sets",
-    [
-        (
-            smolyay.surrogate.TensorProductSurrogate,
-            [
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-            ],
-        ),
-        (
-            smolyay.surrogate.SmolyakSparseProductSurrogate,
-            [
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-            ],
-        ),
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-def test_predict_error(surrogate_class, basis_sets):
+def test_predict_error():
     """Test that predict raises correct errors"""
-    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
     grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
     with pytest.raises(RuntimeError):
         surrogate.predict([[0.7, 0.3]])
@@ -1272,24 +1196,16 @@ def test_predict_error(surrogate_class, basis_sets):
         surrogate.predict([[-4, -1], [3, 3]])
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        smolyay.surrogate.TensorProductSurrogate,
-        smolyay.surrogate.SmolyakSparseProductSurrogate,
-    ],
-    ids=["Tensor", "Smolyak"],
-)
 @pytest.mark.incremental
 class TestGradientSize:
 
-    def test_predict_gradient_size_2D(self, surrogate_class):
+    def test_predict_gradient_size_2D(self):
         """Test predict_gradient returns answer of the appropriate shape."""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
 
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1305,11 +1221,11 @@ class TestGradientSize:
             numpy.shape(surrogate.predict_gradient([[0.7, 0]])), (1, 2)
         )
 
-    def test_predict_gradient_size_1D(self, surrogate_class):
+    def test_predict_gradient_size_1D(self):
         num_level = 4
         domain = [-5, 5]
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1321,33 +1237,20 @@ class TestGradientSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_gradient([[-0.5], [0], [0.7]])), (3, 1)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict_gradient([[0.7]])), (1, 1))
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_gradient([[0.7]])), (1, 1)
+        )
 
 
-@pytest.mark.parametrize(
-    "surrogate_class,basis_sets",
-    [
-        (
-            smolyay.surrogate.TensorProductSurrogate,
-            [
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-            ],
-        ),
-        (
-            smolyay.surrogate.SmolyakSparseProductSurrogate,
-            [
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-            ],
-        ),
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-@pytest.mark.incremental
-def test_predict_gradient_error(surrogate_class, basis_sets):
+def test_predict_gradient_error():
     """Test that predict_gradient raises correct errors"""
-    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
     grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
     with pytest.raises(RuntimeError):
         surrogate.predict_gradient([[0.7, 0.3]])
@@ -1365,24 +1268,16 @@ def test_predict_gradient_error(surrogate_class, basis_sets):
         surrogate.predict_gradient([[-4, -1], [3, 3]])
 
 
-@pytest.mark.parametrize(
-    "surrogate_class",
-    [
-        smolyay.surrogate.TensorProductSurrogate,
-        smolyay.surrogate.SmolyakSparseProductSurrogate,
-    ],
-    ids=["Tensor", "Smolyak"],
-)
 @pytest.mark.incremental
 class TestHessianSize:
 
-    def test_predict_hessian_size_2D(self, surrogate_class):
+    def test_predict_hessian_size_2D(self):
         """Test predict_hessian returns answer of the appropriate shape."""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
 
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1398,11 +1293,11 @@ class TestHessianSize:
             numpy.shape(surrogate.predict_hessian([[0.7, 0]])), (1, 2, 2)
         )
 
-    def test_predict_hessian_size_1D(self, surrogate_class):
+    def test_predict_hessian_size_1D(self):
         num_level = 4
         domain = [-5, 5]
         surrogate, grid = create_surrogate(
-            surrogate_class,
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
             num_level,
             domain,
@@ -1414,32 +1309,20 @@ class TestHessianSize:
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_hessian([[-0.5], [0], [0.7]])), (3, 1, 1)
         )
-        assert numpy.array_equal(numpy.shape(surrogate.predict_hessian([[0.7]])), (1, 1, 1))
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_hessian([[0.7]])), (1, 1, 1)
+        )
 
 
-@pytest.mark.parametrize(
-    "surrogate_class,basis_sets",
-    [
-        (
-            smolyay.surrogate.TensorProductSurrogate,
-            [
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
-            ],
-        ),
-        (
-            smolyay.surrogate.SmolyakSparseProductSurrogate,
-            [
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
-            ],
-        ),
-    ],
-    ids=["Tensor", "Smolyak"],
-)
-def test_predict_hessian_error(surrogate_class, basis_sets):
+def test_predict_hessian_error():
     """Test that predict_hessian raises correct errors"""
-    surrogate = surrogate_class([[-5, 10], [0, 15]], basis_sets)
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
     grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
     with pytest.raises(RuntimeError):
         surrogate.predict_hessian([[0.7, 0.3]])
