@@ -9,7 +9,7 @@ def create_surrogate(
     nested_basis_set_class,
     num_level,
     domain,
-    nested_point_class=None,
+    nested_point_class,
     **kwargs
 ):
     domain = numpy.array(domain, ndmin=2)
