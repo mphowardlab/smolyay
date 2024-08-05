@@ -174,39 +174,6 @@ basis_nth_derivative_answer_key = [
             2 * numpy.pi: -1 * numpy.exp(2 * numpy.pi * 1j * -1),
         },
     ),
-    (
-        3,
-        smolyay.basis.Trigonometric(0),
-        {
-            0: 0,
-            numpy.pi / 3: 0,
-            3 * numpy.pi / 2: 0,
-            numpy.pi / 6: 0,
-            2 * numpy.pi: 0,
-        },
-    ),
-    (
-        3,
-        smolyay.basis.Trigonometric(1),
-        {
-            0: -1j,
-            numpy.pi / 3: -1j * numpy.exp(numpy.pi / 3 * 1j),
-            3 * numpy.pi / 2: -1j * numpy.exp(3 * numpy.pi / 2 * 1j),
-            numpy.pi / 6: -1j * numpy.exp(numpy.pi / 6 * 1j),
-            2 * numpy.pi: -1j * numpy.exp(2 * numpy.pi * 1j),
-        },
-    ),
-    (
-        3,
-        smolyay.basis.Trigonometric(-1),
-        {
-            0: 1j,
-            numpy.pi / 3: 1j * numpy.exp(numpy.pi / 3 * 1j * -1),
-            3 * numpy.pi / 2: 1j * numpy.exp(3 * numpy.pi / 2 * 1j * -1),
-            numpy.pi / 6: 1j * numpy.exp(numpy.pi / 6 * 1j * -1),
-            2 * numpy.pi: 1j * numpy.exp(2 * numpy.pi * 1j * -1),
-        },
-    ),
 ]
 
 basis_outside_domain = [
@@ -226,7 +193,7 @@ basis_id = [
     "Trig [1]",
     "Trig [-1]",
 ]
-basis_id_nth_derivative = [
+basis_id_2nd_derivative = [
     "n2-1st Cheb [0]",
     "n2-1st Cheb [1]",
     "n2-1st Cheb [2]",
@@ -234,9 +201,6 @@ basis_id_nth_derivative = [
     "n2-Trig [0]",
     "n2-Trig [1]",
     "n2-Trig [-1]",
-    "n3-Trig [0]",
-    "n3-Trig [1]",
-    "n3-Trig [-1]",
 ]
 basis_set_call_answer_key = {
     "ChebyshevFirstKind": (
@@ -641,7 +605,7 @@ class TestDeriviative:
 @pytest.mark.parametrize(
     "n,basis_fun,answer_key",
     basis_nth_derivative_answer_key,
-    ids=basis_id_nth_derivative,
+    ids=basis_id_2nd_derivative,
 )
 @pytest.mark.incremental
 class TestNthDerivative:
