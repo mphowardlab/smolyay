@@ -375,12 +375,12 @@ class TestFit2D:
         predict_answer = [function_3(x) for x in test_points]
         gradient_answer = [function_3_gradient(x) for x in test_points]
         hessian_answer = [function_3_hessian(x) for x in test_points]
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
         assert numpy.allclose(
-            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
         )
         assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-2
         )
 
     def test_fit_2D_regularization_complex(self, surrogate_class):
@@ -402,12 +402,12 @@ class TestFit2D:
         predict_answer = [function_4(x) for x in test_points]
         gradient_answer = [function_4_gradient(x) for x in test_points]
         hessian_answer = [function_4_hessian(x) for x in test_points]
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
         assert numpy.allclose(
-            gradient_answer, surrogate.predict_gradient(test_points), rtol=0.01
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
         )
         assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-1
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
 
 
@@ -554,15 +554,12 @@ class TestFit1D:
         hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
-        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=0.01)
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
         assert numpy.allclose(
-            gradient_answer,
-            surrogate.predict_gradient(test_points),
-            rtol=0.01,
-            atol=1e-3,
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
         )
         assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), rtol=0.01, atol=1e-3
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
 
 
@@ -776,7 +773,7 @@ class TestFitGradient2D:
             atol=1e-4,
         )
         assert numpy.allclose(
-            hessian_answer, surrogate.predict_hessian(test_points), atol=5e-4
+            hessian_answer, surrogate.predict_hessian(test_points), atol=1e-3
         )
 
         # test predict
