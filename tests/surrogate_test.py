@@ -1005,6 +1005,8 @@ def test_fit_gradient_error():
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
     ]
     surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(domain, bs)
+
+    # test shape and bounds error for points
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
         surrogate.fit_gradient(test_points, [function_3(x) for x in test_points])
@@ -1024,6 +1026,8 @@ def test_fit_gradient_error():
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
         fun3_gradient_output = [function_3_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
+    
+    # test shape and bounds error for initial point used for integration constant
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
         fun3_gradient_output = [function_3_gradient(x) for x in test_points]
