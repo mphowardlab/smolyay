@@ -29,79 +29,79 @@ def function_1(x):
 
 
 def function_1_gradient(x):
-    """Test function 1 (gradient)."""
+    """Test function 1 (gradient)"""
     x1, x2 = x
     return -numpy.sin(x1), 4 * x2
 
 
 def function_1_hessian(x):
-    """Test function 1 (hessian)."""
+    """Test function 1 (hessian)"""
     x1, x2 = x
     return [[-numpy.cos(x1), 0], [0, 4]]
 
 
 def function_2(x):
-    """Test function 2. For 1D tests with chebyshev polynomials."""
+    """Test function 2. For 1D tests with chebyshev polynomials"""
     return x**3 - 3 * (2 + x) - x
 
 
 def function_2_gradient(x):
-    """Test function 2 (gradient)."""
+    """Test function 2 (gradient)"""
     return 3 * x**2 - 4
 
 
 def function_2_hessian(x):
-    """Test function 2 (hessian)."""
+    """Test function 2 (hessian)"""
     return 6 * x
 
 
 def function_3(x):
-    """Test function 3. For 2D tests with chebyshev polynomials."""
+    """Test function 3. For 2D tests with chebyshev polynomials"""
     x1, x2 = x
     return x1 * x2 - 2 * x2 + 10
 
 
 def function_3_gradient(x):
-    """Test function 3 (gradient)."""
+    """Test function 3 (gradient)"""
     x1, x2 = x
     return x2, x1 - 2
 
 
 def function_3_hessian(x):
-    """Test function 3 (hessian)."""
+    """Test function 3 (hessian)"""
     return [[0, 1], [1, 0]]
 
 
 def function_4(x):
-    """Test function 4. For 2D tests with Trigonometric functions."""
+    """Test function 4. For 2D tests with Trigonometric functions"""
     x1, x2 = x
     return numpy.cos(x1) + numpy.sin(x2)
 
 
 def function_4_gradient(x):
-    """Test function 4 (gradient)."""
+    """Test function 4 (gradient)"""
     x1, x2 = x
     return -numpy.sin(x1), numpy.cos(x2)
 
 
 def function_4_hessian(x):
-    """Test function 4 (hessian)."""
+    """Test function 4 (hessian)"""
     x1, x2 = x
     return [[-numpy.cos(x1), 0], [0, -numpy.sin(x2)]]
 
 
 def function_5(x):
-    """Test function 5. For 1D tests with Trigonometric functions."""
+    """Test function 5. For 1D tests with Trigonometric functions"""
     return numpy.cos(x)
 
 
 def function_5_gradient(x):
-    """Test function 5 (gradient)."""
+    """Test function 5 (gradient)"""
     return -numpy.sin(x)
 
 
 def function_5_hessian(x):
-    """Test function 5 (hessian)."""
+    """Test function 5 (hessian)"""
     return -numpy.cos(x)
 
 
@@ -178,7 +178,7 @@ def function_5_hessian(x):
     ids=["Tensor", "Tensor mixed basis", "Smolyak", "Smolyak mixed basis"],
 )
 def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
-    """Test if class is properly intiallized."""
+    """Test if class is properly intiallized and basis function combinations generated"""
     domain = [[-5, 10], [0, 15]]
     surrogate = surrogate_class(domain, basis_sets)
     assert numpy.allclose(surrogate.domain, domain)
@@ -224,7 +224,7 @@ def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
     ids=["Tensor", "Smolyak"],
 )
 def test_regularization_error(surrogate_class, basis_sets):
-    """test error at invalid regularization method value"""
+    """Test error if given invalid regularization method value"""
     surrogate = surrogate_class([[4, 5], [3, 5]], basis_sets)
     with pytest.raises(ValueError):
         surrogate.regularization = "not a regularization method"
@@ -242,7 +242,7 @@ def test_regularization_error(surrogate_class, basis_sets):
 class TestFit2D:
 
     def test_fit_2D(self, surrogate_class):
-        """Test if class is fit to 2D function."""
+        """Test fit for 2D function"""
         num_level = 3
         domain = [[-1, 1], [-1, 1]]
         surrogate, grid = create_surrogate(
@@ -267,7 +267,7 @@ class TestFit2D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_2D_domain_shift(self, surrogate_class):
-        """Test if class is fit to 2D function with different domain as basis."""
+        """Test fit for 2D function with different domain than basis functions"""
         num_level = 4
         domain = [[-1, 1], [-1, 1]]
         surrogate, grid = create_surrogate(
@@ -292,7 +292,7 @@ class TestFit2D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_2D_complex(self, surrogate_class):
-        """Test if class is fit to 2D function using periodic basis function with complex outputs."""
+        """Test fit for 2D function using periodic basis function with complex outputs"""
         domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
         num_level = 2
 
@@ -318,7 +318,7 @@ class TestFit2D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_2D_mixed_basis(self, surrogate_class):
-        """Test if class is fit using different basis functions."""
+        """Test fit using different basis functions for each dimension"""
         domain = [[0, 2 * numpy.pi], [-1, 1]]
         num_level = 2
         point_sets = [
@@ -358,7 +358,7 @@ class TestFit2D:
         ids=["Ridge", "Lasso", "Least Squares"],
     )
     def test_fit_2D_regularization(self, surrogate_class, regularization, points):
-        """Test if class is fit when number of terms doesn't match samples for 2D function."""
+        """Test fit when number of terms != samples for 2D function"""
         domain = [[-5, 5], [0, 10]]
         num_level = 3
         basis_sets = [
@@ -384,7 +384,7 @@ class TestFit2D:
         )
 
     def test_fit_2D_regularization_complex(self, surrogate_class):
-        """Test if class is fit when number of terms doesn't match samples for 2D function."""
+        """Test fit when number of terms != samples for 2D function with complex basis functions"""
         domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
         num_level = 3
         basis_sets = [
@@ -423,7 +423,7 @@ class TestFit2D:
 class TestFit1D:
 
     def test_fit_1D(self, surrogate_class):
-        """Test if class is fit to 1D function."""
+        """Test fit for 1D function"""
         num_level = 3
         domain = [-1, 1]
         # fit with a 1D function
@@ -451,7 +451,7 @@ class TestFit1D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_1D_domain_shift(self, surrogate_class):
-        """Test if class is fit to 1D function with different domain as basis."""
+        """Test fit for 1D function with different domain as basis"""
         num_level = 3
         domain = [-5, 10]
         # fit with a 1D function
@@ -479,7 +479,7 @@ class TestFit1D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_1D_complex(self, surrogate_class):
-        """Test if class is fit to 1D function using periodic basis function with complex outputs."""
+        """Test fit for 1D function using periodic basis function with complex outputs"""
         domain = [0, 2 * numpy.pi]
         num_level = 2
 
@@ -505,7 +505,7 @@ class TestFit1D:
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
     def test_fit_1D_regularization_complex(self, surrogate_class):
-        """Test if class is fit to 1D function using periodic basis function with complex outputs."""
+        """Test fit when number of terms != samples for 1D function with complex basis functions"""
         domain = [0, 2 * numpy.pi]
         num_level = 2
 
@@ -536,7 +536,7 @@ class TestFit1D:
         ids=["Ridge", "Lasso", "Least Squares"],
     )
     def test_fit_1D_regularization(self, surrogate_class, regularization):
-        """Test if class is fit when number of terms doesn't match samples for 1D function."""
+        """Test fit when number of terms != samples for 1D function"""
         domain = [-5, 10]
         num_level = 3
 
@@ -564,7 +564,7 @@ class TestFit1D:
 
 
 def test_fit_error():
-    """Test if fit raises an error if points are outside domain."""
+    """Test if fit raises an error if points are outside domain"""
     domain = [[-5, 10], [0, 15]]
     bs = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
@@ -598,7 +598,7 @@ def test_fit_error():
 class TestFitGradient2D:
 
     def test_fit_gradient_2D(self, surrogate_class):
-        """Test if class is fit to gradient for 2D function."""
+        """Test fit_gradient for 2D function"""
         num_level = 3
         domain = numpy.array([[-1, 1], [-1, 1]])
         surrogate, grid = create_surrogate(
@@ -636,7 +636,7 @@ class TestFitGradient2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     def test_fit_gradient_2D_domain_shift(self, surrogate_class):
-        """Test class is fit to gradient for 2D function with different domain as basis."""
+        """Test fit_gradient for 2D function with different domain as basis"""
         num_level = 3
         domain = numpy.array([[-5, 10], [0, 15]])
         surrogate, grid = create_surrogate(
@@ -674,7 +674,7 @@ class TestFitGradient2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     def test_fit_gradient_2D_complex(self, surrogate_class):
-        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        """Test fit_gradient using periodic basis function with complex outputs"""
         domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
         num_level = 2
 
@@ -705,7 +705,7 @@ class TestFitGradient2D:
         assert numpy.allclose(difference_predict, difference_predict[0])
 
     def test_fit_gradient_2D_mixed_basis(self, surrogate_class):
-        """Test if class is fit with gradient with different basis functions."""
+        """Test fit_gradient using different basis functions for each dimension"""
         domain = numpy.array([[0, 2 * numpy.pi], [-1, 1]])
         num_level = 2
         point_sets = [
@@ -750,7 +750,7 @@ class TestFitGradient2D:
         ids=["Ridge", "Lasso", "Least Squares"],
     )
     def test_fit_gradient_2D_regularization(self, surrogate_class, regularization):
-        """Test if class is fit using gradient when n_terms != n_points for 2D function."""
+        """Test fit_gradient when number of terms != samples for 2D function"""
         domain = numpy.array([[-5, 5], [-1, 1]])
         num_level = 3
         basis_sets = [
@@ -785,7 +785,7 @@ class TestFitGradient2D:
         )
 
     def test_fit_gradient_2D_regularization_complex(self, surrogate_class):
-        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        """Test fit_gradient when number of terms != samples using complex basis functions"""
         domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
         num_level = 2
         basis_sets = [
@@ -825,7 +825,7 @@ class TestFitGradient2D:
 class TestFitGradient1D:
 
     def test_fit_gradient_1D(self, surrogate_class):
-        """Test class is fit using gradient for 1D function."""
+        """Test fit_gradient for 1D function"""
         num_level = 3
         domain = numpy.array([-1, 1])
         surrogate, grid = create_surrogate(
@@ -862,7 +862,7 @@ class TestFitGradient1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     def test_fit_gradient_1D_domain_shift(self, surrogate_class):
-        """Test class is fit using gradient for 1D function with different domain as basis."""
+        """Test fit_gradient for 1D function with different domain as basis"""
         num_level = 3
         domain = numpy.array([-5, 10])
         surrogate, grid = create_surrogate(
@@ -899,7 +899,7 @@ class TestFitGradient1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
     def test_fit_gradient_1D_complex(self, surrogate_class):
-        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        """Test fit_gradient using periodic basis function with complex outputs"""
         domain = numpy.array([0, 2 * numpy.pi])
         num_level = 2
 
@@ -941,7 +941,7 @@ class TestFitGradient1D:
         ids=["Ridge", "Lasso", "Least Squares"],
     )
     def test_fit_gradient_1D_regularization(self, surrogate_class, regularization):
-        """Test if class is fit using gradient when n_terms != n_points for 1D function."""
+        """Test fit_gradient when number of terms != samples for 1D function"""
         num_level = 3
         domain = [-5, 6]
         # fit with a 1D function
@@ -968,7 +968,7 @@ class TestFitGradient1D:
         assert numpy.allclose(difference_predict, difference_predict[0])
 
     def test_fit_gradient_1D_regularization_complex(self, surrogate_class):
-        """Test if class is fit to gradient using periodic basis function with complex outputs."""
+        """Test fit_gradient when number of terms != samples using complex basis functions"""
         domain = numpy.array([0, 2 * numpy.pi])
         num_level = 2
 
@@ -998,7 +998,7 @@ class TestFitGradient1D:
 
 
 def test_fit_gradient_error():
-    """Test if fit_gradient raises an error if points are outside domain."""
+    """Test fit_gradient raises an error if points are outside domain"""
     domain = [[-5, 10], [0, 15]]
     bs = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
@@ -1026,7 +1026,7 @@ def test_fit_gradient_error():
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
         fun3_gradient_output = [function_3_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
-    
+
     # test shape and bounds error for initial point used for integration constant
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
@@ -1092,7 +1092,7 @@ def test_successive_fits():
 @pytest.mark.incremental
 class TestPredictSize:
     def test_predict_size_2D(self):
-        """Test predict returns answer of the appropriate shape"""
+        """Test predict returns answer of the appropriate shape for num_dimensions=2"""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
         surrogate, grid = create_surrogate(
@@ -1110,6 +1110,7 @@ class TestPredictSize:
         assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), (1,))
 
     def test_predict_size_1D(self):
+        """Test predict returns answer of the appropriate shape for num_dimensions=1"""
         num_level = 4
         domain = [-5, 5]
         # fit with a 1D function
@@ -1159,7 +1160,7 @@ def test_predict_error():
 class TestGradientSize:
 
     def test_predict_gradient_size_2D(self):
-        """Test predict_gradient returns answer of the appropriate shape."""
+        """Test predict_gradient returns answer of the appropriate shape for num_dimensions=2"""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
 
@@ -1181,6 +1182,7 @@ class TestGradientSize:
         )
 
     def test_predict_gradient_size_1D(self):
+        """Test predict_gradient returns answer of the appropriate shape for num_dimensions=1"""
         num_level = 4
         domain = [-5, 5]
         surrogate, grid = create_surrogate(
@@ -1202,7 +1204,7 @@ class TestGradientSize:
 
 
 def test_predict_gradient_error():
-    """Test that predict_gradient raises correct errors"""
+    """Test predict_gradient raises correct errors"""
     basis_sets = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
@@ -1231,7 +1233,7 @@ def test_predict_gradient_error():
 class TestHessianSize:
 
     def test_predict_hessian_size_2D(self):
-        """Test predict_hessian returns answer of the appropriate shape."""
+        """Test predict_hessian returns answer of the appropriate shape for num_dimensions=2"""
         domain = [[-5, 10], [0, 15]]
         num_level = 5
 
@@ -1253,6 +1255,7 @@ class TestHessianSize:
         )
 
     def test_predict_hessian_size_1D(self):
+        """Test predict_hessian returns answer of the appropriate shape for num_dimensions=1"""
         num_level = 4
         domain = [-5, 5]
         surrogate, grid = create_surrogate(
@@ -1274,7 +1277,7 @@ class TestHessianSize:
 
 
 def test_predict_hessian_error():
-    """Test that predict_hessian raises correct errors"""
+    """Test predict_hessian raises correct errors"""
     basis_sets = [
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
         smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),

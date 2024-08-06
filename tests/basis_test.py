@@ -324,7 +324,7 @@ basis_set_ids = [
     ids=["1st Cheb", "2nd Cheb"],
 )
 def test_cheb_initial(basis_fun):
-    """test degrees and domain return correctly"""
+    """Test degrees and domain return correctly"""
     f2 = basis_fun(2)
     assert f2.degree == 2
     assert isinstance(f2.degree, int)
@@ -335,7 +335,7 @@ def test_cheb_initial(basis_fun):
 
 
 def test_trig_initial():
-    """test frequency and domain return correctly"""
+    """Test frequency and domain return correctly"""
     f2 = smolyay.basis.Trigonometric(2)
     assert f2.frequency == 2
     assert isinstance(f2.frequency, int)
@@ -405,7 +405,7 @@ def test_derivative_outside_domain_error(basis_fun, too_large, too_small, valid_
     ids=["1st Cheb", "2nd Cheb", "Trig"],
 )
 def test_scale_domain(basis_fun, answer_single, answer_multi):
-    """Test the set can scale points to basis function domain"""
+    """Test the basis function can scale points to basis function domain"""
     domain = (-8, 12)
     assert basis_fun.scale_to_domain(0, domain) == pytest.approx(answer_single)
     assert numpy.allclose(basis_fun.scale_to_domain([0, 1, 2, 3], domain), answer_multi)
@@ -610,12 +610,12 @@ class TestDeriviative:
 @pytest.mark.incremental
 class TestNthDerivative:
     def test_nth_derivative(self, n, basis_fun, answer_key):
-        """Test basis function derivative"""
+        """Test basis function nth derivative"""
         for x, y in answer_key.items():
             assert basis_fun.derivative(x, n) == pytest.approx(y)
 
     def test_nth_derivative_1D(self, n, basis_fun, answer_key):
-        """Test basis function derivative with a 1D array"""
+        """Test basis function nth derivative with a 1D array"""
         xs = list(answer_key.keys())
         answers = [answer_key[x] for x in xs]
         assert numpy.shape(basis_fun.derivative(xs, n)) == numpy.shape(xs)
@@ -627,7 +627,7 @@ class TestNthDerivative:
         assert numpy.allclose(basis_fun.derivative(xs1, n), answer1)
 
     def test_nth_derivative_2D(self, n, basis_fun, answer_key):
-        """Test basis function derivative with a 2D array"""
+        """Test basis function nth derivative with a 2D array"""
         unique_inputs = list(answer_key.keys())
         xs = list(numpy.resize(unique_inputs, (8,)))
         answers = [answer_key[x] for x in xs]
@@ -653,7 +653,7 @@ class TestNthDerivative:
         assert numpy.allclose(basis_fun.derivative(xs4, n), answer4)
 
     def test_nth_derivative_3D(self, n, basis_fun, answer_key):
-        """Test basis function derivative with a 3D array"""
+        """Test basis function nth derivative with a 3D array"""
         unique_inputs = list(answer_key.keys())
         xs = list(numpy.resize(unique_inputs, (24,)))
         answers = [answer_key[x] for x in xs]
@@ -901,7 +901,7 @@ def test_nested_sets_initialize(nested_sets, domain, length_2):
     ],
 )
 def test_num_levels_error(nested_sets):
-    """test error given invalid num_levels"""
+    """Test error given invalid num_levels"""
     with pytest.raises(ValueError):
         nested_sets(0)
 
@@ -983,7 +983,7 @@ def test_set_scale_domain(basis_set, answer_single, answer_multi):
     ids=basis_set_ids,
 )
 def test_set_call(basis_function_set, key_for_answer):
-    """Test the set can scale points to basis function domain"""
+    """Test the set call with points within a domain"""
     domain = (-8, 12)
     answer_key = basis_set_call_answer_key[key_for_answer][0]
     X = basis_set_call_answer_key[key_for_answer][1]
@@ -1021,7 +1021,7 @@ def test_set_call(basis_function_set, key_for_answer):
     ids=basis_set_ids,
 )
 def test_set_derivative(basis_function_set, key_for_answer):
-    """Test the set can compute derivative of all basis functions."""
+    """Test the set can compute derivative of all basis functions"""
     domain = (-8, 12)
     answer_key = basis_set_derivative_answer_key[key_for_answer][0]
     X = basis_set_derivative_answer_key[key_for_answer][1]
@@ -1061,7 +1061,7 @@ def test_set_derivative(basis_function_set, key_for_answer):
     ],
 )
 def test_set_2nd_derivative(basis_function_set, key_for_answer):
-    """Test the set can compute 2nd derivative of all basis functions."""
+    """Test the set can compute 2nd derivative of all basis functions"""
     domain = (-8, 12)
     answer_key = basis_set_2nd_derivative_answer_key[key_for_answer][0]
     X = basis_set_2nd_derivative_answer_key[key_for_answer][1]
@@ -1169,7 +1169,7 @@ def test_set_2nd_derivative(basis_function_set, key_for_answer):
     ],
 )
 def test_nested_levels(nested_sets, num_per_level, start_level, end_level):
-    """test number of points per level, start level indexes, and end level indexes"""
+    """Test number of points per level, start level indexes, and end level indexes"""
     assert numpy.array_equal(nested_sets.num_per_level, num_per_level)
     assert numpy.array_equal(nested_sets.start_level, start_level)
     assert numpy.array_equal(nested_sets.end_level, end_level)
