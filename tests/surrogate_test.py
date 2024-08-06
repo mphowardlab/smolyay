@@ -178,7 +178,7 @@ def function_5_hessian(x):
     ids=["Tensor", "Tensor mixed basis", "Smolyak", "Smolyak mixed basis"],
 )
 def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
-    """Test if class is properly intiallized and basis function combinations generated"""
+    """Test class initialization and setters and basis function combinations generated"""
     domain = [[-5, 10], [0, 15]]
     surrogate = surrogate_class(domain, basis_sets)
     assert numpy.allclose(surrogate.domain, domain)
