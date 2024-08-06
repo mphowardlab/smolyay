@@ -175,7 +175,7 @@ nested_sample_ids = [
 
 
 def test_initialize_clenshaw():
-    """test default properties"""
+    """Test initialization and setters"""
     f = smolyay.samples.ClenshawCurtisPointSet([-2, 1], 3)
     assert numpy.array_equal(f.domain, [-2, 1])
     assert f.degree == 3
@@ -186,7 +186,7 @@ def test_initialize_clenshaw():
 
 
 def test_degree_error():
-    """test degree error given invalid degree"""
+    """Test degree error given invalid degree"""
     with pytest.raises(ValueError):
         smolyay.samples.ClenshawCurtisPointSet([-2, 1], -7)
     f = smolyay.samples.ClenshawCurtisPointSet([-2, 1], 3)
@@ -195,7 +195,7 @@ def test_degree_error():
 
 
 def test_initialize_trig():
-    """test default properties"""
+    """Test initialization and setters"""
     f = smolyay.samples.TrigonometricPointSet([0, 4 * numpy.pi], 3)
     assert numpy.array_equal(f.domain, [0, 4 * numpy.pi])
     assert f.frequency == 3
@@ -203,7 +203,7 @@ def test_initialize_trig():
 
 
 def test_frequency_error():
-    """test frequency error given invalid frequency"""
+    """Test frequency error given invalid frequency"""
     with pytest.raises(ValueError):
         smolyay.samples.TrigonometricPointSet([-2, 1], -4)
     f = smolyay.samples.TrigonometricPointSet([-2, 1], 3)
@@ -225,7 +225,7 @@ def test_frequency_error():
     ],
 )
 def test_initialize_nested(nested_samples):
-    """test default properties"""
+    """Test initialization and setters"""
     f = nested_samples([-10, 10], 4)
     assert numpy.array_equal(f.domain, [-10, 10])
     assert f.num_levels == 4
@@ -253,7 +253,7 @@ def test_initialize_nested(nested_samples):
     ],
 )
 def test_domain_error(samples, set_args):
-    """test error given invalid domain and that reversed domains swap"""
+    """Test error given invalid domain and that reversed domains swap"""
     # reverse domain
     f = samples([10, -10], **set_args)
     assert numpy.array_equal(f.domain, [-10, 10])
@@ -292,7 +292,7 @@ def test_domain_error(samples, set_args):
     ],
 )
 def test_num_levels_error(nested_samples):
-    """test error given invalid num_levels"""
+    """Test error given invalid num_levels"""
     with pytest.raises(ValueError):
         f = nested_samples([-10, 10], 0)
     f = nested_samples([-10, 10], 2)
@@ -302,7 +302,7 @@ def test_num_levels_error(nested_samples):
 
 @pytest.mark.parametrize("samples,points", sample_points_answers, ids=sample_points_ids)
 def test_generate_points(samples, points):
-    """test the points of initialized UnidimensionalPointSet"""
+    """Test the points of initialized UnidimensionalPointSet"""
     assert len(samples) == len(points)
     assert numpy.allclose(samples.points, points, atol=1e-10)
 
@@ -402,7 +402,7 @@ def test_generate_points(samples, points):
     ids=nested_sample_ids,
 )
 def test_nested_levels(nested_samples, num_per_level, start_level, end_level):
-    """test number of points per level, start level indexes, and end level indexes"""
+    """Test number of points per level, start level indexes, and end level indexes"""
     assert numpy.array_equal(nested_samples.num_per_level, num_per_level)
     assert numpy.array_equal(nested_samples.start_level, start_level)
     assert numpy.array_equal(nested_samples.end_level, end_level)
@@ -424,7 +424,7 @@ def test_nested_levels(nested_samples, num_per_level, start_level, end_level):
     ids=["Uniform", "Latin", "Halton", "Sobol"],
 )
 def test_random_initalize(random_point_set):
-    """Test that the random point set initializes correctly"""
+    """Test random point sets initialization and shared setters"""
     f = random_point_set([[-10, 10], [0, 2]], 64, 1234)
     assert numpy.array_equal(f.domain, [[-10, 10], [0, 2]])
     assert f.num_dimensions == 2
@@ -454,7 +454,7 @@ def test_random_initalize(random_point_set):
     ids=["Latin", "Halton", "Sobol"],
 )
 def test_random_qmc_initalize(qmc_point_set):
-    """Test that the random point set initializes correctly"""
+    """Test Monte Carlo point sets initialization and shared setters"""
     f = qmc_point_set([[-10, 20]], 64, 5678, True, "random-cd")
     assert numpy.array_equal(f.domain, [[-10, 20]])
     assert f.num_dimensions == 1
@@ -608,6 +608,7 @@ def test_random_sobol_error():
     ids=["Tensor", "Smolyak"],
 )
 def test_product_domain_error(product_point_set):
+    """Test that an exception is given if the domain is invalid"""
     point_sets = [
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], 3),
         smolyay.samples.NestedClenshawCurtisPointSet([-2, 2], 3),
@@ -678,7 +679,7 @@ def test_random_points(random_point_set, domain, num_points, seed, answer):
 
 
 def test_generate_tensor_points():
-    """Test the generate_tensor_combinations for a series with multiple sets."""
+    """Test TensorProductPointSet using a list of sets"""
     point_sets = [
         smolyay.samples.TrigonometricPointSet([-1, 1], 1),
         smolyay.samples.ClenshawCurtisPointSet([-1, 1], 1),
@@ -689,7 +690,7 @@ def test_generate_tensor_points():
 
 
 def test_generate_tensor_points_from_arrays():
-    """Test the generate_tensor_combinations for using numpy arrays."""
+    """Test TensorProductPointSet using different sized numpy arrays"""
     point_sets = [numpy.array([9, 8, 7]), numpy.array([1, 2])]
     answer = [[9, 1], [9, 2], [8, 1], [8, 2], [7, 1], [7, 2]]
     f = smolyay.samples.TensorProductPointSet(point_sets)
@@ -698,7 +699,7 @@ def test_generate_tensor_points_from_arrays():
 
 
 def test_generate_smolyak_points():
-    """Test the generate_tensor_combinations for a series with one set."""
+    """Test the SmolyakSparseProductPointSet using a list of sets"""
     point_sets = [
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], 3),
         smolyay.samples.NestedClenshawCurtisPointSet([-2, 2], 3),
@@ -724,7 +725,7 @@ def test_generate_smolyak_points():
 
 
 def test_generate_smolyak_points_different_levels():
-    """Test the generate_tensor_combinations for a series with one set."""
+    """Test SmolyakSparseProductPointSet using sets with different levels"""
     point_sets = [
         smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], 3),
         smolyay.samples.NestedClenshawCurtisPointSet([-2, 2], 2),
@@ -748,7 +749,7 @@ def test_generate_smolyak_points_different_levels():
 
 
 def test_generate_compositions_include_zero_true():
-    """Test the generate compositions function if include_zero is true."""
+    """Test the generate compositions function if include_zero is true"""
     composition_expected = [[6, 0], [5, 1], [4, 2], [3, 3], [2, 4], [1, 5], [0, 6]]
     composition_obtained = []
     composition_obtained = list(
@@ -758,7 +759,7 @@ def test_generate_compositions_include_zero_true():
 
 
 def test_generate_compositions_include_zero_false():
-    """Test the generate compositions function if include_zero is false."""
+    """Test the generate compositions function if include_zero is false"""
     composition_expected = [[5, 1], [4, 2], [3, 3], [2, 4], [1, 5]]
     composition_obtained = list(
         smolyay.samples._generate_compositions(6, 2, include_zero=False)
@@ -767,6 +768,6 @@ def test_generate_compositions_include_zero_false():
 
 
 def test_generate_compositions_zero_false_error():
-    """Test that generate compositions raises an error for invalid input."""
+    """Test that generate compositions raises an error for invalid input"""
     with pytest.raises(ValueError):
         list(smolyay.samples._generate_compositions(6, 7, include_zero=False))
