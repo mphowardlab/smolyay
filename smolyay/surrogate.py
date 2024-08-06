@@ -55,11 +55,11 @@ class Surrogate:
 
         Parameters
         ----------
-        X : numpy.ndarray with shape (n_samples, num_dimensions)
+        X : numpy.ndarray with shape (num_samples, num_dimensions)
             input
         """
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (n_samples, num_dimensions).")
+            raise IndexError("Must be 2D array with shape (num_samples, num_dimensions).")
 
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
@@ -75,10 +75,10 @@ class Surrogate:
 
         Parameters
         ----------
-        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (num_samples, num_dimensions)
             points that are sampled
 
-        y : array-like of shape (n_samples,)
+        y : array-like of shape (num_samples,)
             function at grid points.
 
         Returns
@@ -98,12 +98,12 @@ class Surrogate:
 
         Parameters
         ----------
-        X: array-like with shape (n_samples, num_dimensions) or list of object
+        X: array-like with shape (num_samples, num_dimensions) or list of object
             Points at which the model is evaluated
 
         Returns
         -------
-        ndarray of shape (n_samples,)
+        ndarray of shape (num_samples,)
             Surrogate output at x.
 
         Raises
@@ -194,12 +194,12 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X: array-like with shape (n_samples, num_dimensions) or list of object
+        X: array-like with shape (num_samples, num_dimensions) or list of object
             Points at which the model is evaluated.
 
         Returns
         -------
-        ndarray of shape (n_samples,)
+        ndarray of shape (num_samples,)
             Surrogate output at x.
 
         Raises
@@ -207,7 +207,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be trained.
         IndexError
-            Input must be 2D array with shape (n_samples, num_dimensions).
+            Input must be 2D array with shape (num_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
 
@@ -242,12 +242,12 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X: array-like with shape (n_samples, num_dimensions) or list of object
+        X: array-like with shape (num_samples, num_dimensions) or list of object
             Points at which the model is evaluated
 
         Returns
         -------
-        ndarray of shape (n_samples, num_dimensions)
+        ndarray of shape (num_samples, num_dimensions)
             Gradient output at x.
 
         Raises
@@ -255,7 +255,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
         IndexError
-            Input must be 2D array with shape (n_samples, num_dimensions).
+            Input must be 2D array with shape (num_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -302,12 +302,12 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X: array-like with shape (n_samples, num_dimensions) or list of object
+        X: array-like with shape (num_samples, num_dimensions) or list of object
             Points at which the model is evaluated
 
         Returns
         -------
-        ndarray of shape (n_samples, num_dimensions, num_dimensions)
+        ndarray of shape (num_samples, num_dimensions, num_dimensions)
             Surrogate output at x.
 
         Raises
@@ -315,7 +315,7 @@ class SetProductSurrogate(Surrogate):
         RuntimeError
             For surrogate to be evaluated, function needs to be fit.
         IndexError
-            Input must be 2D array with shape (n_samples, num_dimensions).
+            Input must be 2D array with shape (num_samples, num_dimensions).
         ValueError
             Input must lie in domain of surrogate.
         """
@@ -373,10 +373,10 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (num_samples, num_dimensions)
             points that are sampled
 
-        y : array-like of shape (n_samples,) or (n_samples, 1)
+        y : array-like of shape (num_samples,) or (num_samples, 1)
             function at grid points.
 
         Returns
@@ -387,9 +387,9 @@ class SetProductSurrogate(Surrogate):
         Raises
         ------
         IndexError
-            X must be 2D array with shape (n_samples, num_dimensions).
+            X must be 2D array with shape (num_samples, num_dimensions).
         IndexError
-            y must be 1D array with shape (n_samples,) or (n_samples, 1).
+            y must be 1D array with shape (num_samples,) or (num_samples, 1).
         ValueError
             X must lie in domain of surrogate.
         """
@@ -415,7 +415,7 @@ class SetProductSurrogate(Surrogate):
 
         y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            raise IndexError("Must be 1D array with shape (n_samples,) or (n_samples, 1).")
+            raise IndexError("Must be 1D array with shape (num_samples,) or (num_samples, 1).")
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
@@ -473,10 +473,10 @@ class SetProductSurrogate(Surrogate):
 
         Parameters
         ----------
-        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (n_samples, num_dimensions)
+        X : array-like, UnidimensionalPointSet, or MultidimensionalPointSet of shape (num_samples, num_dimensions)
             points that are sampled
 
-        y : array-like of shape (n_samples, num_dimensions)
+        y : array-like of shape (num_samples, num_dimensions)
             gradient function at grid points.
 
         X0 : array-like of shape (num_dimensions) or None, optional
@@ -494,13 +494,13 @@ class SetProductSurrogate(Surrogate):
         Raises
         ------
         IndexError
-            X must be 2D array with shape (n_samples, num_dimensions).
+            X must be 2D array with shape (num_samples, num_dimensions).
         IndexError
-            y must be 1D array with shape (n_samples,).
+            y must be 1D array with shape (num_samples,).
         ValueError
             X must lie in domain of surrogate.
         IndexError
-            X0 must be 1D array with shape (n_samples,) if not None.
+            X0 must be 1D array with shape (num_samples,) if not None.
         """
         # reset constant
         self._integration_constant = 0
@@ -524,7 +524,7 @@ class SetProductSurrogate(Surrogate):
         y = numpy.array(y, ndmin=2, copy=None)
         if y.shape != X.shape:
             raise IndexError(
-                "y must be 2D array with shape (n_samples, num_dimensions)."
+                "y must be 2D array with shape (num_samples, num_dimensions)."
             )
 
         # create lookup table and solve for all the basis functions
