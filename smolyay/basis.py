@@ -604,7 +604,8 @@ class BasisFunctionSet(collections.abc.Sequence):
         )
         for i in range(len(self)):
             y[i, :] = self[i].derivative(new_X, n)
-        y *= ((self.domain[1] - self.domain[0]) / (domain[1] - domain[0])) ** n
+        if domain is not None:
+            y *= ((self.domain[1] - self.domain[0]) / (domain[1] - domain[0])) ** n
         return y
 
 
