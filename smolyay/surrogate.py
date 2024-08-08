@@ -590,7 +590,7 @@ class SetProductSurrogate(Surrogate):
         self._fit_gradient_flag = True
 
         # determine integration constant if possible
-        if not y0 is None:
+        if y0 is not None:
             # validate data inputs
             if X0 is None:
                 X0 = self.domain[:, 0].reshape((1, -1))
