@@ -22,87 +22,87 @@ def create_surrogate(
     return surrogate_class(domain, basis_sets, **kwargs), grid
 
 
-def function_1(x):
-    """Test function 1. For 2D mixed basis tests"""
-    x1, x2 = x
-    return numpy.cos(x1) + (2 * x2**2 - 1)
-
-
-def function_1_gradient(x):
-    """Test function 1 (gradient)"""
-    x1, x2 = x
-    return -numpy.sin(x1), 4 * x2
-
-
-def function_1_hessian(x):
-    """Test function 1 (hessian)"""
-    x1, x2 = x
-    return [[-numpy.cos(x1), 0], [0, 4]]
-
-
-def function_2(x):
-    """Test function 2. For 1D tests with chebyshev polynomials"""
-    return x**3 - 3 * (2 + x) - x
-
-
-def function_2_gradient(x):
-    """Test function 2 (gradient)"""
-    return 3 * x**2 - 4
-
-
-def function_2_hessian(x):
-    """Test function 2 (hessian)"""
-    return 6 * x
-
-
-def function_3(x):
-    """Test function 3. For 2D tests with chebyshev polynomials"""
+def function_poly_2D(x):
+    """Test function for 2D tests with chebyshev polynomials"""
     x1, x2 = x
     return x1 * x2 - 2 * x2 + 10
 
 
-def function_3_gradient(x):
-    """Test function 3 (gradient)"""
+def function_poly_2D_gradient(x):
+    """Gradient test function for 2D tests with chebyshev polynomials"""
     x1, x2 = x
     return x2, x1 - 2
 
 
-def function_3_hessian(x):
-    """Test function 3 (hessian)"""
+def function_poly_2D_hessian(x):
+    """Hessian test function for 2D tests with chebyshev polynomials"""
     return [[0, 1], [1, 0]]
 
 
-def function_4(x):
-    """Test function 4. For 2D tests with Trigonometric functions"""
+def function_poly_1D(x):
+    """Test function for 1D tests with chebyshev polynomials"""
+    return x**3 - 3 * (2 + x) - x
+
+
+def function_poly_1D_gradient(x):
+    """Gradient test function for 1D tests with chebyshev polynomials"""
+    return 3 * x**2 - 4
+
+
+def function_poly_1D_hessian(x):
+    """Hessian test function for 1D tests with chebyshev polynomials"""
+    return 6 * x
+
+
+def function_trig_2D(x):
+    """Test function for 2D tests with Trigonometric functions"""
     x1, x2 = x
     return numpy.cos(x1) + numpy.sin(x2)
 
 
-def function_4_gradient(x):
-    """Test function 4 (gradient)"""
+def function_trig_2D_gradient(x):
+    """Gradient test function for 2D tests with Trigonometric functions"""
     x1, x2 = x
     return -numpy.sin(x1), numpy.cos(x2)
 
 
-def function_4_hessian(x):
-    """Test function 4 (hessian)"""
+def function_trig_2D_hessian(x):
+    """Hessian test function for 2D tests with Trigonometric functions"""
     x1, x2 = x
     return [[-numpy.cos(x1), 0], [0, -numpy.sin(x2)]]
 
 
-def function_5(x):
-    """Test function 5. For 1D tests with Trigonometric functions"""
+def function_trig_1D(x):
+    """Test function for 1D tests with Trigonometric functions"""
     return numpy.cos(x)
 
 
-def function_5_gradient(x):
-    """Test function 5 (gradient)"""
+def function_trig_1D_gradient(x):
+    """Gradient test function for 1D tests with Trigonometric functions"""
     return -numpy.sin(x)
 
 
-def function_5_hessian(x):
-    """Test function 5 (hessian)"""
+def function_trig_1D_hessian(x):
+    """Hessian test function for 1D tests with Trigonometric functions"""
     return -numpy.cos(x)
+
+
+def function_mixed_2D(x):
+    """Test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return numpy.cos(x1) + (2 * x2**2 - 1)
+
+
+def function_mixed_2D_gradient(x):
+    """Gradient test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return -numpy.sin(x1), 4 * x2
+
+
+def function_mixed_2D_hessian(x):
+    """Hessian test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0], [0, 4]]
 
 
 @pytest.mark.parametrize(
@@ -252,16 +252,16 @@ class TestFit2D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = [function_3(x) for x in grid.points]
+        sample_output = [function_poly_2D(x) for x in grid.points]
         surrogate = surrogate.fit(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -277,16 +277,16 @@ class TestFit2D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = [function_3(x) for x in grid.points]
+        sample_output = [function_poly_2D(x) for x in grid.points]
         surrogate = surrogate.fit(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -303,16 +303,16 @@ class TestFit2D:
             domain,
             nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
         )
-        sample_output = [function_4(x) for x in grid.points]
+        sample_output = [function_trig_2D(x) for x in grid.points]
         surrogate = surrogate.fit(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_4(x) for x in test_points]
-        gradient_answer = [function_4_gradient(x) for x in test_points]
-        hessian_answer = [function_4_hessian(x) for x in test_points]
+        predict_answer = [function_trig_2D(x) for x in test_points]
+        gradient_answer = [function_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_trig_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -334,16 +334,16 @@ class TestFit2D:
             grid = smolyay.samples.TensorProductPointSet(point_sets)
         else:
             grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
-        sample_output = [function_1(x) for x in grid.points]
+        sample_output = [function_mixed_2D(x) for x in grid.points]
         surrogate = surrogate.fit(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_1(x) for x in test_points]
-        gradient_answer = [function_1_gradient(x) for x in test_points]
-        hessian_answer = [function_1_hessian(x) for x in test_points]
+        predict_answer = [function_mixed_2D(x) for x in test_points]
+        gradient_answer = [function_mixed_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_mixed_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -367,14 +367,14 @@ class TestFit2D:
         ]
         surrogate = surrogate_class(domain, basis_sets, regularization)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
-        sample_output = [function_3(x) for x in grid.points]
+        sample_output = [function_poly_2D(x) for x in grid.points]
         surrogate.fit(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
         assert numpy.allclose(
             gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
@@ -392,16 +392,16 @@ class TestFit2D:
         ]
         surrogate = surrogate_class(domain, basis_sets, None)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 800, 1234)
-        sample_output = [function_4(x) for x in grid.points]
+        sample_output = [function_trig_2D(x) for x in grid.points]
         surrogate.fit(grid, sample_output)
         print(len(surrogate._index_combinations))
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_4(x) for x in test_points]
-        gradient_answer = [function_4_gradient(x) for x in test_points]
-        hessian_answer = [function_4_hessian(x) for x in test_points]
+        predict_answer = [function_trig_2D(x) for x in test_points]
+        gradient_answer = [function_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_trig_2D_hessian(x) for x in test_points]
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
         assert numpy.allclose(
             gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
@@ -434,16 +434,16 @@ class TestFit1D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = numpy.array(function_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
@@ -462,16 +462,16 @@ class TestFit1D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = numpy.array(function_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
@@ -490,16 +490,16 @@ class TestFit1D:
             domain,
             nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
         )
-        sample_output = [function_5(x) for x in grid.points]
+        sample_output = [function_trig_1D(x) for x in grid.points]
         surrogate = surrogate.fit(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_5(test_points))
-        gradient_answer = function_5_gradient(test_points)
-        hessian_answer = function_5_hessian(test_points).reshape((-1, 1, 1))
+        predict_answer = numpy.squeeze(function_trig_1D(test_points))
+        gradient_answer = function_trig_1D_gradient(test_points)
+        hessian_answer = function_trig_1D_hessian(test_points).reshape((-1, 1, 1))
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -512,16 +512,16 @@ class TestFit1D:
         basis_sets = [smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)]
         surrogate = surrogate_class(domain, basis_sets, None)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 500, 1234)
-        sample_output = [function_5(x) for x in grid.points]
+        sample_output = [function_trig_1D(x) for x in grid.points]
         surrogate = surrogate.fit(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_5(test_points))
-        gradient_answer = function_5_gradient(test_points)
-        hessian_answer = function_5_hessian(test_points).reshape((-1, 1, 1))
+        predict_answer = numpy.squeeze(function_trig_1D(test_points))
+        gradient_answer = function_trig_1D_gradient(test_points)
+        hessian_answer = function_trig_1D_hessian(test_points).reshape((-1, 1, 1))
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
@@ -544,14 +544,14 @@ class TestFit1D:
         basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)]
         surrogate = surrogate_class(domain, basis_sets, regularization)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 500, 1234)
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = numpy.array(function_2_gradient(test_points), ndmin=2)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = numpy.array(function_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
@@ -574,16 +574,16 @@ def test_fit_error():
 
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
-        surrogate.fit(test_points, [function_3(x) for x in test_points])
+        surrogate.fit(test_points, [function_poly_2D(x) for x in test_points])
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [-7, 0], [0.7, 0.2]])
-        surrogate.fit(test_points, [function_3(x) for x in test_points])
+        surrogate.fit(test_points, [function_poly_2D(x) for x in test_points])
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 18], [0, 0], [0.7, 0.2]])
-        surrogate.fit(test_points, [function_3(x) for x in test_points])
+        surrogate.fit(test_points, [function_poly_2D(x) for x in test_points])
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
-        surrogate.fit(test_points, [function_3(x) for x in test_points])
+        surrogate.fit(test_points, [function_poly_2D(x) for x in test_points])
 
 
 @pytest.mark.parametrize(
@@ -608,16 +608,16 @@ class TestFitGradient2D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = [function_3_gradient(x) for x in grid.points]
+        sample_output = [function_poly_2D_gradient(x) for x in grid.points]
         surrogate = surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
@@ -627,11 +627,11 @@ class TestFitGradient2D:
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
         surrogate = surrogate.fit_gradient(
-            grid, sample_output, y0=[function_3(domain[:, 0])]
+            grid, sample_output, y0=[function_poly_2D(domain[:, 0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         surrogate = surrogate.fit_gradient(
-            grid, sample_output, X0=[domain[:, 1]], y0=[function_3(domain[:, 1])]
+            grid, sample_output, X0=[domain[:, 1]], y0=[function_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
@@ -646,16 +646,16 @@ class TestFitGradient2D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = [function_3_gradient(x) for x in grid.points]
+        sample_output = [function_poly_2D_gradient(x) for x in grid.points]
         surrogate = surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
@@ -665,11 +665,11 @@ class TestFitGradient2D:
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
         surrogate = surrogate.fit_gradient(
-            grid, sample_output, y0=[function_3(domain[:, 0])]
+            grid, sample_output, y0=[function_poly_2D(domain[:, 0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         surrogate = surrogate.fit_gradient(
-            grid, sample_output, X0=[domain[:, 1]], y0=[function_3(domain[:, 1])]
+            grid, sample_output, X0=[domain[:, 1]], y0=[function_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
@@ -685,16 +685,16 @@ class TestFitGradient2D:
             domain,
             nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
         )
-        sample_output = [function_4_gradient(x) for x in grid.points]
+        sample_output = [function_trig_2D_gradient(x) for x in grid.points]
         surrogate = surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_4(x) for x in test_points]
-        gradient_answer = [function_4_gradient(x) for x in test_points]
-        hessian_answer = [function_4_hessian(x) for x in test_points]
+        predict_answer = [function_trig_2D(x) for x in test_points]
+        gradient_answer = [function_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_trig_2D_hessian(x) for x in test_points]
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
@@ -721,16 +721,16 @@ class TestFitGradient2D:
             grid = smolyay.samples.TensorProductPointSet(point_sets)
         else:
             grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
-        sample_output = [function_1_gradient(x) for x in grid.points]
+        sample_output = [function_mixed_2D_gradient(x) for x in grid.points]
         surrogate = surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_1(x) for x in test_points]
-        gradient_answer = [function_1_gradient(x) for x in test_points]
-        hessian_answer = [function_1_hessian(x) for x in test_points]
+        predict_answer = [function_mixed_2D(x) for x in test_points]
+        gradient_answer = [function_mixed_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_mixed_2D_hessian(x) for x in test_points]
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
@@ -759,14 +759,14 @@ class TestFitGradient2D:
         ]
         surrogate = surrogate_class(domain, basis_sets, regularization)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
-        sample_output = [function_3_gradient(x) for x in grid.points]
+        sample_output = [function_poly_2D_gradient(x) for x in grid.points]
         surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        predict_answer = [function_3(x) for x in test_points]
-        gradient_answer = [function_3_gradient(x) for x in test_points]
-        hessian_answer = [function_3_hessian(x) for x in test_points]
+        predict_answer = [function_poly_2D(x) for x in test_points]
+        gradient_answer = [function_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_poly_2D_hessian(x) for x in test_points]
         assert numpy.allclose(
             gradient_answer,
             surrogate.predict_gradient(test_points),
@@ -793,16 +793,16 @@ class TestFitGradient2D:
         ]
         surrogate = surrogate_class(domain, basis_sets, None)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
-        sample_output = [function_4_gradient(x) for x in grid.points]
+        sample_output = [function_trig_2D_gradient(x) for x in grid.points]
         surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = [function_4(x) for x in test_points]
-        gradient_answer = [function_4_gradient(x) for x in test_points]
-        hessian_answer = [function_4_hessian(x) for x in test_points]
+        predict_answer = [function_trig_2D(x) for x in test_points]
+        gradient_answer = [function_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [function_trig_2D_hessian(x) for x in test_points]
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
 
@@ -835,14 +835,14 @@ class TestFitGradient1D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = function_2_gradient(grid.points)
+        sample_output = function_poly_1D_gradient(grid.points)
         surrogate.fit_gradient(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = function_2_gradient(test_points)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = function_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(
@@ -857,7 +857,7 @@ class TestFitGradient1D:
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
         surrogate = surrogate.fit_gradient(
-            grid.points, sample_output, [[domain[0]]], [function_2(domain[0])]
+            grid.points, sample_output, [[domain[0]]], [function_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
@@ -872,14 +872,14 @@ class TestFitGradient1D:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = function_2_gradient(grid.points)
+        sample_output = function_poly_1D_gradient(grid.points)
         surrogate.fit_gradient(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = function_2_gradient(test_points)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = function_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(
@@ -894,7 +894,7 @@ class TestFitGradient1D:
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
         surrogate = surrogate.fit_gradient(
-            grid.points, sample_output, [[domain[0]]], [function_2(domain[0])]
+            grid.points, sample_output, [[domain[0]]], [function_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
 
@@ -910,16 +910,16 @@ class TestFitGradient1D:
             domain,
             nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
         )
-        sample_output = function_5_gradient(grid.points)
+        sample_output = function_trig_1D_gradient(grid.points)
         surrogate = surrogate.fit_gradient(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_5(test_points))
-        gradient_answer = function_5_gradient(test_points)
-        hessian_answer = numpy.array(function_5_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_trig_1D(test_points))
+        gradient_answer = function_trig_1D_gradient(test_points)
+        hessian_answer = numpy.array(function_trig_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
@@ -948,14 +948,14 @@ class TestFitGradient1D:
         basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)]
         surrogate = surrogate_class(domain, basis_sets, regularization)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
-        sample_output = function_2_gradient(grid.points)
+        sample_output = function_poly_1D_gradient(grid.points)
         surrogate.fit_gradient(grid, sample_output)
 
         # test surrogate matches at some points
         test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
-        predict_answer = numpy.squeeze(function_2(test_points))
-        gradient_answer = function_2_gradient(test_points)
-        hessian_answer = numpy.array(function_2_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_poly_1D(test_points))
+        gradient_answer = function_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(function_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
@@ -975,16 +975,16 @@ class TestFitGradient1D:
         basis_sets = [smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)]
         surrogate = surrogate_class(domain, basis_sets, None)
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
-        sample_output = function_5_gradient(grid.points)
+        sample_output = function_trig_1D_gradient(grid.points)
         surrogate = surrogate.fit_gradient(grid.points, sample_output)
 
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
         ).points
-        predict_answer = numpy.squeeze(function_5(test_points))
-        gradient_answer = function_5_gradient(test_points)
-        hessian_answer = numpy.array(function_5_hessian(test_points), ndmin=3).reshape(
+        predict_answer = numpy.squeeze(function_trig_1D(test_points))
+        gradient_answer = function_trig_1D_gradient(test_points)
+        hessian_answer = numpy.array(function_trig_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
@@ -1009,48 +1009,48 @@ def test_fit_gradient_error():
     # test shape and bounds error for points
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        surrogate.fit_gradient(test_points, [function_3(x) for x in test_points])
+        surrogate.fit_gradient(test_points, [function_poly_2D(x) for x in test_points])
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [-7, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 18], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output)
 
     # test shape and bounds error for initial point used for integration constant
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 5, 6], 8)
     with pytest.raises(IndexError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, test_points, 8)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 20], 8)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, -5], 8)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, [-10, 5], 8)
     with pytest.raises(ValueError):
         test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
-        fun3_gradient_output = [function_3_gradient(x) for x in test_points]
+        fun3_gradient_output = [function_poly_2D_gradient(x) for x in test_points]
         surrogate.fit_gradient(test_points, fun3_gradient_output, [30, 5], 8)
 
 
@@ -1065,16 +1065,16 @@ def test_successive_fits():
         domain,
         nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
     )
-    sample_output_1 = [function_1(x) for x in grid.points]
-    sample_output_gradient_1 = [function_1_gradient(x) for x in grid.points]
-    sample_output_gradient_2 = [function_3_gradient(x) for x in grid.points]
+    sample_output_1 = [function_mixed_2D(x) for x in grid.points]
+    sample_output_gradient_1 = [function_mixed_2D_gradient(x) for x in grid.points]
+    sample_output_gradient_2 = [function_poly_2D_gradient(x) for x in grid.points]
     X0 = [domain[:, 1]]
-    y0_2 = [function_3(domain[:, 1])]
+    y0_2 = [function_poly_2D(domain[:, 1])]
     # test surrogate matches at some points
     test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
-    predict_answer_1 = [function_1(x) for x in test_points]
-    predict_answer_2 = [function_3(x) for x in test_points]
-    gradient_answer_2 = [function_3_gradient(x) for x in test_points]
+    predict_answer_1 = [function_mixed_2D(x) for x in test_points]
+    predict_answer_2 = [function_poly_2D(x) for x in test_points]
+    gradient_answer_2 = [function_poly_2D_gradient(x) for x in test_points]
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1, X0, y0_2)
     surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
     assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
@@ -1103,7 +1103,7 @@ class TestPredictSize:
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
         # fit with same number of points as terms
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         assert numpy.array_equal(
             numpy.shape(surrogate.predict([[-0.5, 0.8], [0, 0], [0.7, 0]])), (3,)
         )
@@ -1121,7 +1121,7 @@ class TestPredictSize:
             domain,
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
         assert numpy.array_equal(
             numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,)
@@ -1143,16 +1143,16 @@ def test_predict_error():
     with pytest.raises(RuntimeError):
         surrogate.predict([[0.7, 0.3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict([[11, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict([[5, 4], [3, 20], [0, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict([[-19, 5], [3, 3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict([[-4, -1], [3, 3]])
 
 
@@ -1172,7 +1172,7 @@ class TestGradientSize:
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
         # fit with same number of points as terms
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_gradient([[-0.5, 0.8], [0, 0], [0.7, 0]])),
             (3, 2),
@@ -1193,7 +1193,7 @@ class TestGradientSize:
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
         # fit with a 1D function
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_gradient([[-0.5], [0], [0.7]])), (3, 1)
@@ -1216,16 +1216,16 @@ def test_predict_gradient_error():
     with pytest.raises(RuntimeError):
         surrogate.predict_gradient([[0.7, 0.3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_gradient([[11, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_gradient([[5, 4], [3, 20], [0, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_gradient([[-19, 5], [3, 3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_gradient([[-4, -1], [3, 3]])
 
 
@@ -1245,7 +1245,7 @@ class TestHessianSize:
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
         # fit with same number of points as terms
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_hessian([[-0.5, 0.8], [0, 0], [0.7, 0]])),
             (3, 2, 2),
@@ -1266,7 +1266,7 @@ class TestHessianSize:
             nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
         )
         # fit with a 1D function
-        sample_output = function_2(grid.points)
+        sample_output = function_poly_1D(grid.points)
         surrogate.fit(grid.points, sample_output)
         assert numpy.array_equal(
             numpy.shape(surrogate.predict_hessian([[-0.5], [0], [0.7]])), (3, 1, 1)
@@ -1289,14 +1289,14 @@ def test_predict_hessian_error():
     with pytest.raises(RuntimeError):
         surrogate.predict_hessian([[0.7, 0.3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[11, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[5, 4], [3, 20], [0, 5]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[-19, 5], [3, 3]])
     with pytest.raises(ValueError):
-        surrogate.fit(grid, [function_3(x) for x in grid.points])
+        surrogate.fit(grid, [function_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[-4, -1], [3, 3]])
