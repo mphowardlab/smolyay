@@ -215,6 +215,14 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if self._needs_fit:
             raise RuntimeError("Model must be fit!")
+        if isinstance(
+            X,
+            (
+                samples.UnidimensionalPointSet,
+                samples.MultidimensionalPointSet,
+            ),
+        ):
+            X = X.points
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
 
@@ -262,6 +270,14 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if self._needs_fit:
             raise RuntimeError("Model must be fit!")
+        if isinstance(
+            X,
+            (
+                samples.UnidimensionalPointSet,
+                samples.MultidimensionalPointSet,
+            ),
+        ):
+            X = X.points
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
 
@@ -322,6 +338,14 @@ class SetProductSurrogate(Surrogate):
         # validate inputs
         if self._needs_fit:
             raise RuntimeError("Model must be fit!")
+        if isinstance(
+            X,
+            (
+                samples.UnidimensionalPointSet,
+                samples.MultidimensionalPointSet,
+            ),
+        ):
+            X = X.points
         X = numpy.array(X, ndmin=2, copy=None)
         self._assert_in_domain(X)
 
