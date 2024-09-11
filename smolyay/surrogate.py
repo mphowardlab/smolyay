@@ -706,18 +706,18 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
 
         # generate sets of indexes based on combinations of levels
         for level_comb in level_combinations:
-            level_point_combinations = [
+            level_term_combinations = [
                 numpy.arange(
                     self._basis_sets[d].start_level[level],
                     self._basis_sets[d].end_level[level],
                 )
                 for d, level in enumerate(level_comb)
             ]
-            num_terms = numpy.prod([len(p) for p in level_point_combinations])
+            num_terms = numpy.prod([len(p) for p in level_term_combinations])
             index_combinations_ = numpy.zeros(
                 (num_terms, self.num_dimensions), dtype=int
             )
-            for i, point in enumerate(itertools.product(*level_point_combinations)):
+            for i, point in enumerate(itertools.product(*level_term_combinations)):
                 index_combinations_[i] = point
             # add newly generated term indexes to set
             if self._index_combinations is None:
