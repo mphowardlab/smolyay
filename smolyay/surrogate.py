@@ -717,8 +717,8 @@ class SmolyakSparseProductSurrogate(SetProductSurrogate):
             index_combinations_ = numpy.zeros(
                 (num_terms, self.num_dimensions), dtype=int
             )
-            for i, point in enumerate(itertools.product(*level_term_combinations)):
-                index_combinations_[i] = point
+            for i, term in enumerate(itertools.product(*level_term_combinations)):
+                index_combinations_[i] = term
             # add newly generated term indexes to set
             if self._index_combinations is None:
                 self._index_combinations = index_combinations_
