@@ -1,426 +1,1302 @@
 import numpy
 import pytest
 
-from smolyay.basis import ChebyshevFirstKind
-from smolyay.grid import SmolyakGridGenerator, IndexGrid
-from smolyay.surrogate import Surrogate, GradientSurrogate
+import smolyay
 
 
-def function_0(x):
-    """Test function 0."""
-    x1, x2, x3 = x
-    return 2*x1 + x2 - x3
+def create_surrogate(
+    surrogate_class,
+    nested_basis_set_class,
+    num_level,
+    domain,
+    nested_point_class,
+    **kwargs
+):
+    domain = numpy.array(domain, ndmin=2)
+    basis_sets = [nested_basis_set_class(num_level) for dom in domain]
+    point_sets = [nested_point_class(dom, num_level) for dom in domain]
+    if surrogate_class is smolyay.surrogate.TensorProductSurrogate:
+        grid = smolyay.samples.TensorProductPointSet(point_sets)
+    else:
+        grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+    return surrogate_class(domain, basis_sets, **kwargs), grid
 
 
-def function_0_shifted(x):
-    """Test fucntion 0 which is shifted."""
-    x1, x2, x3 = x
-    return 2*(x1 - 1) + (x2 + 1) - x3
-
-
-def function_1(x):
-    """Test fucntion 1."""
+def fun_poly_2D(x):
+    """Test function for 2D tests with chebyshev polynomials"""
     x1, x2 = x
-    return x1 + (2*x2**2 - 1)
+    return x1 * x2 - 2 * x2 + 10
 
 
-def function_2(x):
-    """Test funciton 2."""
-    return x**2 - 3 * (2 + x) - x
-
-
-def function_3(x):
-    """Test function 3 (gradient)."""
-    # function f = x1*x2 - 2*x2
+def fun_poly_2D_gradient(x):
+    """Gradient test function for 2D tests with chebyshev polynomials"""
     x1, x2 = x
     return x2, x1 - 2
 
 
-def function_4(x):
-    """Test function 4 (gradient)."""
-    # function f = x**3 -2*x
-    return 3*x**2 - 2
+def fun_poly_2D_hessian(x):
+    """Hessian test function for 2D tests with chebyshev polynomials"""
+    return [[0, 1], [1, 0]]
 
 
-def branin(x):
-    """Branin function."""
+def fun_poly_1D(x):
+    """Test function for 1D tests with chebyshev polynomials"""
+    return x**3 - 3 * (2 + x) - x
+
+
+def fun_poly_1D_gradient(x):
+    """Gradient test function for 1D tests with chebyshev polynomials"""
+    return 3 * x**2 - 4
+
+
+def fun_poly_1D_hessian(x):
+    """Hessian test function for 1D tests with chebyshev polynomials"""
+    return 6 * x
+
+
+def fun_trig_2D(x):
+    """Test function for 2D tests with Trigonometric functions"""
     x1, x2 = x
-    branin1 = (x2 - 5.1 * x1 ** (2)/(4 * numpy.pi ** 2)
-               + 5 * x1 / (numpy.pi) - 6) ** 2
-    branin2 = 10 * (1 - 1 / (8 * numpy.pi)) * numpy.cos(x1)
-    branin3 = 10
-    branin_function = branin1 + branin2 + branin3
-    return branin_function
+    return numpy.cos(x1) + numpy.sin(x2)
 
 
-def test_initialization_1d():
-    """Test if class is properly intiallized."""
-    grid_generator = SmolyakGridGenerator(
-        ChebyshevFirstKind.make_nested_set(2))
-    domain = (-1, 1)
-    surrogate = Surrogate(domain, grid_generator)
+def fun_trig_2D_gradient(x):
+    """Gradient test function for 2D tests with Trigonometric functions"""
+    x1, x2 = x
+    return -numpy.sin(x1), numpy.cos(x2)
+
+
+def fun_trig_2D_hessian(x):
+    """Hessian test function for 2D tests with Trigonometric functions"""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0], [0, -numpy.sin(x2)]]
+
+
+def fun_trig_1D(x):
+    """Test function for 1D tests with Trigonometric functions"""
+    return numpy.cos(x)
+
+
+def fun_trig_1D_gradient(x):
+    """Gradient test function for 1D tests with Trigonometric functions"""
+    return -numpy.sin(x)
+
+
+def fun_trig_1D_hessian(x):
+    """Hessian test function for 1D tests with Trigonometric functions"""
+    return -numpy.cos(x)
+
+
+def fun_mixed_2D(x):
+    """Test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return numpy.cos(x1) + (2 * x2**2 - 1)
+
+
+def fun_mixed_2D_gradient(x):
+    """Gradient test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return -numpy.sin(x1), 4 * x2
+
+
+def fun_mixed_2D_hessian(x):
+    """Hessian test function for 2D mixed basis tests"""
+    x1, x2 = x
+    return [[-numpy.cos(x1), 0], [0, 4]]
+
+
+@pytest.mark.parametrize(
+    "surrogate_class,basis_sets,index_answer",
+    [
+        (
+            smolyay.surrogate.TensorProductSurrogate,
+            [
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+            ],
+            numpy.array(numpy.meshgrid(list(range(10)), list(range(10)))).T.reshape(
+                -1, 2
+            ),
+        ),
+        (
+            smolyay.surrogate.TensorProductSurrogate,
+            [
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(3),
+                smolyay.basis.TrigonometricBasisFunctionSet(5),
+            ],
+            numpy.array(numpy.meshgrid(list(range(3)), list(range(5)))).T.reshape(
+                -1, 2
+            ),
+        ),
+        (
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            [
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+            ],
+            [
+                [0, 0],
+                [1, 0],
+                [2, 0],
+                [0, 1],
+                [0, 2],
+                [3, 0],
+                [4, 0],
+                [1, 1],
+                [1, 2],
+                [2, 1],
+                [2, 2],
+                [0, 3],
+                [0, 4],
+            ],
+        ),
+        (
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            [
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
+                smolyay.basis.NestedTrigonometricBasisFunctionSet(3),
+            ],
+            [
+                [0, 0],
+                [1, 0],
+                [2, 0],
+                [0, 1],
+                [0, 2],
+                [1, 1],
+                [1, 2],
+                [2, 1],
+                [2, 2],
+                [0, 3],
+                [0, 4],
+                [0, 5],
+                [0, 6],
+                [0, 7],
+                [0, 8],
+            ],
+        ),
+    ],
+    ids=["Tensor", "Tensor mixed basis", "Smolyak", "Smolyak mixed basis"],
+)
+def test_initialization_product_set(surrogate_class, basis_sets, index_answer):
+    """Test class initialization and setters and basis function combinations generated"""
+    domain = [[-5, 10], [0, 15]]
+    surrogate = surrogate_class(domain, basis_sets)
     assert numpy.allclose(surrogate.domain, domain)
-    assert surrogate.coefficients is None
-    assert isinstance(surrogate.grid, IndexGrid)
-    assert surrogate.dimension == 1
-    assert numpy.allclose(surrogate.points,
-                          [0, -1, 1, -0.70710, 0.70710])
+    assert basis_sets[0] is surrogate.basis_sets[0]
+    assert surrogate.num_dimensions == 2
+    assert surrogate.regularization == None
+    surrogate.fit(domain, [1, 2])
+    assert numpy.array_equal(surrogate._index_combinations, index_answer)
+
+    # test optional parameters
+    surrogate = surrogate_class(
+        domain, basis_sets, smolyay.surrogate.L2Regularization(alpha=1e-5)
+    )
+    assert isinstance(surrogate.regularization, smolyay.surrogate.L2Regularization)
+    assert surrogate.regularization.alpha == 1e-5
+
+    # test setting parameters
+    surrogate.domain = [[-7, 15], [6, 14]]
+    assert numpy.allclose(surrogate.domain, [[-7, 15], [6, 14]])
+    surrogate.regularization = smolyay.surrogate.L1Regularization(alpha=1e-10)
+    assert isinstance(surrogate.regularization, smolyay.surrogate.L1Regularization)
+    assert surrogate.regularization.alpha == 1e-10
 
 
-def test_gradient_initialization_1d():
-    """Test if class is properly intiallized."""
-    grid_generator = SmolyakGridGenerator(
-        ChebyshevFirstKind.make_nested_set(2))
-    domain = (-1, 1)
-    surrogate = GradientSurrogate(domain, grid_generator)
-    assert numpy.allclose(surrogate.domain, domain)
-    assert surrogate.coefficients is None
-    assert isinstance(surrogate.grid, IndexGrid)
-    assert surrogate.dimension == 1
-    assert numpy.allclose(surrogate.points,
-                          [0, -1, 1, -0.70710, 0.70710])
-
-
-def test_initialization_2d():
-    """Test if class is properly intiallized."""
-    grid_generator = SmolyakGridGenerator(
-        ChebyshevFirstKind.make_nested_set(2))
-    domain = [(-5, 5), (-8, 0)]
-    surrogate = Surrogate(domain, grid_generator)
-    assert numpy.allclose(surrogate.domain,
-                          domain)
-    assert surrogate.coefficients is None
-    assert isinstance(surrogate.grid, IndexGrid)
-    assert surrogate.dimension == 2
-    assert numpy.allclose(surrogate.points, [[0, -4], [-5, -4], [5, -4],
-                                             [0, -8], [0, 0], [-3.5355, -4],
-                                             [3.5355, -4], [-5, -8],
-                                             [-5, 0], [5, -8], [5, 0],
-                                             [0, -6.8284], [0, -1.1715]],
-                          atol=1e-4)
-
-
-def test_gradient_initialization_2d():
-    """Test if class is properly intiallized."""
-    grid_generator = SmolyakGridGenerator(
-        ChebyshevFirstKind.make_nested_set(2))
-    domain = [(-5, 5), (-8, 0)]
-    surrogate = GradientSurrogate(domain, grid_generator)
-    assert numpy.allclose(surrogate.domain, domain)
-    assert surrogate.coefficients is None
-    assert isinstance(surrogate.grid, IndexGrid)
-    assert surrogate.dimension == 2
-    assert numpy.allclose(surrogate.points,
-                          [[0, -4], [-5, -4], [5, -4],
-                           [0, -8], [0, 0], [-3.5355, -4],
-                           [3.5355, -4], [-5, -8],
-                           [-5, 0], [5, -8], [5, 0],
-                           [0, -6.8284], [0, -1.1715]],
-                          atol=1e-4)
-
-
-def test_error_grid_generator_type():
-    """Test grid generator's type."""
-    domain = [(-5, 5), (-8, 0)]
-    with pytest.raises(TypeError):
-        Surrogate(domain, 'not a grid generator')
-
-
-def test_error_gradient_grid_generator_type():
-    """Test grid generator's type."""
-    domain = [(-5, 5), (-8, 0)]
-    with pytest.raises(TypeError):
-        GradientSurrogate(domain, 'not a grid generator')
-
-
-def test_map_function_1d():
-    """Test if points are transfromed properly."""
-    grid = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(1))
-    domain = (-8, 12)
-    new_domain = (0, 1)
-    f = Surrogate(domain, grid)
-    assert f._mapdomain(2, domain, new_domain)
-    assert numpy.allclose(f._mapdomain([-3, 7],
-                                       domain, new_domain), [0.25, 0.75])
-
-
-def test_map_function_2d():
-    """Test if points are transfromed properly."""
-    grid = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(1))
-    domain = ((-10, 10), (0, 2))
-    new_domain = ((0, 1), (-1, 1))
-    f = Surrogate(domain, grid)
-    assert numpy.allclose(f._mapdomain((-10, 0), domain, new_domain), [0, -1])
-    assert numpy.allclose(f._mapdomain([(0, 1), (10, 2)],
-                                       domain, new_domain), [[0.5, 0], [1, 1]])
-
-
-@pytest.mark.parametrize('linear_solver', ['lu', 'lstsq', 'inv'])
-def test_surrogate_0(linear_solver):
-    """Test if surrogate generates exact results for test fucntion 0."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1), (-1, 1), (-1, 1)], grid_gen)
-    surrogate.train(function_0, linear_solver)
-    # random points in the domain
-    points = [(0.649, 0, -0.9), (-0.885, 1, 0.275)]
-    surrogate_values = [surrogate(x) for x in points]
-    exact_values = [function_0(x) for x in points]
-    assert numpy.allclose(surrogate_values, exact_values)
-
-
-def test_surrogate_1():
-    """Test if surrogate generates exact results for test for Chebyshevs."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1), (-1, 1)], grid_gen)
-    surrogate.train(function_1)
-    # random points in the domain
-    points = [(0.649, -0.9), (-0.885, 1)]
-    surrogate_values = [surrogate(x) for x in points]
-    exact_values = [function_1(x) for x in points]
-    assert numpy.allclose(surrogate_values, exact_values)
-
-
-def test_surrogate_1_multi_input():
-    """Test if surrogate generates exact results when call has >1 input."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1), (-1, 1)], grid_gen)
-    surrogate.train(function_1)
-    # random points in the domain
-    numpy.random.seed(567)
-    points_1 = [(0.649, -0.9), (-0.885, 1)]
-    points_2 = numpy.random.rand(3, 4, 2)*2 - 1
-    exact_values_1 = [function_1(x) for x in points_1]
-    exact_values_2 = numpy.zeros(points_2.shape[:-1])
-    for i in range(points_2.shape[0]):
-        for j in range(points_2.shape[1]):
-            exact_values_2[i,j] = function_1(tuple(points_2[i,j]))
-    surrogate_values_1 = surrogate(points_1)
-    surrogate_values_2 = surrogate(points_2)
-    assert numpy.allclose(exact_values_1, surrogate_values_1)
-    assert numpy.allclose(exact_values_2, surrogate_values_2)
-
-
-def test_surrogate_2D_multi_shape():
-    """Test if surrogate call generates the correct shape for 2 dimensions."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1),(-1, 1)], grid_gen)
-    surrogate.train(function_1)
-    # arrays of various shapes with points in the domain
-    assert numpy.isscalar(surrogate([1, 1]))
-    assert surrogate([[1, 1]]).shape == (1,)
-    assert surrogate([[1, 1], [0.5, 0.5]]).shape == (2,)
-    assert surrogate(numpy.ones((1, 1, 1, 2))).shape == (1, 1, 1)
-    assert surrogate(numpy.ones((4, 3, 2, 2))).shape == (4, 3, 2)
-    assert surrogate(numpy.ones((4, 3, 5, 2))).shape == (4, 3, 5)
-
-
-def test_surrogate_0_shifted():
-    """Test if surrogate generates exact results for a shifted function 0."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate_1 = Surrogate([(-1, 1), (-1, 1), (-1, 1)], grid_gen)
-    surrogate_2 = Surrogate([(0, 2), (-2, 0), (-1, 1)], grid_gen)
-    surrogate_1.train(function_0)
-    surrogate_2.train_from_data(surrogate_1.data)
-    point, point_shifted = (0, 0.5, -0.5), (1, -0.5, -0.5)
-    assert numpy.allclose(surrogate_1.coefficients,
-                          surrogate_2.coefficients)
-    assert numpy.isclose(surrogate_1(point), surrogate_2(point_shifted))
-
-
-@pytest.mark.parametrize('linear_solver', ['lu', 'lstsq', 'inv'])
-def test_surrogate_2(linear_solver):
-    """Test if surrogate generates exact results for simple 1D function."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate((-10, 10), grid_gen)
-    surrogate.train(function_2, linear_solver)
-    # random point in the domain
-    point = 0.367
-    assert numpy.isclose(surrogate(point), function_2(point))
-
-
-@pytest.mark.parametrize('linear_solver', ['lu', 'lstsq', 'inv'])
-def test_surrogate_2_multi_input(linear_solver):
-    """Test if surrogate generates exact results for 1D function and >1 input"""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate((-10, 10), grid_gen)
-    surrogate.train(function_2, linear_solver)
-    # random point in the domain
-    numpy.random.seed(567)
-    points_1 = numpy.array([0.367, 0.4, 0.742, 0.99])
-    points_2 = numpy.random.rand(3, 4)
-    assert numpy.allclose(surrogate(points_1), function_2(points_1))
-    assert numpy.allclose(surrogate(points_2), function_2(points_2))
-
-
-def test_surrogate_1D_multi_shape():
-    """Test if surrogate call generates the correct shape for 1 dimension."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate((-10, 10), grid_gen)
-    surrogate.train(function_2)
-    # arrays of various shapes with points in the domain
-    assert numpy.isscalar(surrogate(1))
-    assert surrogate([1]).shape == (1,)
-    assert surrogate([[1]]).shape == (1,)
-    assert surrogate([1, 2]).shape == (2,)
-    assert surrogate([[1], [2]]).shape == (2,)
-    assert surrogate(numpy.ones((1, 1, 1, 1))).shape == (1, 1, 1)
-    assert surrogate(numpy.ones((1, 2, 3, 4))).shape == (1, 2, 3, 4)
-    assert surrogate(numpy.ones((4, 3, 2, 1))).shape == (4, 3, 2)
-
-
-def test_train_from_data():
-    """Test if train_from_data_works."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(4))
-    surrogate = Surrogate([(-5, 10), (0, 15)], grid_gen)
-    data = [branin(point) for point in surrogate.points]
-    surrogate.train_from_data(data)
-    # random point in the domain
-    point = (8, 0.75)
-    assert numpy.isclose(surrogate(point), branin(point))
-    with pytest.raises(IndexError):
-        surrogate.train_from_data(data[:5])
-
-
-def test_gradient_train_from_data():
-    """Test if train_from_data_works."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(4))
-    surrogate = GradientSurrogate([(-5, 10), (0, 15)], grid_gen)
-    gradient_data = [function_3(point) for point in surrogate.points]
-    surrogate.train_from_data(gradient_data)
-    # random point in the domain
-    point = (8, 0.75)
-    assert numpy.allclose(surrogate.gradient(point),
-                          function_3(point))
-    with pytest.raises(IndexError):
-        surrogate.train_from_data(gradient_data[:5])
-
-
-def test_gradient_surrogate_3():
-    """Test if surrogate generates exact results for test for Chebyshevs."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate([(-2, 2), (-2, 2)], grid_gen)
-    surrogate.train(function_3)
-    # random points in the domain
-    points = [(0.649, -0.9), (-0.885, 1)]
-    surrogate_gradient_values = [surrogate.gradient(x) for x in points]
-    exact_values = [function_3(x) for x in points]
-    assert numpy.allclose(surrogate_gradient_values, exact_values)
-
-
-def test_gradient_surrogate_3_multi_input():
-    """Test if surrogate generates exact results if gradient has >1 input."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate([(-2, 2), (-2, 2)], grid_gen)
-    surrogate.train(function_3)
-    # random points in the domain
-    numpy.random.seed(567)
-    points_1 = [(0.649, -0.9), (-0.885, 1)]
-    points_2 = numpy.random.rand(3, 4, 2)*4 - 2
-    exact_values_1 = [function_3(x) for x in points_1]
-    exact_values_2 = numpy.zeros(points_2.shape)
-    for i in range(points_2.shape[0]):
-        for j in range(points_2.shape[1]):
-            exact_values_2[i,j] = function_3(tuple(points_2[i,j]))
-    surrogate_gradient_values_1 = surrogate.gradient(points_1)
-    surrogate_gradient_values_2 = surrogate.gradient(points_2)
-    assert numpy.allclose(exact_values_1, surrogate_gradient_values_1)
-    assert numpy.allclose(exact_values_2, surrogate_gradient_values_2)
-
-
-def test_gradient_surrogate_2D_multi_shape():
-    """Test if surrogate gradient generates correct shape for 2 dimensions."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate([(-2, 2),(-2, 2)], grid_gen)
-    surrogate.train(function_3)
-    # arrays of various shapes with points in the domain
-    assert surrogate.gradient([1, 1]).shape == (2,)
-    assert surrogate.gradient([[1, 1]]).shape == (1, 2)
-    assert surrogate.gradient([[1, 1], [0.5, 0.5]]).shape == (2, 2)
-    assert surrogate.gradient(numpy.ones((1, 1, 1, 2))).shape == (1, 1, 1, 2)
-    assert surrogate.gradient(numpy.ones((4, 3, 2, 2))).shape == (4, 3, 2, 2)
-    assert surrogate.gradient(numpy.ones((4, 3, 5, 2))).shape == (4, 3, 5, 2)
-
-
-def test_gradient_surrogate_4():
-    """Test if surrogate generates exact results for test for Chebyshevs."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate([-2, 2], grid_gen)
-    surrogate.train(function_4)
-    # random points in the domain
-    points = -0.7, 0.45
-    surrogate_gradient_values = [surrogate.gradient(x) for x in points]
-    exact_values = [function_4(x) for x in points]
-    assert numpy.allclose(surrogate_gradient_values, exact_values)
-
-
-def test_gradient_surrogate_4_multi_input():
-    """Test if surrogate generates exact results for 1D with multiple inputs"""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate([-2, 2], grid_gen)
-    surrogate.train(function_4)
-    # random points in the domain
-    numpy.random.seed(567)
-    points_1 = -0.7, 0.45
-    points_2 = numpy.random.rand(3, 4)
-    exact_values_1 = [function_4(x) for x in points_1]
-    exact_values_2 = numpy.zeros(points_2.shape)
-    for i in range(points_2.shape[0]):
-        for j in range(points_2.shape[1]):
-            exact_values_2[i,j] = function_4(points_2[i,j])
-    surrogate_gradient_values_1 = surrogate.gradient(points_1)
-    surrogate_gradient_values_2 = surrogate.gradient(points_2)
-    assert numpy.allclose(surrogate_gradient_values_1, exact_values_1)
-    assert numpy.allclose(surrogate_gradient_values_2, exact_values_2)
-
-
-def test_gradient_surrogate_1D_multi_shape():
-    """Test if surrogate gradient generates correct shape for 1 dimension."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = GradientSurrogate((-2, 2), grid_gen)
-    surrogate.train(function_4)
-    # arrays of various shapes with points in the domain
-    assert numpy.isscalar(surrogate(1))
-    assert surrogate([1]).shape == (1,)
-    assert surrogate([[1]]).shape == (1,)
-    assert surrogate([1, 2]).shape == (2,)
-    assert surrogate([[1], [2]]).shape == (2,)
-    assert surrogate(numpy.ones((1, 1, 1, 1))).shape == (1, 1, 1)
-    assert surrogate(numpy.ones((1, 2, 3, 4))).shape == (1, 2, 3, 4)
-    assert surrogate(numpy.ones((4, 3, 2, 1))).shape == (4, 3, 2)
-
-
-def test_error_solver():
-    """Test if invalid solver generates surrogate."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate((-10, 10), grid_gen)
+@pytest.mark.parametrize(
+    "surrogate_class,basis_sets",
+    [
+        (
+            smolyay.surrogate.TensorProductSurrogate,
+            [
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+                smolyay.basis.ChebyshevFirstKindBasisFunctionSet(10),
+            ],
+        ),
+        (
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            [
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+                smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+            ],
+        ),
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+def test_regularization_error(surrogate_class, basis_sets):
+    """Test error if given invalid regularization method value"""
+    surrogate = surrogate_class([[4, 5], [3, 5]], basis_sets)
     with pytest.raises(ValueError):
-        surrogate.train(function_2, 'inverse')
+        surrogate.regularization = "not a regularization method"
 
 
-def test_error_function_needs_training():
-    """Test if surrogate is generated without training."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1), (-1, 1)], grid_gen)
-    # random point in the domain
-    point = (0.649, 0)
+@pytest.mark.parametrize(
+    "surrogate_class",
+    [
+        smolyay.surrogate.TensorProductSurrogate,
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+@pytest.mark.incremental
+class TestFit2D:
+
+    def test_fit_2D(self, surrogate_class):
+        """Test fit for 2D function"""
+        num_level = 3
+        domain = [[-1, 1], [-1, 1]]
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = [fun_poly_2D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_2D_domain_shift(self, surrogate_class):
+        """Test fit for 2D function with different domain than basis functions"""
+        num_level = 4
+        domain = [[-1, 1], [-1, 1]]
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = [fun_poly_2D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_2D_complex(self, surrogate_class):
+        """Test fit for 2D function using periodic basis function with complex outputs"""
+        domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
+        num_level = 2
+
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedTrigonometricBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
+        )
+        sample_output = [fun_trig_2D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_trig_2D(x) for x in test_points]
+        gradient_answer = [fun_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_trig_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_2D_mixed_basis(self, surrogate_class):
+        """Test fit using different basis functions for each dimension"""
+        domain = [[0, 2 * numpy.pi], [-1, 1]]
+        num_level = 2
+        point_sets = [
+            smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
+            smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
+        ]
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
+        ]
+        surrogate = surrogate_class(domain, basis_sets)
+        if surrogate_class is smolyay.surrogate.TensorProductSurrogate:
+            grid = smolyay.samples.TensorProductPointSet(point_sets)
+        else:
+            grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+        sample_output = [fun_mixed_2D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_mixed_2D(x) for x in test_points]
+        gradient_answer = [fun_mixed_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_mixed_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    @pytest.mark.parametrize(
+        "regularization,points",
+        [
+            (smolyay.surrogate.L2Regularization(alpha=1e-10), 1000),
+            (smolyay.surrogate.L1Regularization(alpha=1e-10), 2400),
+            (None, 1000),
+        ],
+        ids=["Ridge", "Lasso", "Least Squares"],
+    )
+    def test_fit_2D_regularization(self, surrogate_class, regularization, points):
+        """Test fit when number of terms != samples for 2D function"""
+        domain = [[-5, 5], [0, 10]]
+        num_level = 3
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, regularization)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, points, 1234)
+        sample_output = [fun_poly_2D(x) for x in grid.points]
+        surrogate.fit(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([[-0.5, 0.8], [1, 1], [0.7, 0.9]])
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-2
+        )
+
+    def test_fit_2D_regularization_complex(self, surrogate_class):
+        """Test fit when number of terms != samples for 2D function with complex basis functions"""
+        domain = [[0, 2 * numpy.pi], [0, 2 * numpy.pi]]
+        num_level = 3
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level) for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 800, 1234)
+        sample_output = [fun_trig_2D(x) for x in grid.points]
+        surrogate.fit(grid, sample_output)
+        print(len(surrogate._index_combinations))
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_trig_2D(x) for x in test_points]
+        gradient_answer = [fun_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_trig_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
+        )
+
+
+@pytest.mark.parametrize(
+    "surrogate_class",
+    [
+        smolyay.surrogate.TensorProductSurrogate,
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+@pytest.mark.incremental
+class TestFit1D:
+
+    def test_fit_1D(self, surrogate_class):
+        """Test fit for 1D function"""
+        num_level = 3
+        domain = [-1, 1]
+        # fit with a 1D function
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = numpy.array(fun_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_1D_domain_shift(self, surrogate_class):
+        """Test fit for 1D function with different domain as basis"""
+        num_level = 3
+        domain = [-5, 10]
+        # fit with a 1D function
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = numpy.array(fun_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_1D_complex(self, surrogate_class):
+        """Test fit for 1D function using periodic basis function with complex outputs"""
+        domain = [0, 2 * numpy.pi]
+        num_level = 2
+
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedTrigonometricBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
+        )
+        sample_output = [fun_trig_1D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_trig_1D(test_points))
+        gradient_answer = fun_trig_1D_gradient(test_points)
+        hessian_answer = fun_trig_1D_hessian(test_points).reshape((-1, 1, 1))
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    def test_fit_1D_regularization_complex(self, surrogate_class):
+        """Test fit when number of terms != samples for 1D function with complex basis functions"""
+        domain = [0, 2 * numpy.pi]
+        num_level = 2
+
+        basis_sets = [smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 500, 1234)
+        sample_output = [fun_trig_1D(x) for x in grid.points]
+        surrogate = surrogate.fit(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_trig_1D(test_points))
+        gradient_answer = fun_trig_1D_gradient(test_points)
+        hessian_answer = fun_trig_1D_hessian(test_points).reshape((-1, 1, 1))
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+    @pytest.mark.parametrize(
+        "regularization",
+        [
+            smolyay.surrogate.L2Regularization(alpha=1e-10),
+            smolyay.surrogate.L1Regularization(alpha=1e-10),
+            None,
+        ],
+        ids=["Ridge", "Lasso", "Least Squares"],
+    )
+    def test_fit_1D_regularization(self, surrogate_class, regularization):
+        """Test fit when number of terms != samples for 1D function"""
+        domain = [-5, 10]
+        num_level = 3
+
+        # fit with a 1D function
+        basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)]
+        surrogate = surrogate_class(domain, basis_sets, regularization)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 500, 1234)
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([1, 2, 3], ndmin=2).reshape((-1, 1))
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = numpy.array(fun_poly_1D_gradient(test_points), ndmin=2)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points), rtol=1e-2)
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
+        )
+
+
+def test_fit_error():
+    """Test if fit raises an error if points are outside domain"""
+    domain = [[-5, 10], [0, 15]]
+    bs = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(domain, bs)
+
     with pytest.raises(ValueError):
-        surrogate(point)
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
+        surrogate.fit(test_points, [fun_poly_2D(x) for x in test_points])
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [-7, 0], [0.7, 0.2]])
+        surrogate.fit(test_points, [fun_poly_2D(x) for x in test_points])
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 18], [0, 0], [0.7, 0.2]])
+        surrogate.fit(test_points, [fun_poly_2D(x) for x in test_points])
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
+        surrogate.fit(test_points, [fun_poly_2D(x) for x in test_points])
 
 
-def test_error_input_surrogate():
-    """Test the error related to surrogate's input dimension."""
-    grid_gen = SmolyakGridGenerator(ChebyshevFirstKind.make_nested_set(2))
-    surrogate = Surrogate([(-1, 1), (-1, 1)], grid_gen)
-    surrogate.train(function_1, 'lstsq')
-    # random point in the domain but with incorrect dimensionality
-    point = (0.649, 0, 0.5)
-    point_outside_domain = (-2, 1)
+@pytest.mark.parametrize(
+    "surrogate_class",
+    [
+        smolyay.surrogate.TensorProductSurrogate,
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+@pytest.mark.incremental
+class TestFitGradient2D:
+
+    def test_fit_gradient_2D(self, surrogate_class):
+        """Test fit_gradient for 2D function"""
+        num_level = 3
+        domain = numpy.array([[-1, 1], [-1, 1]])
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = [fun_poly_2D_gradient(x) for x in grid.points]
+        surrogate = surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid, sample_output, y0=[fun_poly_2D(domain[:, 0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        surrogate = surrogate.fit_gradient(
+            grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+
+    def test_fit_gradient_2D_domain_shift(self, surrogate_class):
+        """Test fit_gradient for 2D function with different domain as basis"""
+        num_level = 3
+        domain = numpy.array([[-5, 10], [0, 15]])
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = [fun_poly_2D_gradient(x) for x in grid.points]
+        surrogate = surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid, sample_output, y0=[fun_poly_2D(domain[:, 0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        surrogate = surrogate.fit_gradient(
+            grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+
+    def test_fit_gradient_2D_complex(self, surrogate_class):
+        """Test fit_gradient using periodic basis function with complex outputs"""
+        domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
+        num_level = 2
+
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedTrigonometricBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
+        )
+        sample_output = [fun_trig_2D_gradient(x) for x in grid.points]
+        surrogate = surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_trig_2D(x) for x in test_points]
+        gradient_answer = [fun_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_trig_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+    def test_fit_gradient_2D_mixed_basis(self, surrogate_class):
+        """Test fit_gradient using different basis functions for each dimension"""
+        domain = numpy.array([[0, 2 * numpy.pi], [-1, 1]])
+        num_level = 2
+        point_sets = [
+            smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
+            smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
+        ]
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(2),
+        ]
+        surrogate = surrogate_class(domain, basis_sets)
+        if surrogate_class is smolyay.surrogate.TensorProductSurrogate:
+            grid = smolyay.samples.TensorProductPointSet(point_sets)
+        else:
+            grid = smolyay.samples.SmolyakSparseProductPointSet(point_sets)
+        sample_output = [fun_mixed_2D_gradient(x) for x in grid.points]
+        surrogate = surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_mixed_2D(x) for x in test_points]
+        gradient_answer = [fun_mixed_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_mixed_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+    @pytest.mark.parametrize(
+        "regularization",
+        [
+            smolyay.surrogate.L2Regularization(alpha=1e-10),
+            smolyay.surrogate.L1Regularization(alpha=1e-10),
+            None,
+        ],
+        ids=["Ridge", "Lasso", "Least Squares"],
+    )
+    def test_fit_gradient_2D_regularization(self, surrogate_class, regularization):
+        """Test fit_gradient when number of terms != samples for 2D function"""
+        domain = numpy.array([[-5, 5], [-1, 1]])
+        num_level = 3
+        basis_sets = [
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
+            for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, regularization)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        sample_output = [fun_poly_2D_gradient(x) for x in grid.points]
+        surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        predict_answer = [fun_poly_2D(x) for x in test_points]
+        gradient_answer = [fun_poly_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_poly_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(
+            gradient_answer,
+            surrogate.predict_gradient(test_points),
+            atol=1e-4,
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), atol=1e-3
+        )
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(
+            difference_predict, difference_predict[0], rtol=0.01, atol=1e-4
+        )
+
+    def test_fit_gradient_2D_regularization_complex(self, surrogate_class):
+        """Test fit_gradient when number of terms != samples using complex basis functions"""
+        domain = numpy.array([[0, 2 * numpy.pi], [0, 2 * numpy.pi]])
+        num_level = 2
+        basis_sets = [
+            smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level) for d in domain
+        ]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 1000, 1234)
+        sample_output = [fun_trig_2D_gradient(x) for x in grid.points]
+        surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = [fun_trig_2D(x) for x in test_points]
+        gradient_answer = [fun_trig_2D_gradient(x) for x in test_points]
+        hessian_answer = [fun_trig_2D_hessian(x) for x in test_points]
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+
+@pytest.mark.parametrize(
+    "surrogate_class",
+    [
+        smolyay.surrogate.TensorProductSurrogate,
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
+    ],
+    ids=["Tensor", "Smolyak"],
+)
+@pytest.mark.incremental
+class TestFitGradient1D:
+
+    def test_fit_gradient_1D(self, surrogate_class):
+        """Test fit_gradient for 1D function"""
+        num_level = 3
+        domain = numpy.array([-1, 1])
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = fun_poly_1D_gradient(grid.points)
+        surrogate.fit_gradient(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = fun_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(
+            gradient_answer,
+            surrogate.predict_gradient(test_points),
+        )
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+
+    def test_fit_gradient_1D_domain_shift(self, surrogate_class):
+        """Test fit_gradient for 1D function with different domain as basis"""
+        num_level = 3
+        domain = numpy.array([-5, 10])
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = fun_poly_1D_gradient(grid.points)
+        surrogate.fit_gradient(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = fun_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(
+            gradient_answer,
+            surrogate.predict_gradient(test_points),
+        )
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+        surrogate = surrogate.fit_gradient(
+            grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
+        )
+        assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+
+    def test_fit_gradient_1D_complex(self, surrogate_class):
+        """Test fit_gradient using periodic basis function with complex outputs"""
+        domain = numpy.array([0, 2 * numpy.pi])
+        num_level = 2
+
+        surrogate, grid = create_surrogate(
+            surrogate_class,
+            smolyay.basis.NestedTrigonometricBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedTrigonometricPointSet,
+        )
+        sample_output = fun_trig_1D_gradient(grid.points)
+        surrogate = surrogate.fit_gradient(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_trig_1D(test_points))
+        gradient_answer = fun_trig_1D_gradient(test_points)
+        hessian_answer = numpy.array(fun_trig_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+    @pytest.mark.parametrize(
+        "regularization",
+        [
+            smolyay.surrogate.L2Regularization(alpha=1e-10),
+            smolyay.surrogate.L1Regularization(alpha=1e-10),
+            None,
+        ],
+        ids=["Ridge", "Lasso", "Least Squares"],
+    )
+    def test_fit_gradient_1D_regularization(self, surrogate_class, regularization):
+        """Test fit_gradient when number of terms != samples for 1D function"""
+        num_level = 3
+        domain = [-5, 6]
+        # fit with a 1D function
+        basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)]
+        surrogate = surrogate_class(domain, basis_sets, regularization)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
+        sample_output = fun_poly_1D_gradient(grid.points)
+        surrogate.fit_gradient(grid, sample_output)
+
+        # test surrogate matches at some points
+        test_points = numpy.array([0.1, 0.2, 0.3], ndmin=2).reshape((-1, 1))
+        predict_answer = numpy.squeeze(fun_poly_1D(test_points))
+        gradient_answer = fun_poly_1D_gradient(test_points)
+        hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+    def test_fit_gradient_1D_regularization_complex(self, surrogate_class):
+        """Test fit_gradient when number of terms != samples using complex basis functions"""
+        domain = numpy.array([0, 2 * numpy.pi])
+        num_level = 2
+
+        basis_sets = [smolyay.basis.NestedTrigonometricBasisFunctionSet(num_level)]
+        surrogate = surrogate_class(domain, basis_sets, None)
+        grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 100, 1234)
+        sample_output = fun_trig_1D_gradient(grid.points)
+        surrogate = surrogate.fit_gradient(grid.points, sample_output)
+
+        # test surrogate matches at some points
+        test_points = smolyay.samples.LatinHypercubeRandomPointSet(
+            domain, 5, 1234
+        ).points
+        predict_answer = numpy.squeeze(fun_trig_1D(test_points))
+        gradient_answer = fun_trig_1D_gradient(test_points)
+        hessian_answer = numpy.array(fun_trig_1D_hessian(test_points), ndmin=3).reshape(
+            (-1, 1, 1)
+        )
+        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
+        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+
+        # test predict
+        difference_predict = numpy.subtract(
+            predict_answer, surrogate.predict(test_points)
+        )
+        assert numpy.allclose(difference_predict, difference_predict[0])
+
+
+def test_fit_gradient_error():
+    """Test fit_gradient raises an error if points are outside domain"""
+    domain = [[-5, 10], [0, 15]]
+    bs = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(domain, bs)
+
+    # test shape and bounds error for points
     with pytest.raises(IndexError):
-        surrogate(point)
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        surrogate.fit_gradient(test_points, [fun_poly_2D(x) for x in test_points])
     with pytest.raises(ValueError):
-        surrogate(point_outside_domain)
-    with pytest.raises(IndexError):
-        surrogate.gradient(point)
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, -0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output)
     with pytest.raises(ValueError):
-        surrogate.gradient(point_outside_domain)
+        test_points = numpy.array([[-0.5, 0.8], [-7, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 18], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [25, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output)
 
+    # test shape and bounds error for initial point used for integration constant
+    with pytest.raises(IndexError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 5, 6], 8)
+    with pytest.raises(IndexError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, test_points, 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, 20], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [0.6, -5], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [-10, 5], 8)
+    with pytest.raises(ValueError):
+        test_points = numpy.array([[-0.5, 0.8], [0, 0], [0.7, 0.2]])
+        fun3_gradient_output = [fun_poly_2D_gradient(x) for x in test_points]
+        surrogate.fit_gradient(test_points, fun3_gradient_output, [30, 5], 8)
+
+
+def test_successive_fits():
+    """Test that predict and predict_gradient are unaffected by previous fittings"""
+    domain = numpy.array([[-5, 10], [0, 15]])
+    num_level = 4
+    surrogate, grid = create_surrogate(
+        smolyay.surrogate.SmolyakSparseProductSurrogate,
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+        num_level,
+        domain,
+        nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+    )
+    sample_output_1 = [fun_mixed_2D(x) for x in grid.points]
+    sample_output_gradient_1 = [fun_mixed_2D_gradient(x) for x in grid.points]
+    sample_output_gradient_2 = [fun_poly_2D_gradient(x) for x in grid.points]
+    X0 = [domain[:, 1]]
+    y0_2 = [fun_poly_2D(domain[:, 1])]
+    # test surrogate matches at some points
+    test_points = smolyay.samples.LatinHypercubeRandomPointSet(domain, 5, 1234).points
+    predict_answer_1 = [fun_mixed_2D(x) for x in test_points]
+    predict_answer_2 = [fun_poly_2D(x) for x in test_points]
+    gradient_answer_2 = [fun_poly_2D_gradient(x) for x in test_points]
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_1, X0, y0_2)
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2)
+    assert numpy.allclose(gradient_answer_2, surrogate.predict_gradient(test_points))
+    difference_predict = numpy.subtract(
+        predict_answer_2, surrogate.predict(test_points)
+    )
+    assert numpy.allclose(difference_predict, difference_predict[0])
+    assert not numpy.allclose(predict_answer_2, surrogate.predict(test_points))
+    surrogate = surrogate.fit_gradient(grid, sample_output_gradient_2, X0, y0_2)
+    assert numpy.allclose(predict_answer_2, surrogate.predict(test_points))
+    surrogate = surrogate.fit(grid, sample_output_1)
+    assert numpy.allclose(predict_answer_1, surrogate.predict(test_points), rtol=1e-2)
+
+
+@pytest.mark.incremental
+class TestPredictSize:
+    def test_predict_size_2D(self):
+        """Test predict returns answer of the appropriate shape for num_dimensions=2"""
+        domain = [[-5, 10], [0, 15]]
+        num_level = 5
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        # fit with same number of points as terms
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict([[-0.5, 0.8], [0, 0], [0.7, 0]])), (3,)
+        )
+        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7, 0]])), (1,))
+
+    def test_predict_size_1D(self):
+        """Test predict returns answer of the appropriate shape for num_dimensions=1"""
+        num_level = 4
+        domain = [-5, 5]
+        # fit with a 1D function
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict([[-0.5], [0], [0.7]])), (3,)
+        )
+        assert numpy.array_equal(numpy.shape(surrogate.predict([[0.7]])), (1,))
+        assert numpy.array_equal(numpy.shape(surrogate.predict([0.7])), (1,))
+
+
+def test_predict_error():
+    """Test that predict raises correct errors"""
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
+    grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
+    with pytest.raises(RuntimeError):
+        surrogate.predict([[0.7, 0.3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict([[11, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict([[5, 4], [3, 20], [0, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict([[-19, 5], [3, 3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict([[-4, -1], [3, 3]])
+
+
+@pytest.mark.incremental
+class TestGradientSize:
+
+    def test_predict_gradient_size_2D(self):
+        """Test predict_gradient returns answer of the appropriate shape for num_dimensions=2"""
+        domain = [[-5, 10], [0, 15]]
+        num_level = 5
+
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        # fit with same number of points as terms
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_gradient([[-0.5, 0.8], [0, 0], [0.7, 0]])),
+            (3, 2),
+        )
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_gradient([[0.7, 0]])), (1, 2)
+        )
+
+    def test_predict_gradient_size_1D(self):
+        """Test predict_gradient returns answer of the appropriate shape for num_dimensions=1"""
+        num_level = 4
+        domain = [-5, 5]
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        # fit with a 1D function
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_gradient([[-0.5], [0], [0.7]])), (3, 1)
+        )
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_gradient([[0.7]])), (1, 1)
+        )
+
+
+def test_predict_gradient_error():
+    """Test predict_gradient raises correct errors"""
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
+    grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
+    with pytest.raises(RuntimeError):
+        surrogate.predict_gradient([[0.7, 0.3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_gradient([[11, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_gradient([[5, 4], [3, 20], [0, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_gradient([[-19, 5], [3, 3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_gradient([[-4, -1], [3, 3]])
+
+
+@pytest.mark.incremental
+class TestHessianSize:
+
+    def test_predict_hessian_size_2D(self):
+        """Test predict_hessian returns answer of the appropriate shape for num_dimensions=2"""
+        domain = [[-5, 10], [0, 15]]
+        num_level = 5
+
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        # fit with same number of points as terms
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_hessian([[-0.5, 0.8], [0, 0], [0.7, 0]])),
+            (3, 2, 2),
+        )
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_hessian([[0.7, 0]])), (1, 2, 2)
+        )
+
+    def test_predict_hessian_size_1D(self):
+        """Test predict_hessian returns answer of the appropriate shape for num_dimensions=1"""
+        num_level = 4
+        domain = [-5, 5]
+        surrogate, grid = create_surrogate(
+            smolyay.surrogate.SmolyakSparseProductSurrogate,
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            num_level,
+            domain,
+            nested_point_class=smolyay.samples.NestedClenshawCurtisPointSet,
+        )
+        # fit with a 1D function
+        sample_output = fun_poly_1D(grid.points)
+        surrogate.fit(grid.points, sample_output)
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_hessian([[-0.5], [0], [0.7]])), (3, 1, 1)
+        )
+        assert numpy.array_equal(
+            numpy.shape(surrogate.predict_hessian([[0.7]])), (1, 1, 1)
+        )
+
+
+def test_predict_hessian_error():
+    """Test predict_hessian raises correct errors"""
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
+    grid = smolyay.samples.LatinHypercubeRandomPointSet([[-5, 10], [0, 15]], 1500, 1234)
+    with pytest.raises(RuntimeError):
+        surrogate.predict_hessian([[0.7, 0.3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_hessian([[11, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_hessian([[5, 4], [3, 20], [0, 5]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_hessian([[-19, 5], [3, 3]])
+    with pytest.raises(ValueError):
+        surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
+        surrogate.predict_hessian([[-4, -1], [3, 3]])

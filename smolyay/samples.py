@@ -5,6 +5,8 @@ import itertools
 import numpy
 import scipy.stats.qmc
 
+from smolyay import _growth
+
 
 class UnidimensionalPointSet(collections.abc.Sequence):
     """Set of unidimensional points
@@ -252,13 +254,8 @@ class NestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        rule = lambda x: 1 if x == 0 else 2**x + 1
-        self._num_per_level = numpy.ones(self.num_levels, dtype=int)
-        self._num_per_level[1:] = [
-            rule(i) - rule(i - 1) for i in range(1, self.num_levels)
-        ]
-        self._end_level = numpy.cumsum(self._num_per_level)
-        self._start_level = self._end_level - self._num_per_level
+        self._num_per_level = _growth.make_clenshaw_curtis_level_sizes(self.num_levels)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -339,13 +336,8 @@ class SlowNestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        rule = lambda x: 1 if x == 0 else int(2 ** (numpy.ceil(numpy.log2(x)) + 1) + 1)
-        self._num_per_level = numpy.ones(self.num_levels, dtype=int)
-        self._num_per_level[1:] = [
-            rule(i) - rule(i - 1) for i in range(1, self.num_levels)
-        ]
-        self._end_level = numpy.cumsum(self._num_per_level)
-        self._start_level = self._end_level - self._num_per_level
+        self._num_per_level = _growth.make_slow_clenshaw_curtis_level_sizes(self.num_levels)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -486,13 +478,8 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
         :math:1, 3, 9, ..., 3^{i} where i is an integer.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        rule = lambda x: 3**x
-        self._num_per_level = numpy.ones(self.num_levels, dtype=int)
-        self._num_per_level[1:] = [
-            rule(i) - rule(i - 1) for i in range(1, self.num_levels)
-        ]
-        self._end_level = numpy.cumsum(self._num_per_level)
-        self._start_level = self._end_level - self._num_per_level
+        self._num_per_level = _growth.make_trigonometric_level_sizes(self.num_levels)
+        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -999,7 +986,9 @@ class SmolyakSparseProductPointSet(PointSetProduct):
         # remove combinations where a dimension exceeds its number of levels
         # only check if point sets have different numbers of levels
         if min(num_levels_per_dim) != max_num_levels:
-            valid_comb = numpy.all(numpy.less(level_combinations, num_levels_per_dim), axis=1)
+            valid_comb = numpy.all(
+                numpy.less(level_combinations, num_levels_per_dim), axis=1
+            )
             level_combinations = level_combinations[valid_comb]
 
         # generate sets of points based on combinations of levels

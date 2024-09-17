@@ -1,7 +1,10 @@
 import abc
+import collections.abc
 
 import numpy
 import scipy.special
+
+from smolyay import _growth
 
 
 class BasisFunction(abc.ABC):
@@ -14,6 +17,8 @@ class BasisFunction(abc.ABC):
     point within its domain. Moreover, the first derivative of the function
     can be evaluated via :meth:`derivative`.
     """
+
+    _is_complex = False
 
     @property
     @abc.abstractmethod
@@ -38,13 +43,16 @@ class BasisFunction(abc.ABC):
             raise ValueError("Input is outside the domain " + str(self.domain))
         return self._function(x)
 
-    def derivative(self, x):
+    def derivative(self, x, n=1):
         """Evaluate the first derivative of the basis function.
 
         Parameters
         ----------
         x : float
             one-dimensional point.
+
+        n : int, optional
+            order of derivative. Default is one.
 
         Returns
         -------
@@ -53,7 +61,7 @@ class BasisFunction(abc.ABC):
         """
         if not numpy.all(self.in_domain(x)):
             raise ValueError("Input is outside the domain")
-        return self._derivative(x)
+        return self._derivative(x, n)
 
     def in_domain(self, x):
         """Check if the input is within the natural domain.
@@ -71,6 +79,30 @@ class BasisFunction(abc.ABC):
         return numpy.logical_and(
             numpy.greater_equal(x, self.domain[0]), numpy.less_equal(x, self.domain[1])
         )
+
+    def scale_to_domain(self, points, old_domain):
+        """Scale points from a domain to BasisFunction domain
+
+        Parameters
+        ----------
+        points: numeric or array-like
+            points to be shifted to new domain.
+
+        old_domain: ndarray of shape (2,)
+            upper and lower bounds of points.
+
+        Returns
+        -------
+        numeric or array-like
+            points shifted to BasisFunction domain"""
+        points = numpy.array(points, ndmin=1, copy=None)
+        new_points = self.domain[0] + (self.domain[1] - self.domain[0]) * (
+            (points - old_domain[0]) / (old_domain[1] - old_domain[0])
+        )
+        numpy.clip(new_points, self.domain[0], self.domain[1], out=new_points)
+        if new_points.ndim == 0:
+            new_points = new_points.item()
+        return new_points
 
     @abc.abstractmethod
     def _function(self, x):
@@ -173,12 +205,15 @@ class ChebyshevFirstKind(BasisFunction):
         """
         return scipy.special.eval_chebyt(self.degree, x)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         """Evaluate the derivative of ChebyshevFirstKind.
 
-        The first derivative of Chebyshev polynomials of first kind is
+        The derivative of Chebyshev polynomials of first kind is
         evaluated using the relation between Chebyshev polynomial of
         first kind and second kind.
+
+        The 1st and 2nd derivative are supported. Higher order
+        derivative will raise an error.
 
         ..math::
             T_n'(x) = nU_{n-1}(x)
@@ -187,6 +222,9 @@ class ChebyshevFirstKind(BasisFunction):
         ----------
         x: float
             input in [-1, 1] domain.
+
+        n : int, optional
+            order of derivative. Default is 1.
 
         Returns
         -------
@@ -197,8 +235,34 @@ class ChebyshevFirstKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1].
+        NotImplementedError
+            Order of derivative outside supported range (1, 2).
         """
-        return self.degree * scipy.special.eval_chebyu(self.degree - 1, x)
+        if n == 1:
+            return self.degree * scipy.special.eval_chebyu(self.degree - 1, x)
+        elif n == 2:
+            x = numpy.asarray(x)
+            y = numpy.zeros(x.shape)
+            u_limit = (self.degree - 1) * (self.degree) * (self.degree + 1) / 3
+            flag_upper = x == 1
+            y[flag_upper] = u_limit * self.degree
+            flag_lower = x == -1
+            y[flag_lower] = (-1) ** (self.degree) * u_limit * self.degree
+
+            flag = ~(flag_upper | flag_lower)
+            y[flag] = (
+                (
+                    (self.degree) * scipy.special.eval_chebyt(self.degree, x[flag])
+                    - x[flag] * scipy.special.eval_chebyu(self.degree - 1, x[flag])
+                )
+                / (x[flag] ** 2 - 1)
+                * self.degree
+            )
+            if y.ndim == 0:
+                y = y.item()
+            return y
+        else:
+            raise NotImplementedError("nth derivative outside supported range (1, 2).")
 
 
 class ChebyshevSecondKind(BasisFunction):
@@ -270,11 +334,10 @@ class ChebyshevSecondKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1]
-
         """
         return scipy.special.eval_chebyu(self.degree, x)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         r"""Evaluate the derivative of Chebyshev Second Kind.
 
         The first derivative of Chebyshev polynomials of second kind is
@@ -295,6 +358,9 @@ class ChebyshevSecondKind(BasisFunction):
         x: float
             input in [-1, 1] domain.
 
+        n : int, optional
+            order of derivative. Default is 1.
+
         Returns
         -------
         float
@@ -304,7 +370,12 @@ class ChebyshevSecondKind(BasisFunction):
         ------
         ValueError
             if input is outside the domain [-1, 1].
+
+        NotImplementedError
+            Order of derivative outside supported range (1).
         """
+        if n != 1:
+            raise NotImplementedError("Only first derivative is supported.")
         x = numpy.asarray(x)
         y = numpy.zeros(x.shape)
         u_limit = self.degree * (self.degree + 1) * (self.degree + 2) / 3
@@ -341,6 +412,8 @@ class Trigonometric(BasisFunction):
         Degree of trigonometric polynomial.
 
     """
+
+    _is_complex = True
 
     def __init__(self, frequency):
         super().__init__()
@@ -390,7 +463,7 @@ class Trigonometric(BasisFunction):
         x = numpy.asarray(x)
         return numpy.exp(x * self.frequency * 1j)
 
-    def _derivative(self, x):
+    def _derivative(self, x, n=1):
         r"""Evaluate the derivetive of the trigonometric polynomials.
 
         Parameters
@@ -403,29 +476,316 @@ class Trigonometric(BasisFunction):
         float
             Value of the derivative of Trigonometric polynomial.
 
+        n : int, optional
+            order of derivative. Default is 1.
+
         Raises
         ------
         ValueError
             If input is outside the domain `[0, 2\pi]`
         """
         x = numpy.asarray(x)
-        return self.frequency * 1j * numpy.exp(x * self.frequency * 1j)
+        return numpy.exp(x * self.frequency * 1j) * (self.frequency * 1j) ** n
 
 
-class BasisFunctionSet:
+class BasisFunctionSet(collections.abc.Sequence):
     """Set of basis functions and sample points.
+
+    Parameters
+    ----------
+    basis_functions : list of BasisFunction
+        the basis functions
+
+    Raises
+    ------
+    TypeError
+        Basis functions must have the same domain and typing.
+    """
+
+    def __init__(self, basis_functions=None):
+
+        # check validity of basis functions
+        if isinstance(basis_functions, BasisFunction):
+            basis_functions = [basis_functions]
+        elif basis_functions is None:
+            basis_functions = []
+
+        if len(basis_functions) > 1:
+            ref_domain = basis_functions[0].domain
+            ref_type = type(basis_functions[0])
+            if any(
+                not numpy.array_equal(b.domain, ref_domain) or type(b) is not ref_type
+                for b in basis_functions[1:]
+            ):
+                raise TypeError(
+                    "Basis functions must be be BasisFunction objects with the same domain and typing."
+                )
+        self._basis_functions = list(basis_functions)
+
+    @property
+    def basis_functions(self):
+        """list: Basis functions."""
+        return self._basis_functions
+
+    @property
+    def domain(self):
+        """numpy.ndarray: Domain of the `basis_functions`"""
+        if len(self._basis_functions) == 0:
+            raise AttributeError("No basis functions to derive a domain.")
+        return self._basis_functions[0].domain
+
+    def __len__(self):
+        return len(self._basis_functions)
+
+    def __getitem__(self, key):
+        return self.basis_functions[key]
+
+    def scale_to_domain(self, points, old_domain):
+        if len(self._basis_functions) == 0:
+            raise AttributeError("No basis functions to derive a domain.")
+        return self.basis_functions[0].scale_to_domain(points, old_domain)
+
+    def __call__(self, X, domain=None):
+        """Evaluate all the basis functions in the set
+
+        Calls all the basis function(s) at index and evaluates at X.
+
+        Parameters
+        ----------
+        X : array-like
+            the points to evaluate.
+
+        domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions.
+        """
+        if domain is not None:
+            new_X = self.scale_to_domain(X, domain)
+        else:
+            new_X = numpy.asarray(X)
+        y = numpy.zeros(
+            [len(self)] + list(new_X.shape),
+            dtype=complex if any(bf._is_complex for bf in self) else float,
+        )
+        for i, bf in enumerate(self._basis_functions):
+            y[i] = bf(new_X)
+        return y
+
+    def derivative(self, X, domain=None, n=1):
+        """Evaluate all the derivative of basis functions in the set
+
+        Calls the derivative for all the basis function(s) and
+        evaluates at X.
+
+        Parameters
+        ----------
+        X : array-like
+            the points to evaluate.
+
+        n : int, optional
+            order of derivative. Default is 1.
+
+        domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions.
+        """
+        new_X = self.scale_to_domain(X, domain)
+        y = numpy.zeros(
+            [len(self)] + list(new_X.shape),
+            dtype=complex if any(bf._is_complex for bf in self) else float,
+        )
+        for i in range(len(self)):
+            y[i, :] = self[i].derivative(new_X, n)
+        if domain is not None:
+            y *= ((self.domain[1] - self.domain[0]) / (domain[1] - domain[0])) ** n
+        return y
+
+
+class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
+    """Set of Chebyshev polynomials of the first kind.
+
+    Parameters
+    ----------
+    num_terms : int
+        the number of terms in the set.
+    """
+
+    def __init__(self, num_terms):
+        basis_functions = [ChebyshevFirstKind(f) for f in range(num_terms)]
+        super().__init__(basis_functions)
+
+
+class ChebyshevSecondKindBasisFunctionSet(BasisFunctionSet):
+    """Set of Chebyshev polynomials of the second kind.
+
+    Parameters
+    ----------
+    num_terms : int
+        the number of terms in the set.
+    """
+
+    def __init__(self, num_terms):
+        basis_functions = [ChebyshevSecondKind(f) for f in range(num_terms)]
+        super().__init__(basis_functions)
+
+
+class TrigonometricBasisFunctionSet(BasisFunctionSet):
+    """Set of Trigonmetric equations.
+
+    Parameters
+    ----------
+    num_terms : int
+        the number of terms in the set.
+    """
+
+    def __init__(self, num_terms):
+        index_trig = numpy.arange(num_terms, dtype=int)
+        frequencies = numpy.where(
+            index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
+        )
+        basis_functions = [Trigonometric(f) for f in frequencies]
+        super().__init__(basis_functions)
+
+
+class NestedBasisFunctionSet(BasisFunctionSet):
+    """Set of nested basis functions and sample points.
 
     Parameters
     ----------
     basis_functions : list
         Basis functions in set.
 
+    num_per_level : list
+        number of unique functions per level.
+
+    Raises
+    ------
+    IndexError
+        number of basis function does not match functions in each level.
+    TypeError
+        Basis functions must have the same domain and typing.
     """
 
-    def __init__(self, basis_functions):
-        self._basis_functions = basis_functions
+    def __init__(self, basis_functions, num_per_level):
+
+        # ensure parameters are lists
+        if isinstance(basis_functions, BasisFunction):
+            basis_functions = [basis_functions]
+        # check validity of basis functions
+        if numpy.sum(num_per_level) != len(basis_functions):
+            raise ValueError(
+                "Number of basis functions does not match level specification."
+            )
+        super().__init__(basis_functions)
+        self._num_per_level = numpy.array(num_per_level, dtype=int)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
 
     @property
-    def basis_functions(self):
-        """list: Basis functions."""
-        return self._basis_functions
+    def num_per_level(self):
+        """numpy.ndarray: number of points per level."""
+        return self._num_per_level
+
+    @property
+    def num_levels(self):
+        """int: number of levels."""
+        return len(self.num_per_level)
+
+    @property
+    def start_level(self):
+        """numpy.ndarray: the starting index of each level."""
+        return self._start_level
+
+    @property
+    def end_level(self):
+        """numpy.ndarray: the ending index of each level."""
+        return self._end_level
+
+    def level(self, index):
+        """list of :class:BasisFunction: Functions in a level"""
+        return self.basis_functions[self.start_level[index] : self.end_level[index]]
+
+
+class NestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
+    """Nested Clenshaw Curtis basis function set
+
+    Parameters
+    ----------
+    num_levels : int
+        The number of levels. Must be 1 or greater.
+
+    Raises
+    ------
+    ValueError
+        Must have at least one level.
+    """
+
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.make_clenshaw_curtis_level_sizes(num_levels)
+        num_terms = numpy.sum(num_per_level)
+        basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+        super().__init__(basis_functions, num_per_level)
+
+
+class SlowNestedClenshawCurtisBasisFunctionSet(NestedBasisFunctionSet):
+    """Nested Clenshaw Curtis basis function set using slow exponential growth.
+
+    Parameters
+    ----------
+    num_levels : int
+        The number of levels. Must be 1 or greater.
+
+    Raises
+    ------
+    ValueError
+        Must have at least one level.
+    """
+
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.make_slow_clenshaw_curtis_level_sizes(num_levels)
+        num_terms = numpy.sum(num_per_level)
+        basis_functions = [ChebyshevFirstKind(i) for i in range(num_terms)]
+        super().__init__(basis_functions, num_per_level)
+
+
+class NestedTrigonometricBasisFunctionSet(NestedBasisFunctionSet):
+    """Nested Trigonometric basis function set.
+
+    Parameters
+    ----------
+    num_levels : int
+        The number of levels. Must be 1 or greater.
+
+    Raises
+    ------
+    ValueError
+        Must have at least one level.
+    """
+
+    def __init__(self, num_levels):
+        num_levels = int(num_levels)
+        if num_levels <= 0:
+            raise ValueError("Must have at least one level.")
+        num_per_level = _growth.make_trigonometric_level_sizes(num_levels)
+        num_terms = numpy.sum(num_per_level)
+        index_trig = numpy.arange(num_terms, dtype=int)
+        frequencies = numpy.where(
+            index_trig % 2 == 1, (1 + index_trig) // 2, -index_trig // 2
+        )
+        basis_functions = [Trigonometric(f) for f in frequencies]
+        super().__init__(basis_functions, num_per_level)
