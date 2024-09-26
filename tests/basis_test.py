@@ -345,6 +345,27 @@ def test_trig_initial():
     assert isinstance(f2.frequency, int)
 
 
+# Test definite integral over the domain
+@pytest.mark.parametrize(
+    "basis_fun,integral",
+    [
+        (smolyay.basis.ChebyshevFirstKind(0), 2),
+        (smolyay.basis.ChebyshevFirstKind(1), 0),
+        (smolyay.basis.ChebyshevFirstKind(2), -2 / 3),
+        (smolyay.basis.ChebyshevSecondKind(0), 2),
+        (smolyay.basis.ChebyshevSecondKind(1), 0),
+        (smolyay.basis.ChebyshevSecondKind(2), 2 / 3),
+        (smolyay.basis.Trigonometric(0), 2 * numpy.pi),
+        (smolyay.basis.Trigonometric(1), 0),
+        (smolyay.basis.Trigonometric(-1), 0),
+    ],
+    ids=basis_id,
+)
+def test_cheb_initial(basis_fun, integral):
+    """Test integral over the basis function's domain"""
+    assert basis_fun.integral_over_domain == integral
+
+
 # Test outside of valid domain
 @pytest.mark.parametrize(
     "basis_fun,too_large,too_small,valid_input",

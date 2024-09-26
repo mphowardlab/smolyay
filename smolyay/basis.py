@@ -26,6 +26,12 @@ class BasisFunction(abc.ABC):
         """numpy.ndarray: Domain the sample points come from."""
         pass
 
+    @property
+    @abc.abstractmethod
+    def integral_over_domain(self):
+        """float: basis function integrated over the domain."""
+        pass
+
     def __call__(self, x):
         """Evaluate the basis function.
 
@@ -172,6 +178,14 @@ class ChebyshevFirstKind(BasisFunction):
         """int: Degree of polynomial."""
         return self._degree
 
+    @property
+    def integral_over_domain(self):
+        """float: basis function integrated over the domain."""
+        if self.degree == 1:
+            return 0
+        else:
+            return ((-1)**self.degree + 1)/(1-self.degree**2)
+
     @degree.setter
     def degree(self, value):
         self._degree = int(value)
@@ -294,6 +308,11 @@ class ChebyshevSecondKind(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([-1, 1])
+
+    @property
+    def integral_over_domain(self):
+        """float: basis function integrated over the domain."""
+        return (1 - (-1)**(self.degree+1))/(self.degree + 1)
 
     @property
     def degree(self):
@@ -423,7 +442,15 @@ class Trigonometric(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([0, 2 * numpy.pi])
-
+    
+    @property
+    def integral_over_domain(self):
+        """float: basis function integrated over the domain."""
+        if self.frequency == 0:
+            return 2*numpy.pi
+        else:
+            return 0
+    
     @property
     def frequency(self):
         """int: frequency of polynomial."""
