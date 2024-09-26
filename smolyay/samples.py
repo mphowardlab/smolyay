@@ -255,7 +255,9 @@ class NestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.make_clenshaw_curtis_level_sizes(self.num_levels)
-        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -336,8 +338,12 @@ class SlowNestedClenshawCurtisPointSet(NestedUnidimensionalPointSet):
         Generating nested extrema of chebyshev polynomials of the first kind.
         """
         # create properties for levels, level 0 is a special case with 1 point
-        self._num_per_level = _growth.make_slow_clenshaw_curtis_level_sizes(self.num_levels)
-        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
+        self._num_per_level = _growth.make_slow_clenshaw_curtis_level_sizes(
+            self.num_levels
+        )
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -479,7 +485,9 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
         """
         # create properties for levels, level 0 is a special case with 1 point
         self._num_per_level = _growth.make_trigonometric_level_sizes(self.num_levels)
-        self._start_level,self._end_level =_growth.get_level_start_and_end(self._num_per_level)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
 
         # points, level 0 is a special case only 0 as a point
         num_points = self._end_level[-1]
@@ -498,6 +506,184 @@ class NestedTrigonometricPointSet(NestedUnidimensionalPointSet):
                 2 * numpy.pi * indexes / num_points
             )
         self._points = self._scale_to_domain(points, [0, 2 * numpy.pi])
+
+
+class EquidistantPointSet(UnidimensionalPointSet):
+    """Creates a set of equidistant points.
+
+    Parameters
+    ----------
+    domain: list
+        Domain of the sample points.
+
+    num_points: int
+        the number of desired points.
+    """
+
+    def __init__(self, domain, num_points):
+        super().__init__(domain)
+        self._num_points = None
+
+        self.num_points = num_points
+
+    @property
+    def num_points(self):
+        """int: num_points in the set."""
+        return self._num_points
+
+    @num_points.setter
+    def num_points(self, value):
+        num_points = int(value)
+        if num_points <= 0:
+            raise ValueError("Number of points must be greater than 0")
+        if num_points != self._num_points:
+            self._num_points = num_points
+            self._valid_cache = False
+
+    def _create(self):
+        r"""Create the points in the set.
+
+        Generating trigonometic points at a given frequency.
+        """
+        indexes = numpy.arange(self.num_points)
+        points = indexes / self.num_points
+        self._points = self._scale_to_domain(points, [0, 1])
+
+
+class NestedClosedNewtonCotesPointSet(NestedUnidimensionalPointSet):
+    r"""Creates a equidistant nested point set including bounds.
+    
+    The :attr:`points` is for this interpolation schem are a set
+    of nested equidistant points that comes from the iterated
+    trapezoidal rule.
+
+    ..math::
+
+       x^0_1 = 0.5
+       x^1_1 = 0, x^1_2 = 1
+       x^l_i = \frac{2*i-1}{m(l) - 1}   1 \leq j \leq m(l), l \geq 0
+
+    The closed variant of Newton Cotes contains the domain bounds 
+    of [0, 1].
+    
+    These points are nested, such that the order of elements in
+    `points` corresponds to the indices in `levels`.
+
+    To determine the number of points per level, an order(L) is
+    used to describe the number of points at each level L. For
+    these equidistant points, the order equation is
+
+    .. math::
+
+        o(L) = \begin{cases}
+                1 & \text{ if } L = 0\\ 
+                2^{L} + 1 & \text{ if } L > 0 
+        \end{cases}
+
+    which leads to a sequence :math:`{1, 3, 5, 9, 17, ...}`. This
+    is the same as the order equation for Clenshaw-Curtis.
+
+    Determining the number of points each level is then
+
+    .. math::
+        num_per_level(L) = o(L) - o(L - 1)
+
+    The points are then scaled from the domain :math:`[0, 1]` to the domain
+    specified by the :attr:`domain`.
+    """
+
+    def _create(self):
+        r"""Create the points in the set.
+
+        Generating nested extrema of chebyshev polynomials of the first kind.
+        """
+        # create properties for levels, level 0 is a special case with 1 point
+        self._num_per_level = _growth.make_clenshaw_curtis_level_sizes(self.num_levels)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
+
+        # points, level 0 is a special case only 0.5 as a point
+        # level 1 is a special case with 0 and 1 as points
+        num_points = self._end_level[-1]
+        points = numpy.zeros(num_points, dtype=float)
+        for i in range(0, self.num_levels):
+            if i == 0:
+                # special case for level == 0
+                points[self._start_level[i] : self._end_level[i]] = 0.5
+            elif i == 1:
+                points[self._start_level[i] : self._end_level[i]] = [0, 1]
+            else:
+                indexes = numpy.arange(1, self._num_per_level[i] + 1, 1, dtype=int)
+                points[self._start_level[i] : self._end_level[i]] = (
+                    2 * indexes - 1
+                ) / (self._end_level[i] - 1)
+        self._points = self._scale_to_domain(points, [0, 1])
+
+
+class NestedOpenNewtonCotesPointSet(NestedUnidimensionalPointSet):
+    r"""Creates a equidistant nested point set excluding bounds.
+
+    The :attr:`points` is for this interpolation schem are a set
+    of nested equidistant points that comes from the iterated
+    trapezoidal rule.
+
+    ..math::
+
+       x^0_1 = 0.5
+       x^l_i = \frac{2i-1}{m(l)+1}   1 \leq j \leq m(l), l \geq 0
+
+    The open variant of Newton Cotes does not include the domain
+    bounds.
+
+    These points are nested, such that the order of elements in
+    `points` corresponds to the indices in `levels`.
+
+    To determine the number of points per level, an order(L) is
+    used to describe the number of points at each level L. For
+    these equidistant points, the order equation is
+
+    .. math::
+
+        o(L) = 2^{L} + 1
+
+    which leads to a sequence :math:`{1, 5, 7, 15, 31, ...}`. This
+    is the same as the order equation for Gaussian-Legendre and
+    several other quadrature rules.
+
+    Determining the number of points each level is then
+
+    .. math::
+        num_per_level(L) = o(L) - o(L - 1)
+
+    The points are then scaled from the domain :math:`[0, 1]` to the domain
+    specified by the :attr:`domain`.
+    """
+
+    def _create(self):
+        r"""Create the points in the set.
+
+        Generating nested extrema of chebyshev polynomials of the first kind.
+        """
+        # create properties for levels, level 0 is a special case with 1 point
+        self._num_per_level = _growth.make_gauss_legendre_level_sizes(self.num_levels)
+        self._start_level, self._end_level = _growth.get_level_start_and_end(
+            self._num_per_level
+        )
+
+        # points, level 0 is a special case only 0.5 as a point
+        num_points = self._end_level[-1]
+        points = numpy.zeros(num_points, dtype=float)
+        for i in range(0, self.num_levels):
+            if i == 0:
+                # special case for level == 0
+                points[self._start_level[i] : self._end_level[i]] = 0.5
+            else:
+                indexes = numpy.arange(1, self._num_per_level[i] + 1, 1, dtype=int)
+                points[self._start_level[i] : self._end_level[i]] = (
+                    2 * indexes - 1
+                ) / (self._end_level[i] + 1)
+        self._points = self._scale_to_domain(points, [0, 1])
 
 
 class MultidimensionalPointSet(abc.ABC):
