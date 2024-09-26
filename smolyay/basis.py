@@ -312,7 +312,10 @@ class ChebyshevSecondKind(BasisFunction):
     @property
     def integral_over_domain(self):
         """float: basis function integrated over the domain."""
-        return (1 - (-1)**(self.degree+1))/(self.degree + 1)
+        if self.degree % 2 == 1:
+            return 0
+        else:
+            return 2/(self.degree + 1)
 
     @property
     def degree(self):
