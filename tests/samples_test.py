@@ -211,6 +211,25 @@ def test_frequency_error():
         f.frequency = -5
 
 
+def test_initialize_equidistant():
+    """Test initialization and setters"""
+    f = smolyay.samples.EquidistantPointSet([-2, 1], 3)
+    assert numpy.array_equal(f.domain, [-2, 1])
+    assert f.num_points == 3
+    assert isinstance(f.num_points, int)
+    f.num_points = float(5)
+    assert f.num_points == 5
+    assert isinstance(f.num_points, int)
+
+
+def test_num_points_error():
+    """Test degree error given invalid degree"""
+    with pytest.raises(ValueError):
+        smolyay.samples.EquidistantPointSet([-2, 1], -7)
+    f = smolyay.samples.EquidistantPointSet([-2, 1], 3)
+    with pytest.raises(ValueError):
+        f.num_points = -5
+
 @pytest.mark.parametrize(
     "nested_samples",
     [
