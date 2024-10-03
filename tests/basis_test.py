@@ -757,12 +757,14 @@ def test_set_base_class_initialize():
     assert f[0] is bf
     assert len(f) == 1
     assert numpy.array_equal(f.domain, [-1, 1])
+    assert numpy.array_equal(f.integral_over_domain, [2])
     bf = smolyay.basis.Trigonometric(0)
     f = smolyay.basis.BasisFunctionSet([bf])
     assert f.basis_functions[0] is bf
     assert f[0] is bf
     assert len(f) == 1
     assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
+    assert numpy.array_equal(f.integral_over_domain, [2 * numpy.pi])
 
 
 def test_set_base_class_initialize_error():
@@ -788,23 +790,24 @@ def test_set_base_class_initialize_error():
 
 
 @pytest.mark.parametrize(
-    "basis_set",
+    "basis_set,integral_over_domain",
     [
-        smolyay.basis.ChebyshevFirstKindBasisFunctionSet,
-        smolyay.basis.ChebyshevSecondKindBasisFunctionSet,
+        (smolyay.basis.ChebyshevFirstKindBasisFunctionSet, [2, 0, -2 / 3]),
+        (smolyay.basis.ChebyshevSecondKindBasisFunctionSet, [2, 0, 2 / 3]),
     ],
     ids=[
         "ChebyshevFirstKind",
         "ChebyshevSecondKind",
     ],
 )
-def test_set_cheb_initialize(basis_set):
+def test_set_cheb_initialize(basis_set, integral_over_domain):
     """Test Chebyshev function sets correctly initialize"""
     f = basis_set(3)
     assert f.basis_functions[0].degree == 0
     assert f.basis_functions[1].degree == 1
     assert f.basis_functions[2].degree == 2
     assert numpy.array_equal(f.domain, [-1, 1])
+    assert numpy.allclose(f.integral_over_domain, integral_over_domain)
 
 
 def test_set_trig_initialize():
@@ -814,6 +817,7 @@ def test_set_trig_initialize():
     assert f.basis_functions[1].frequency == 1
     assert f.basis_functions[2].frequency == -1
     assert numpy.array_equal(f.domain, [0, 2 * numpy.pi])
+    assert numpy.allclose(f.integral_over_domain, [2 * numpy.pi, 0, 0])
 
 
 @pytest.mark.parametrize(
@@ -848,6 +852,7 @@ def test_nested_set_base_class_initialize():
     assert numpy.array_equal(f.num_per_level, [])
     assert numpy.array_equal(f.start_level, [])
     assert numpy.array_equal(f.end_level, [])
+    assert numpy.array_equal(f.integral_over_domain, [])
     bf = [smolyay.basis.ChebyshevFirstKind(n) for n in range(5)]
     f = smolyay.basis.NestedBasisFunctionSet(bf, [1, 1, 1, 2])
     assert f.basis_functions == bf
@@ -857,6 +862,7 @@ def test_nested_set_base_class_initialize():
     assert numpy.array_equal(f.start_level, [0, 1, 2, 3])
     assert numpy.array_equal(f.end_level, [1, 2, 3, 5])
     assert numpy.array_equal(f.level(3), bf[3:])
+    assert numpy.array_equal(f.integral_over_domain, [2, 0, -2 / 3, 0, -2 / 15])
 
 
 def test_nested_set_base_class_initialize_error():
@@ -885,11 +891,26 @@ def test_nested_set_base_class_initialize_error():
 
 
 @pytest.mark.parametrize(
-    "nested_sets,domain,length_2",
+    "nested_sets,domain,length_2,integral_over_domain",
     [
-        (smolyay.basis.NestedClenshawCurtisBasisFunctionSet, [-1, 1], 3),
-        (smolyay.basis.SlowNestedClenshawCurtisBasisFunctionSet, [-1, 1], 3),
-        (smolyay.basis.NestedTrigonometricBasisFunctionSet, [0, 2 * numpy.pi], 3),
+        (
+            smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
+            [-1, 1],
+            3,
+            [2, 0, -2 / 3],
+        ),
+        (
+            smolyay.basis.SlowNestedClenshawCurtisBasisFunctionSet,
+            [-1, 1],
+            3,
+            [2, 0, -2 / 3],
+        ),
+        (
+            smolyay.basis.NestedTrigonometricBasisFunctionSet,
+            [0, 2 * numpy.pi],
+            3,
+            [2 * numpy.pi, 0, 0],
+        ),
     ],
     ids=[
         "NestedClenshawCurtis",
@@ -897,7 +918,7 @@ def test_nested_set_base_class_initialize_error():
         "NestedTrigonometric",
     ],
 )
-def test_nested_sets_initialize(nested_sets, domain, length_2):
+def test_nested_sets_initialize(nested_sets, domain, length_2, integral_over_domain):
     """Test nested basis function sets initialization"""
     bf = nested_sets(2)
     assert numpy.array_equal(bf.domain, domain)
@@ -906,6 +927,7 @@ def test_nested_sets_initialize(nested_sets, domain, length_2):
     assert len(bf.num_per_level) == 2
     assert len(bf.start_level) == 2
     assert len(bf.end_level) == 2
+    assert numpy.array_equal(bf.integral_over_domain, integral_over_domain)
 
 
 @pytest.mark.parametrize(

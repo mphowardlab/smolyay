@@ -563,7 +563,12 @@ class BasisFunctionSet(collections.abc.Sequence):
         if len(self._basis_functions) == 0:
             raise AttributeError("No basis functions to derive a domain.")
         return self._basis_functions[0].domain
-
+    
+    @property
+    def integral_over_domain(self):
+        """All basis functions integrated over their domain"""
+        return [x.integral_over_domain for x in self.basis_functions]
+    
     def __len__(self):
         return len(self._basis_functions)
 
