@@ -361,7 +361,7 @@ def test_trig_initial():
     ],
     ids=basis_id,
 )
-def test_cheb_initial(basis_fun, integral):
+def test_integral_over_domain(basis_fun, integral):
     """Test integral over the basis function's domain"""
     assert basis_fun.integral_over_domain == pytest.approx(integral)
 
