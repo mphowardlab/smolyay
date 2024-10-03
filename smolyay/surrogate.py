@@ -59,7 +59,9 @@ class Surrogate:
             input
         """
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (num_samples, num_dimensions).")
+            raise IndexError(
+                "Must be 2D array with shape (num_samples, num_dimensions)."
+            )
 
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
@@ -439,7 +441,9 @@ class SetProductSurrogate(Surrogate):
 
         y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            raise IndexError("Must be 1D array with shape (num_samples,) or (num_samples, 1).")
+            raise IndexError(
+                "Must be 1D array with shape (num_samples,) or (num_samples, 1)."
+            )
 
         # create lookup table and solve for all the basis functions
         lookup_table = [
@@ -630,6 +634,37 @@ class SetProductSurrogate(Surrogate):
             integration_constant = y0 - predicted_y
             self._integration_constant = integration_constant
         return self
+
+    def compute_definite_integral(self):
+        """Computes the definite integral of the surrogate
+
+        Returns
+        -------
+        float
+            definite integral
+        """
+        lookup_table = [
+            self.basis_sets[dim].integral_over_domain
+            for dim in range(self.num_dimensions)
+        ]
+        # definite integral of integration constant
+        answer = numpy.sum(
+            [
+                self._integration_constant * (bs.domain[1] - bs.domain[0])
+                for bs in self.basis_sets
+            ]
+        )
+        # use lookup table to combine terms
+        for ic, coeff in zip(self._index_combinations, self._coefficients):
+            answer += numpy.real(
+                coeff
+                * numpy.prod(
+                    [lookup_table[dim][ic[dim]] for dim in range(len(ic))], axis=0
+                )
+            )
+
+        # return results
+        return answer
 
     @abc.abstractmethod
     def _create_terms(self):
