@@ -635,7 +635,7 @@ class SetProductSurrogate(Surrogate):
             self._integration_constant = integration_constant
         return self
 
-    def compute_definite_integral(self):
+    def integrate(self):
         """Computes the definite integral of the surrogate
 
         Returns
