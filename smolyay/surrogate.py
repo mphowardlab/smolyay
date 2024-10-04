@@ -642,7 +642,17 @@ class SetProductSurrogate(Surrogate):
         -------
         float
             definite integral
+
+        Raises
+        ------
+        RuntimeError
+            model must be fit
         """
+        # validate inputs
+        if self._needs_fit:
+            raise RuntimeError("Model must be fit!")
+        
+        # get integrals of all basis functions
         lookup_table = [
             self.basis_sets[dim].integrate(self.domain[dim])
             for dim in range(self.num_dimensions)

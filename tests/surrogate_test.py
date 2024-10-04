@@ -1322,3 +1322,16 @@ def test_predict_hessian_error():
     with pytest.raises(ValueError):
         surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[-4, -1], [3, 3]])
+
+
+def test_integrate_error():
+    """Test integrate raises error if model not fit"""
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
+    with pytest.raises(RuntimeError):
+        surrogate.integrate()
