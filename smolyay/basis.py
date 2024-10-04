@@ -26,11 +26,6 @@ class BasisFunction(abc.ABC):
         """numpy.ndarray: Domain the sample points come from."""
         pass
 
-    @abc.abstractmethod
-    def integrate(self):
-        """Integrate basis function over its domain."""
-        pass
-
     def __call__(self, x):
         """Evaluate the basis function.
 
@@ -140,7 +135,11 @@ class BasisFunction(abc.ABC):
             Value of the derivative of the basis function.
         """
         pass
-
+    
+    @abc.abstractmethod
+    def integrate(self):
+        """Integrate basis function over its domain."""
+        pass
 
 class ChebyshevFirstKind(BasisFunction):
     r"""Chebyshev polynomial of the first kind.
@@ -176,13 +175,6 @@ class ChebyshevFirstKind(BasisFunction):
     def degree(self):
         """int: Degree of polynomial."""
         return self._degree
-
-    def integrate(self):
-        """float: basis function integrated over the domain."""
-        if self.degree % 2 == 1:
-            return 0
-        else:
-            return 2/(1-self.degree**2)
 
     @degree.setter
     def degree(self, value):
@@ -275,6 +267,13 @@ class ChebyshevFirstKind(BasisFunction):
             return y
         else:
             raise NotImplementedError("nth derivative outside supported range (1, 2).")
+        
+    def integrate(self):
+        """Integrate the function over the domain."""
+        if self.degree % 2 == 1:
+            return 0
+        else:
+            return 2/(1-self.degree**2)
 
 
 class ChebyshevSecondKind(BasisFunction):
@@ -306,13 +305,6 @@ class ChebyshevSecondKind(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([-1, 1])
-
-    def integrate(self):
-        """float: basis function integrated over the domain."""
-        if self.degree % 2 == 1:
-            return 0
-        else:
-            return 2/(self.degree + 1)
 
     @property
     def degree(self):
@@ -413,6 +405,13 @@ class ChebyshevSecondKind(BasisFunction):
             y = y.item()
         return y
 
+    def integrate(self):
+        """Integrate the function over the domain."""
+        if self.degree % 2 == 1:
+            return 0
+        else:
+            return 2/(self.degree + 1)
+        
 
 class Trigonometric(BasisFunction):
     r"""Trigonometric basis functions.
@@ -442,13 +441,6 @@ class Trigonometric(BasisFunction):
     def domain(self):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([0, 2 * numpy.pi])
-    
-    def integrate(self):
-        """float: basis function integrated over the domain."""
-        if self.frequency == 0:
-            return 2*numpy.pi
-        else:
-            return 0
     
     @property
     def frequency(self):
@@ -513,7 +505,13 @@ class Trigonometric(BasisFunction):
         x = numpy.asarray(x)
         return numpy.exp(x * self.frequency * 1j) * (self.frequency * 1j) ** n
 
-
+    def integrate(self):
+        """Integrate the function over the domain."""
+        if self.frequency == 0:
+            return 2*numpy.pi
+        else:
+            return 0
+        
 class BasisFunctionSet(collections.abc.Sequence):
     """Set of basis functions and sample points.
 
@@ -559,23 +557,6 @@ class BasisFunctionSet(collections.abc.Sequence):
         if len(self._basis_functions) == 0:
             raise AttributeError("No basis functions to derive a domain.")
         return self._basis_functions[0].domain
-    
-    def integrate(self, domain=None):
-        """Integrate all basis functions
-        
-        Parameters
-        ----------
-        domain : numpy array of shape (2,)
-            the lower and upper bounds of X.
-            
-        Returns
-        -------
-        scalar or ndarray
-            the values of the basis functions."""
-        if domain is None:
-            return [x.integrate() for x in self.basis_functions]
-        else:
-            return [x.integrate()*(domain[1]-domain[0])/(self.domain[1]-self.domain[0]) for x in self.basis_functions]
         
     def __len__(self):
         return len(self._basis_functions)
@@ -651,6 +632,23 @@ class BasisFunctionSet(collections.abc.Sequence):
             y *= ((self.domain[1] - self.domain[0]) / (domain[1] - domain[0])) ** n
         return y
 
+    def integrate(self, domain=None):
+        """Integrate all basis functions
+        
+        Parameters
+        ----------
+        domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+            
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions."""
+        if domain is None:
+            return [x.integrate() for x in self.basis_functions]
+        else:
+            return [x.integrate()*(domain[1]-domain[0])/(self.domain[1]-self.domain[0]) for x in self.basis_functions]
+        
 
 class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
     """Set of Chebyshev polynomials of the first kind.
