@@ -26,10 +26,9 @@ class BasisFunction(abc.ABC):
         """numpy.ndarray: Domain the sample points come from."""
         pass
 
-    @property
     @abc.abstractmethod
-    def integral_over_domain(self):
-        """float: basis function integrated over the domain."""
+    def integrate(self):
+        """Integrate basis function over its domain."""
         pass
 
     def __call__(self, x):
