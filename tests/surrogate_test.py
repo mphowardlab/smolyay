@@ -265,7 +265,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(40)
+        assert surrogate.integrate() == pytest.approx(40)
 
     def test_fit_2D_domain_shift(self, surrogate_class):
         """Test fit for 2D function with different domain than basis functions"""
@@ -291,6 +291,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(3093.75)
 
     def test_fit_2D_complex(self, surrogate_class):
         """Test fit for 2D function using periodic basis function with complex outputs"""
@@ -317,7 +318,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(0)
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_2D_mixed_basis(self, surrogate_class):
         """Test fit using different basis functions for each dimension"""
@@ -349,9 +350,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(
-            8 * numpy.pi / 3 - 4 * numpy.pi
-        )
+        assert surrogate.integrate() == pytest.approx(8 * numpy.pi / 3 - 4 * numpy.pi)
 
     @pytest.mark.parametrize(
         "regularization,points",
@@ -387,6 +386,7 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-2
         )
+        assert surrogate.integrate() == pytest.approx(3093.75, rel=1e-3)
 
     def test_fit_2D_regularization_complex(self, surrogate_class):
         """Test fit when number of terms != samples for 2D function with complex basis functions"""
@@ -399,7 +399,6 @@ class TestFit2D:
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 800, 1234)
         sample_output = [fun_trig_2D(x) for x in grid.points]
         surrogate.fit(grid, sample_output)
-        print(len(surrogate._index_combinations))
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
@@ -414,6 +413,7 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
+        assert surrogate.integrate() == pytest.approx(0)
 
 
 @pytest.mark.parametrize(
@@ -454,7 +454,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(-12)
+        assert surrogate.integrate() == pytest.approx(-12)
 
     def test_fit_1D_domain_shift(self, surrogate_class):
         """Test fit for 1D function with different domain as basis"""
@@ -483,6 +483,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(2103.75)
 
     def test_fit_1D_complex(self, surrogate_class):
         """Test fit for 1D function using periodic basis function with complex outputs"""
@@ -509,7 +510,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(0)
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_1D_regularization_complex(self, surrogate_class):
         """Test fit when number of terms != samples for 1D function with complex basis functions"""
@@ -532,6 +533,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(0)
 
     @pytest.mark.parametrize(
         "regularization",
@@ -568,6 +570,7 @@ class TestFit1D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
+        assert surrogate.integrate() == pytest.approx(2103.75, rel=1e-3)
 
 
 def test_fit_error():
@@ -641,7 +644,7 @@ class TestFitGradient2D:
             grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
-        assert surrogate.compute_definite_integral() == pytest.approx(40)
+        assert surrogate.integrate() == pytest.approx(40)
 
     def test_fit_gradient_2D_domain_shift(self, surrogate_class):
         """Test fit_gradient for 2D function with different domain as basis"""
@@ -680,6 +683,7 @@ class TestFitGradient2D:
             grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(3093.75)
 
     def test_fit_gradient_2D_complex(self, surrogate_class):
         """Test fit_gradient using periodic basis function with complex outputs"""
@@ -711,7 +715,7 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        assert surrogate.compute_definite_integral() == pytest.approx(0)
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_gradient_2D_mixed_basis(self, surrogate_class):
         """Test fit_gradient using different basis functions for each dimension"""
@@ -748,9 +752,6 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
-        assert surrogate.compute_definite_integral() == pytest.approx(
-            8 * numpy.pi / 3 - 4 * numpy.pi
-        )
 
     @pytest.mark.parametrize(
         "regularization",
@@ -823,6 +824,7 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
+        assert surrogate.integrate() == pytest.approx(0)
 
 
 @pytest.mark.parametrize(
@@ -872,6 +874,7 @@ class TestFitGradient1D:
             grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(-12)
 
     def test_fit_gradient_1D_domain_shift(self, surrogate_class):
         """Test fit_gradient for 1D function with different domain as basis"""
@@ -909,6 +912,7 @@ class TestFitGradient1D:
             grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(2103.75)
 
     def test_fit_gradient_1D_complex(self, surrogate_class):
         """Test fit_gradient using periodic basis function with complex outputs"""
@@ -942,6 +946,7 @@ class TestFitGradient1D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
+        assert surrogate.integrate() == pytest.approx(0)
 
     @pytest.mark.parametrize(
         "regularization",

@@ -644,15 +644,12 @@ class SetProductSurrogate(Surrogate):
             definite integral
         """
         lookup_table = [
-            self.basis_sets[dim].integral_over_domain
+            self.basis_sets[dim].integrate(self.domain[dim])
             for dim in range(self.num_dimensions)
         ]
         # definite integral of integration constant
-        answer = numpy.sum(
-            [
-                self._integration_constant * (bs.domain[1] - bs.domain[0])
-                for bs in self.basis_sets
-            ]
+        answer = self._integration_constant * numpy.prod(
+            self.domain[:,1] - self.domain[:,0]
         )
         # use lookup table to combine terms
         for ic, coeff in zip(self._index_combinations, self._coefficients):
