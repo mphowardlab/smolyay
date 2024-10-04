@@ -394,6 +394,44 @@ class SetProductSurrogate(Surrogate):
         answer.reshape(list(X.shape) + [self.num_dimensions])
         return answer
 
+    def integrate(self):
+        """Computes the definite integral of the surrogate
+
+        Returns
+        -------
+        float
+            definite integral
+
+        Raises
+        ------
+        RuntimeError
+            model must be fit
+        """
+        # validate inputs
+        if self._needs_fit:
+            raise RuntimeError("Model must be fit!")
+
+        # get integrals of all basis functions
+        lookup_table = [
+            self.basis_sets[dim].integrate(self.domain[dim])
+            for dim in range(self.num_dimensions)
+        ]
+        # definite integral of integration constant
+        answer = self._integration_constant * numpy.prod(
+            self.domain[:, 1] - self.domain[:, 0]
+        )
+        # use lookup table to combine terms
+        for ic, coeff in zip(self._index_combinations, self._coefficients):
+            answer += numpy.real(
+                coeff
+                * numpy.prod(
+                    [lookup_table[dim][ic[dim]] for dim in range(len(ic))], axis=0
+                )
+            )
+
+        # return results
+        return answer
+
     def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
 
@@ -634,44 +672,6 @@ class SetProductSurrogate(Surrogate):
             integration_constant = y0 - predicted_y
             self._integration_constant = integration_constant
         return self
-
-    def integrate(self):
-        """Computes the definite integral of the surrogate
-
-        Returns
-        -------
-        float
-            definite integral
-
-        Raises
-        ------
-        RuntimeError
-            model must be fit
-        """
-        # validate inputs
-        if self._needs_fit:
-            raise RuntimeError("Model must be fit!")
-        
-        # get integrals of all basis functions
-        lookup_table = [
-            self.basis_sets[dim].integrate(self.domain[dim])
-            for dim in range(self.num_dimensions)
-        ]
-        # definite integral of integration constant
-        answer = self._integration_constant * numpy.prod(
-            self.domain[:,1] - self.domain[:,0]
-        )
-        # use lookup table to combine terms
-        for ic, coeff in zip(self._index_combinations, self._coefficients):
-            answer += numpy.real(
-                coeff
-                * numpy.prod(
-                    [lookup_table[dim][ic[dim]] for dim in range(len(ic))], axis=0
-                )
-            )
-
-        # return results
-        return answer
 
     @abc.abstractmethod
     def _create_terms(self):
