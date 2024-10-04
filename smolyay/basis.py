@@ -177,8 +177,7 @@ class ChebyshevFirstKind(BasisFunction):
         """int: Degree of polynomial."""
         return self._degree
 
-    @property
-    def integral_over_domain(self):
+    def integrate(self):
         """float: basis function integrated over the domain."""
         if self.degree % 2 == 1:
             return 0
@@ -308,8 +307,7 @@ class ChebyshevSecondKind(BasisFunction):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([-1, 1])
 
-    @property
-    def integral_over_domain(self):
+    def integrate(self):
         """float: basis function integrated over the domain."""
         if self.degree % 2 == 1:
             return 0
@@ -445,8 +443,7 @@ class Trigonometric(BasisFunction):
         """numpy.ndarray: Domain the sample points come from."""
         return numpy.array([0, 2 * numpy.pi])
     
-    @property
-    def integral_over_domain(self):
+    def integrate(self):
         """float: basis function integrated over the domain."""
         if self.frequency == 0:
             return 2*numpy.pi
@@ -563,10 +560,23 @@ class BasisFunctionSet(collections.abc.Sequence):
             raise AttributeError("No basis functions to derive a domain.")
         return self._basis_functions[0].domain
     
-    def integrate(self):
-        """All basis functions integrated over their domain"""
-        return [x.integral_over_domain for x in self.basis_functions]
-    
+    def integrate(self, domain=None):
+        """Integrate all basis functions
+        
+        Parameters
+        ----------
+        domain : numpy array of shape (2,)
+            the lower and upper bounds of X.
+            
+        Returns
+        -------
+        scalar or ndarray
+            the values of the basis functions."""
+        if domain is None:
+            return [x.integrate() for x in self.basis_functions]
+        else:
+            return [x.integrate()*(domain[1]-domain[0])/(self.domain[1]-self.domain[0]) for x in self.basis_functions]
+        
     def __len__(self):
         return len(self._basis_functions)
 
