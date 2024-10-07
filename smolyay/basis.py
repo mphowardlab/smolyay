@@ -647,6 +647,7 @@ class BasisFunctionSet(collections.abc.Sequence):
         result = numpy.array([x.integrate() for x in self.basis_functions])
         if domain is not None:
             result *= (domain[1]-domain[0])/(self.domain[1]-self.domain[0])
+        return result
         
 
 class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
