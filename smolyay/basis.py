@@ -644,10 +644,9 @@ class BasisFunctionSet(collections.abc.Sequence):
         -------
         scalar or ndarray
             the values of the basis functions."""
-        if domain is None:
-            return [x.integrate() for x in self.basis_functions]
-        else:
-            return [x.integrate()*(domain[1]-domain[0])/(self.domain[1]-self.domain[0]) for x in self.basis_functions]
+        result = numpy.array([x.integrate() for x in self.basis_functions])
+        if domain is not None:
+            result *= (domain[1]-domain[0])/(self.domain[1]-self.domain[0])
         
 
 class ChebyshevFirstKindBasisFunctionSet(BasisFunctionSet):
