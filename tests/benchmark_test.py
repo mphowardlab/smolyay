@@ -126,9 +126,11 @@ def test_call_shape_1D(test_class_1):
     x = 0.5
     x_2array = numpy.array([0.5, 0.6, 0.7, 0.8], ndmin=2)
     x_3array = numpy.array([[0.5, 0.6, 0.7], [0.44, 0.55, 0.66]])
+    x_pointset = smolyay.samples.HaltonRandomPointSet(test_class_1.domain, 15, 1)
     assert numpy.ndim(test_class_1(x)) == 0
     assert len(test_class_1(x_2array)) == 4
     assert x_3array.shape == test_class_1(x_3array).shape
+    assert test_class_1(x_pointset).shape == (15,)
 
 
 def test_call_shape_3D(test_class_3):
@@ -143,9 +145,11 @@ def test_call_shape_3D(test_class_3):
             [[5, -3, 12.1], [6, -3.5, 12.2], [7, -3.6, 12.3], [8, -3.7, 12.4]],
         ]
     )
+    x_pointset = smolyay.samples.HaltonRandomPointSet(test_class_3.domain, 15, 1)
     assert numpy.ndim(test_class_3(x)) == 0
     assert len(test_class_3(x_2array)) == 4
     assert x_3array.shape[:-1] == test_class_3(x_3array).shape
+    assert test_class_3(x_pointset).shape == (15,)
 
 
 def test_class_dimension_error(test_class_3):
