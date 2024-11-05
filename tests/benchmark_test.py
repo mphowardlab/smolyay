@@ -5,11 +5,8 @@ import numpy
 import importlib
 import inspect
 
-from smolyay.basis import ChebyshevFirstKind
-import smolyay.benchmark
+import smolyay 
 from smolyay.benchmark import (BenchmarkFunction, branin)
-from smolyay.grid import SmolyakGridGenerator
-from smolyay.surrogate import Surrogate
 
 
 class TestClass1D(BenchmarkFunction):
@@ -70,7 +67,7 @@ def test_dimension(test_class_1,test_class_3):
     assert test_class_3.dimension == 3
 
 @pytest.mark.filterwarnings("error")
-def test_call_no_error_1(test_class_1,test_class_3):
+def test_call_no_error_1(test_class_1):
     """Test valid inputs of call give no errors for 1D functions"""
     x_1d = numpy.linspace(test_class_1.lower_bounds,test_class_1.upper_bounds)
     for x in x_1d:
@@ -137,6 +134,29 @@ def test_class_dimension_error(test_class_3):
         test_class_3(x_2array)   
     with pytest.raises(IndexError):
         test_class_3(x_3array)
+
+def test_class_pointset_dimension_error(test_class_1,test_class_3):
+    """Test error wrong dimension of UnidimensionalPointSet and MultidimensionalPointSet"""
+    x_1D = smolyay.samples.ClenshawCurtisPointSet([1,5],6)
+    x_2D = smolyay.samples.HaltonRandomPointSet([[1,5],[1,5]],15,1)
+    with pytest.raises(IndexError):
+        test_class_3(x_1D)
+    with pytest.raises(IndexError):
+        test_class_3(x_2D)
+    with pytest.raises(IndexError):
+        test_class_1(x_2D)
+
+def test_class_pointset_domain_error(test_class_1,test_class_3):
+    """Test error wrong domain of UnidimensionalPointSet and MultidimensionalPointSet"""
+    x_1D = smolyay.samples.ClenshawCurtisPointSet([0,5],6)
+    x_multi_1D = smolyay.samples.HaltonRandomPointSet([0,5],15,1)
+    x_3D = smolyay.samples.HaltonRandomPointSet([[1,5],[1,5],[12,13]],15,1)
+    with pytest.raises(ValueError):
+        test_class_1(x_1D)
+    with pytest.raises(ValueError):
+        test_class_1(x_multi_1D)
+    with pytest.raises(ValueError):
+        test_class_3(x_3D)
 
 @pytest.mark.filterwarnings("error")
 def test_call_no_error_multi_input_1D(test_class_1):
