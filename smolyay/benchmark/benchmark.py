@@ -3,6 +3,7 @@ import abc
 import numpy
 from smolyay import samples
 
+
 class BenchmarkFunction(abc.ABC):
     """Benchmark Function
 
@@ -11,7 +12,8 @@ class BenchmarkFunction(abc.ABC):
     solutions exist or can be arbitrary.
 
     """
-    def __call__(self,x):
+
+    def __call__(self, x):
         """Evaluate the function.
 
         Parameters
@@ -30,16 +32,18 @@ class BenchmarkFunction(abc.ABC):
             # input has a domain property, so just compare domain properties
             if self.dimension > 1:
                 raise IndexError("Input must match dimension of domain")
-            if x.domain[0]  < self.domain[0][0] or x.domain[1]  > self.domain[0][1]:
+            if x.domain[0] < self.domain[0][0] or x.domain[1] > self.domain[0][1]:
                 raise ValueError("Input outside domain of function.")
             x = x.points
         elif isinstance(x, samples.MultidimensionalPointSet):
             # input has a domain property, so just compare domain properties
             if self.dimension != x.num_dimensions:
                 raise IndexError("Input must match dimension of domain")
-            if any(x.domain[i][0] < self.domain[i][0] or x.domain[i][1] > self.domain[i][1]
-                for i in range(self.dimension)):
-                    raise ValueError("Input outside domain of function.")
+            if any(
+                x.domain[i][0] < self.domain[i][0] or x.domain[i][1] > self.domain[i][1]
+                for i in range(self.dimension)
+            ):
+                raise ValueError("Input outside domain of function.")
             x = x.points
         else:
             # does not have a domain property, need to check all values are in domain
@@ -59,7 +63,7 @@ class BenchmarkFunction(abc.ABC):
             ):
                 raise ValueError("Input outside domain of function.")
         return numpy.squeeze(self._function(x))
-    
+
     @property
     def name(self):
         """str: Name of the function"""
@@ -74,7 +78,7 @@ class BenchmarkFunction(abc.ABC):
     def lower_bounds(self):
         """list: the lower bounds of the domain of each variable."""
         return [bound[0] for bound in self.domain]
-    
+
     @property
     def upper_bounds(self):
         """list: the upper bounds of the domain of each variable."""
@@ -84,14 +88,11 @@ class BenchmarkFunction(abc.ABC):
     @abc.abstractmethod
     def domain(self):
         """list: Domain of the function.
-        
+
         The domain must be specified as lower and upper bounds for each variable as a list of lists.
         """
         pass
- 
+
     @abc.abstractmethod
-    def _function(self,x):
+    def _function(self, x):
         pass
-
-
-
