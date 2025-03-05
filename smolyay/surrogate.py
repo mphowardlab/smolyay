@@ -59,7 +59,9 @@ class Surrogate:
             input
         """
         if X.shape[1] != self.num_dimensions:
-            raise IndexError("Must be 2D array with shape (num_samples, num_dimensions).")
+            raise IndexError(
+                "Must be 2D array with shape (num_samples, num_dimensions)."
+            )
 
         oob = any(
             numpy.any(X[:, i] < self.domain[i][0])
@@ -392,6 +394,44 @@ class SetProductSurrogate(Surrogate):
         answer.reshape(list(X.shape) + [self.num_dimensions])
         return answer
 
+    def integrate(self):
+        """Computes the definite integral of the surrogate
+
+        Returns
+        -------
+        float
+            definite integral
+
+        Raises
+        ------
+        RuntimeError
+            model must be fit
+        """
+        # validate inputs
+        if self._needs_fit:
+            raise RuntimeError("Model must be fit!")
+
+        # get integrals of all basis functions
+        lookup_table = [
+            self.basis_sets[dim].integrate(self.domain[dim])
+            for dim in range(self.num_dimensions)
+        ]
+        # definite integral of integration constant
+        answer = self._integration_constant * numpy.prod(
+            self.domain[:, 1] - self.domain[:, 0]
+        )
+        # use lookup table to combine terms
+        for ic, coeff in zip(self._index_combinations, self._coefficients):
+            answer += numpy.real(
+                coeff
+                * numpy.prod(
+                    [lookup_table[dim][ic[dim]] for dim in range(len(ic))], axis=0
+                )
+            )
+
+        # return results
+        return answer
+
     def fit(self, X, y):
         """Fit surrogate's components (basis functions) to data.
 
@@ -439,7 +479,9 @@ class SetProductSurrogate(Surrogate):
 
         y = numpy.asarray(y)
         if y.shape != (X.shape[0],) and y.shape != (X.shape[0], 1):
-            raise IndexError("Must be 1D array with shape (num_samples,) or (num_samples, 1).")
+            raise IndexError(
+                "Must be 1D array with shape (num_samples,) or (num_samples, 1)."
+            )
 
         # create lookup table and solve for all the basis functions
         lookup_table = [

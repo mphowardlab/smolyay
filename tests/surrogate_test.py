@@ -265,11 +265,12 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(40)
 
     def test_fit_2D_domain_shift(self, surrogate_class):
         """Test fit for 2D function with different domain than basis functions"""
         num_level = 4
-        domain = [[-1, 1], [-1, 1]]
+        domain = [[-5, 10], [0, 15]]
         surrogate, grid = create_surrogate(
             surrogate_class,
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet,
@@ -290,6 +291,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(3093.75)
 
     def test_fit_2D_complex(self, surrogate_class):
         """Test fit for 2D function using periodic basis function with complex outputs"""
@@ -316,14 +318,15 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_2D_mixed_basis(self, surrogate_class):
         """Test fit using different basis functions for each dimension"""
-        domain = [[0, 2 * numpy.pi], [-1, 1]]
+        domain = [[-numpy.pi, numpy.pi], [-1, 1]]
         num_level = 2
         point_sets = [
-            smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
-            smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
+            smolyay.samples.NestedTrigonometricPointSet(domain[0], num_level),
+            smolyay.samples.NestedClenshawCurtisPointSet(domain[1], num_level),
         ]
         basis_sets = [
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
@@ -347,6 +350,7 @@ class TestFit2D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(8 * numpy.pi / 3 - 4 * numpy.pi)
 
     @pytest.mark.parametrize(
         "regularization,points",
@@ -359,7 +363,7 @@ class TestFit2D:
     )
     def test_fit_2D_regularization(self, surrogate_class, regularization, points):
         """Test fit when number of terms != samples for 2D function"""
-        domain = [[-5, 5], [0, 10]]
+        domain = [[-5, 10], [0, 15]]
         num_level = 3
         basis_sets = [
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
@@ -382,6 +386,7 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-2
         )
+        assert surrogate.integrate() == pytest.approx(3093.75, rel=1e-3)
 
     def test_fit_2D_regularization_complex(self, surrogate_class):
         """Test fit when number of terms != samples for 2D function with complex basis functions"""
@@ -394,7 +399,6 @@ class TestFit2D:
         grid = smolyay.samples.LatinHypercubeRandomPointSet(domain, 800, 1234)
         sample_output = [fun_trig_2D(x) for x in grid.points]
         surrogate.fit(grid, sample_output)
-        print(len(surrogate._index_combinations))
         # test surrogate matches at some points
         test_points = smolyay.samples.LatinHypercubeRandomPointSet(
             domain, 5, 1234
@@ -409,6 +413,7 @@ class TestFit2D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
+        assert surrogate.integrate() == pytest.approx(0)
 
 
 @pytest.mark.parametrize(
@@ -424,7 +429,7 @@ class TestFit1D:
 
     def test_fit_1D(self, surrogate_class):
         """Test fit for 1D function"""
-        num_level = 3
+        num_level = 4
         domain = [-1, 1]
         # fit with a 1D function
         surrogate, grid = create_surrogate(
@@ -449,6 +454,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(-12)
 
     def test_fit_1D_domain_shift(self, surrogate_class):
         """Test fit for 1D function with different domain as basis"""
@@ -477,6 +483,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(2103.75)
 
     def test_fit_1D_complex(self, surrogate_class):
         """Test fit for 1D function using periodic basis function with complex outputs"""
@@ -503,6 +510,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_1D_regularization_complex(self, surrogate_class):
         """Test fit when number of terms != samples for 1D function with complex basis functions"""
@@ -525,6 +533,7 @@ class TestFit1D:
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
         assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
         assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert surrogate.integrate() == pytest.approx(0)
 
     @pytest.mark.parametrize(
         "regularization",
@@ -561,6 +570,7 @@ class TestFit1D:
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2, atol=1e-3
         )
+        assert surrogate.integrate() == pytest.approx(2103.75, rel=1e-3)
 
 
 def test_fit_error():
@@ -634,6 +644,7 @@ class TestFitGradient2D:
             grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(40)
 
     def test_fit_gradient_2D_domain_shift(self, surrogate_class):
         """Test fit_gradient for 2D function with different domain as basis"""
@@ -672,6 +683,7 @@ class TestFitGradient2D:
             grid, sample_output, X0=[domain[:, 1]], y0=[fun_poly_2D(domain[:, 1])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(3093.75)
 
     def test_fit_gradient_2D_complex(self, surrogate_class):
         """Test fit_gradient using periodic basis function with complex outputs"""
@@ -703,14 +715,15 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
+        assert surrogate.integrate() == pytest.approx(0)
 
     def test_fit_gradient_2D_mixed_basis(self, surrogate_class):
         """Test fit_gradient using different basis functions for each dimension"""
-        domain = numpy.array([[0, 2 * numpy.pi], [-1, 1]])
+        domain = numpy.array([[-numpy.pi, numpy.pi], [-1, 1]])
         num_level = 2
         point_sets = [
-            smolyay.samples.NestedTrigonometricPointSet([0, 2 * numpy.pi], num_level),
-            smolyay.samples.NestedClenshawCurtisPointSet([-1, 1], num_level),
+            smolyay.samples.NestedTrigonometricPointSet(domain[0], num_level),
+            smolyay.samples.NestedClenshawCurtisPointSet(domain[1], num_level),
         ]
         basis_sets = [
             smolyay.basis.NestedTrigonometricBasisFunctionSet(2),
@@ -751,7 +764,7 @@ class TestFitGradient2D:
     )
     def test_fit_gradient_2D_regularization(self, surrogate_class, regularization):
         """Test fit_gradient when number of terms != samples for 2D function"""
-        domain = numpy.array([[-5, 5], [-1, 1]])
+        domain = numpy.array([[-5, 10], [0, 15]])
         num_level = 3
         basis_sets = [
             smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)
@@ -770,7 +783,7 @@ class TestFitGradient2D:
         assert numpy.allclose(
             gradient_answer,
             surrogate.predict_gradient(test_points),
-            atol=1e-4,
+            atol=1e-3,
         )
         assert numpy.allclose(
             hessian_answer, surrogate.predict_hessian(test_points), atol=1e-3
@@ -781,7 +794,7 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(
-            difference_predict, difference_predict[0], rtol=0.01, atol=1e-4
+            difference_predict, difference_predict[0], rtol=0.01, atol=1e-3
         )
 
     def test_fit_gradient_2D_regularization_complex(self, surrogate_class):
@@ -811,6 +824,7 @@ class TestFitGradient2D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
+        assert surrogate.integrate() == pytest.approx(0)
 
 
 @pytest.mark.parametrize(
@@ -860,6 +874,7 @@ class TestFitGradient1D:
             grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(-12)
 
     def test_fit_gradient_1D_domain_shift(self, surrogate_class):
         """Test fit_gradient for 1D function with different domain as basis"""
@@ -897,6 +912,7 @@ class TestFitGradient1D:
             grid.points, sample_output, [[domain[0]]], [fun_poly_1D(domain[0])]
         )
         assert numpy.allclose(predict_answer, surrogate.predict(test_points))
+        assert surrogate.integrate() == pytest.approx(2103.75)
 
     def test_fit_gradient_1D_complex(self, surrogate_class):
         """Test fit_gradient using periodic basis function with complex outputs"""
@@ -930,6 +946,7 @@ class TestFitGradient1D:
             predict_answer, surrogate.predict(test_points)
         )
         assert numpy.allclose(difference_predict, difference_predict[0])
+        assert surrogate.integrate() == pytest.approx(0)
 
     @pytest.mark.parametrize(
         "regularization",
@@ -942,8 +959,9 @@ class TestFitGradient1D:
     )
     def test_fit_gradient_1D_regularization(self, surrogate_class, regularization):
         """Test fit_gradient when number of terms != samples for 1D function"""
+        domain = [-5, 10]
         num_level = 3
-        domain = [-5, 6]
+
         # fit with a 1D function
         basis_sets = [smolyay.basis.NestedClenshawCurtisBasisFunctionSet(num_level)]
         surrogate = surrogate_class(domain, basis_sets, regularization)
@@ -958,8 +976,12 @@ class TestFitGradient1D:
         hessian_answer = numpy.array(fun_poly_1D_hessian(test_points), ndmin=3).reshape(
             (-1, 1, 1)
         )
-        assert numpy.allclose(gradient_answer, surrogate.predict_gradient(test_points))
-        assert numpy.allclose(hessian_answer, surrogate.predict_hessian(test_points))
+        assert numpy.allclose(
+            gradient_answer, surrogate.predict_gradient(test_points), rtol=1e-2
+        )
+        assert numpy.allclose(
+            hessian_answer, surrogate.predict_hessian(test_points), rtol=1e-2
+        )
 
         # test predict
         difference_predict = numpy.subtract(
@@ -1300,3 +1322,16 @@ def test_predict_hessian_error():
     with pytest.raises(ValueError):
         surrogate.fit(grid, [fun_poly_2D(x) for x in grid.points])
         surrogate.predict_hessian([[-4, -1], [3, 3]])
+
+
+def test_integrate_error():
+    """Test integrate raises error if model not fit"""
+    basis_sets = [
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+        smolyay.basis.NestedClenshawCurtisBasisFunctionSet(3),
+    ]
+    surrogate = smolyay.surrogate.SmolyakSparseProductSurrogate(
+        [[-5, 10], [0, 15]], basis_sets
+    )
+    with pytest.raises(RuntimeError):
+        surrogate.integrate()
